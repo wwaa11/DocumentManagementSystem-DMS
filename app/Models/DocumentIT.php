@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentIT extends Model
 {
-    protected $table = 'documents_it';
+    protected $table = 'document_its';
 
     private $documentStatuses = [
         'support',      // Support Document ขอแจ้งงาน/สนับสนุนการทำงาน

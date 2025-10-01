@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('detail');
             $table->string('status')->default('approval');
+            $table->string('assigned_user_id')->nullable();
             $table->timestamps();
         });
 
@@ -31,10 +32,11 @@ return new class extends Migration
             $table->string('title');
             $table->text('detail');
             $table->string('status')->default('approval');
+            $table->string('assigned_user_id')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('document_labs', function (Blueprint $table) {
+        Schema::create('document_pacs', function (Blueprint $table) {
             $table->id();
             $table->string('requester');
             $table->foreign('requester')->references('userid')->on('users');
@@ -42,6 +44,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('detail');
             $table->string('status')->default('approval');
+            $table->string('assigned_user_id')->nullable();
             $table->timestamps();
         });
 
@@ -87,9 +90,14 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('document_its');
+        Schema::dropIfExists('document_hcs');
+        Schema::dropIfExists('document_pacs');
         Schema::dropIfExists('approvers');
         Schema::dropIfExists('files');
         Schema::dropIfExists('activity_logs');

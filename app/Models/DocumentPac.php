@@ -3,7 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DocumentHcs extends Model
+class DocumentPac extends Model
 {
-    protected $table = 'documents_hcs';
+    protected $table = 'document_pacs';
 }

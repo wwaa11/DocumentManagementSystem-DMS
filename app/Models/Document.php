@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,4 +13,10 @@ class Document extends Model
         'short_name',
         'name',
     ];
+
+    public function scopeActive(Builder $query): Builder
+    {
+
+        return $query->where('active', true);
+    }
 }
