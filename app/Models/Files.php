@@ -5,9 +5,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Files extends Model
 {
-    public function fileable(): MorphTo
+    public function fileable()
     {
-        // 'fileable' matches the argument passed to $table->morphs('fileable')
+        // 'fileable' must match the prefix used in the files table migration
         return $this->morphTo();
     }
 }

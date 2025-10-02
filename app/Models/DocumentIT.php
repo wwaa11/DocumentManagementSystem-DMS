@@ -20,4 +20,25 @@ class DocumentIT extends Model
         'finish',       // Document is finished
     ];
 
+    // Relationship to Approver
+    public function approvers()
+    {
+        // 'approvable' must match the prefix used in the approvers table migration
+        return $this->morphMany(Approver::class, 'approvable');
+    }
+
+    // Relationship to Files
+    public function files()
+    {
+        // 'fileable' must match the prefix used in the files table migration
+        return $this->morphMany(File::class, 'fileable');
+    }
+
+    // Relationship to Activity Logs
+    public function activityLogs()
+    {
+        // 'loggable' must match the prefix used in the activity_logs table migration
+        return $this->morphMany(ActivityLog::class, 'loggable');
+    }
+
 }

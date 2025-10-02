@@ -5,9 +5,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Approver extends Model
 {
-    public function approvable(): MorphTo
+    protected $table = 'approvers';
+
+    protected $fillable = [
+        'userid',
+        'step',
+    ];
+
+    public function approvable()
     {
-        // 'approvable' matches the argument passed to $table->morphs('approvable')
+        // 'approvable' must match the prefix used in the approvers table migration
+        // This will return the parent document (DocumentIT, DocumentHC, or DocumentPac)
         return $this->morphTo();
     }
 }

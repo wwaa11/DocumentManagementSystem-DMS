@@ -57,6 +57,7 @@
             })
             .then(response => {
                 if (response.data.status === 'success') {
+                    localStorage.setItem('activeRoute', 'document.index');
                     window.location.href = '{{ route("document.index") }}';
                 } else {
                     Swal.fire({

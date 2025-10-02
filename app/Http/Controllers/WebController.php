@@ -42,6 +42,9 @@ class WebController extends Controller
             case 'media':
                 $view = 'document.media.create';
                 break;
+            case 'purchase':
+                $view = 'document.purchase.create';
+                break;
             default:
                 return redirect()->route('document.create');
                 break;

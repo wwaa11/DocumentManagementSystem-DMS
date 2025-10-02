@@ -47,10 +47,13 @@
             title: "ต้องการออกจากระบบหรือไม่?",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#66cc8a",
-            cancelButtonColor: "gray",
             confirmButtonText: "ตกลง",
-            cancelButtonText: "ยกเลิก"
+            cancelButtonText: "ยกเลิก",
+            buttonsStyling: false,
+            customClass: {
+                confirmButton: 'btn btn-error mx-3', // DaisyUI Primary Color
+                cancelButton: 'btn btn-ghost mx-3' // DaisyUI Ghost/subtle style
+            },
         }).then((result) => {
             if (result.isConfirmed) {
                 localStorage.setItem('activeRoute', 'logout');

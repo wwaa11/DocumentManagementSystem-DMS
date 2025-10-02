@@ -44,6 +44,7 @@ class AuthController extends Controller
                         $userData->position   = $responseData['user']['position'];
                         $userData->department = $responseData['user']['department'];
                         $userData->division   = $responseData['user']['division'];
+                        $userData->email      = $responseData['user']['email'];
                         $userData->save();
                     }
                 }
@@ -90,6 +91,7 @@ class AuthController extends Controller
             $userData->position   = $responseData['user']['position'];
             $userData->department = $responseData['user']['department'];
             $userData->division   = $responseData['user']['division'];
+            $userData->email      = $responseData['user']['email'];
             $userData->save();
 
             Auth::login($userData);

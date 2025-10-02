@@ -1,75 +1,85 @@
- <!-- Approver Section -->
+<!-- Approver Section -->
  @if (auth()->user()->getapprover)
      {{-- Approver Information Card --}}
-     <div class="card card-compact border-base-300 bg-base-100 border shadow-lg">
-         <div class="card-body">
+     <div class="card border-base-300 bg-base-100 shadow-lg">
+         <div class="card-body p-6">
              {{-- Header/Status --}}
-             <h2 class="card-title text-success">
-                 <i class="fas fa-user-check"></i> ผู้อนุมัติแผนก {{ auth()->user()->department }}
+             <h2 class="card-title text-success mb-4 text-2xl">
+                 <i class="fas fa-user-check mr-2"></i> ผู้อนุมัติแผนก {{ auth()->user()->department }}
              </h2>
              {{-- Display Approver Details (Using a Grid for better alignment) --}}
-             <div class="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
+             <div class="grid grid-cols-1 gap-y-4 gap-x-6 md:grid-cols-2">
                  {{-- User ID & Name --}}
-                 <label class="form-control">
-                     <div class="label pb-0">
-                         <span class="text-success"><i class="fas fa-id-badge"></i></span> <span class="label-text text-base-content/70 font-medium">รหัสพนักงาน / ชื่อ</span>
-                     </div>
+                 <div class="form-control">
+                     <label class="label pb-1">
+                         <span class="label-text text-base-content/70 font-medium flex items-center">
+                             <i class="fas fa-id-badge text-success mr-2"></i> รหัสพนักงาน / ชื่อ
+                         </span>
+                     </label>
                      <div class="input-group">
                          <input id="approver_userid" type="hidden" name="approver[userid]" value="{{ auth()->user()->getapprover->approver->userid }}">
                          <input class="input input-bordered w-full font-semibold" id="approver_userid_name" type="text" readonly value="{{ auth()->user()->getapprover->approver->userid }} - {{ auth()->user()->getapprover->approver->name }}" />
                      </div>
-                 </label>
+                 </div>
                  {{-- Position --}}
-                 <label class="form-control">
-                     <div class="label pb-0">
-                         <span class="text-success"><i class="fas fa-briefcase"></i></span> <span class="label-text text-base-content/70 font-medium">ตำแหน่ง</span>
-                     </div>
+                 <div class="form-control">
+                     <label class="label pb-1">
+                         <span class="label-text text-base-content/70 font-medium flex items-center">
+                             <i class="fas fa-briefcase text-success mr-2"></i> ตำแหน่ง
+                         </span>
+                     </label>
                      <div class="input-group">
                          <input class="input input-bordered w-full" id="approver_position" type="text" readonly value="{{ auth()->user()->getapprover->approver->position }}" />
                      </div>
-                 </label>
+                 </div>
                  {{-- Email --}}
-                 <label class="form-control md:col-span-2">
-                     <div class="label pb-0">
-                         <span class="text-success"><i class="fas fa-envelope"></i></span><span class="label-text text-base-content/70 font-medium">อีเมล</span>
-                     </div>
+                 <div class="form-control md:col-span-2">
+                     <label class="label pb-1">
+                         <span class="label-text text-base-content/70 font-medium flex items-center">
+                             <i class="fas fa-envelope text-success mr-2"></i> อีเมล
+                         </span>
+                     </label>
                      <div class="input-group">
                          <input class="input input-bordered w-full" id="approver_email" type="email" readonly name="approver[email]" value="{{ auth()->user()->getapprover->approver->email }}" />
                      </div>
-                 </label>
+                 </div>
              </div>
 
              {{-- Action Button (Change Approver) --}}
-             <div class="card-actions mt-4 justify-end">
-                 <button class="btn btn-sm btn-outline btn-primary gap-2" id="change-approver-btn" type="button" onclick="showApproverSelection()">
+             <div class="card-actions mt-6 justify-end">
+                 <button class="btn btn-outline btn-primary gap-2" id="change-approver-btn" type="button" onclick="showApproverSelection()">
                      <i class="fas fa-exchange-alt"></i> เปลี่ยนผู้อนุมัติ
                  </button>
              </div>
          </div>
      </div>
      {{-- Approver Selection Dropdown (Initially Hidden) --}}
-     <div class="dropdown dropdown-end mt-4 max-h-0 w-full overflow-hidden opacity-0 transition-all duration-500 ease-in-out" id="approver-selection">
+     <div class="dropdown dropdown-end mt-4 w-full hidden" id="approver-selection">
          <div class="bg-base-200 rounded-box p-4 shadow-xl">
-             <label class="form-control">
+             <label class="form-control mb-4">
                  <div class="label">
-                     <span class="label-text font-semibold">ค้นหาผู้อนุมัติ</span>
+                     <span class="label-text font-semibold text-lg">ค้นหาผู้อนุมัติ</span>
                  </div>
                  <div class="join w-full">
                      <input class="join-item input input-bordered w-full" id="approver-search" type="text" placeholder="ค้นหาด้วยชื่อหรือรหัสพนักงาน">
-                     <button class="join-item btn btn-square btn-primary" type="button" onclick="searchApprover()">
-                         <i class="fas fa-search"></i>
+                     <button class="join-item btn btn-primary" type="button" onclick="searchApprover()">
+                         <i class="fas fa-search"></i> ค้นหา
                      </button>
                  </div>
              </label>
+             {{-- Search Results Display --}}
+             <div id="approver-search-results" class="mt-4">
+                 {{-- Results will be appended here --}}
+             </div>
          </div>
      </div>
  @else
      {{-- No Approver Found Alert --}}
-     <div class="alert alert-error shadow-lg" role="alert">
-         <i class="fas fa-exclamation-triangle"></i>
+     <div class="alert alert-error shadow-lg rounded-lg p-4 flex items-center">
+         <i class="fas fa-exclamation-triangle text-2xl mr-3"></i>
          <div>
-             <h3 class="font-bold">ไม่มีผู้อนุมัติกำหนดไว้!</h3>
-             <div class="text-xs">โปรดติดต่อผู้ดูแลระบบเพื่อเพิ่มผู้อนุมัติสำหรับคุณ</div>
+             <h3 class="font-bold text-lg">ไม่มีผู้อนุมัติกำหนดไว้!</h3>
+             <p class="text-sm">โปรดติดต่อผู้ดูแลระบบเพื่อเพิ่มผู้อนุมัติสำหรับคุณ</p>
          </div>
      </div>
  @endif
@@ -78,17 +88,7 @@
      <script>
          function showApproverSelection() {
              const $selectionDiv = $('#approver-selection');
-             // Check if the element is currently hidden (has max-h-0)
-             if ($selectionDiv.hasClass('max-h-0')) {
-                 // SHOW: Remove hidden state and apply visible state
-                 $selectionDiv.removeClass('max-h-0 opacity-0');
-                 // Add a max-height large enough to show all content (e.g., max-h-96 or max-h-screen)
-                 $selectionDiv.addClass('max-h-96 opacity-100');
-             } else {
-                 // HIDE: Remove visible state and apply hidden state
-                 $selectionDiv.removeClass('max-h-96 opacity-100');
-                 $selectionDiv.addClass('max-h-0 opacity-0');
-             }
+             $selectionDiv.toggleClass('hidden');
          }
 
          async function searchApprover() {

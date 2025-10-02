@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('position');
             $table->string('department');
             $table->string('division');
+            $table->string('email')->nullable();
             $table->string('role')->default('user');
             $table->rememberToken();
             $table->timestamps();

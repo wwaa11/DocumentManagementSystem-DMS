@@ -7,9 +7,21 @@
             </h2>
             <div class="divider"></div>
         </div>
-        <form action="{{ route("document.it.create") }}" method="POST" enctype="multipart/form-data">
+        <form id="create-form" action="{{ route("document.it.create") }}" method="POST" enctype="multipart/form-data">
             @csrf
             @include("document.approver")
+
+            @if ($errors->any())
+                <div class="alert alert-error" role="alert">
+                    <span class="fas fa-exclamation-triangle mr-2"></span>
+                    <span>มีข้อผิดพลาดในการสร้างเอกสาร</span>
+
+                </div>
+                @foreach ($errors->all() as $error)
+                    <div>- {{ $error }}</div>
+                @endforeach
+            @endif
+
             <div class="card bg-base-100 mb-6 mt-6 p-6 shadow-lg">
                 <!-- Document Type Selection -->
                 <h3 class="mb-4 flex items-center text-xl font-semibold">
@@ -19,7 +31,7 @@
                     <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="type-user">
                         <div class="card-body p-4">
                             <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="type-user" type="radio" name="doc_type" value="user" onchange="selectDocType('user')" />
+                                <input class="radio radio-primary mr-3" id="type-user" type="radio" name="document_type" value="user" onchange="selectDocType('user')" />
                                 <div>
                                     <h4 class="font-medium">ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม</h4>
                                 </div>
@@ -30,7 +42,7 @@
                     <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="type-support">
                         <div class="card-body p-4">
                             <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="type-support" type="radio" name="doc_type" value="support" onchange="selectDocType('support')" />
+                                <input class="radio radio-primary mr-3" id="type-support" type="radio" name="document_type" value="support" onchange="selectDocType('support')" />
                                 <div>
                                     <h4 class="font-medium">ขอแจ้งงาน/สนับสนุนการทำงาน</h4>
                                 </div>
@@ -52,7 +64,7 @@
                     <label class="label">
                         <span class="label-text">เอกสารแนบ (ถ้ามี)</span>
                     </label>
-                    <input class="file-input file-input-bordered w-full" id="file_input" type="file" name="files[]" multiple>
+                    <input class="file-input file-input-bordered w-full" id="file_input" type="file" name="document_files[]" multiple>
                     <div class="mt-2 flex-row" id="file_display">
                         {{-- display file in this div with remove file button --}}
                     </div>
@@ -62,7 +74,7 @@
                     <label class="label">
                         <span class="label-text">ส่งถึงแผนก IT</span>
                     </label>
-                    <select class="select select-bordered w-full" name="it_admin">
+                    <select class="select select-bordered w-full" name="document_admin">
                         <option selected disabled>โปรดระบุ</option>
                         @foreach ($it_admins as $it_admin)
                             <option value="{{ $it_admin->userid }}">{{ $it_admin->name }}</option>
@@ -74,11 +86,11 @@
                     <label class="label">
                         <span class="label-text">เบอร์โทรศัพท์ภายในติดต่อกลับ</span>
                     </label>
-                    <input class="input input-bordered w-full" id="request_phone" type="text" placeholder="เบอร์โทรศัพท์ภายในติดต่อกลับ" />
+                    <input class="input input-bordered w-full" id="document_phone" name="document_phone" type="text" placeholder="เบอร์โทรศัพท์ภายในติดต่อกลับ" />
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <button class="btn btn-primary gap-2" type="submit">
+                    <button class="btn btn-primary gap-2" type="submit" onclick="submitForm()">
                         <i class="fas fa-paper-plane"></i> สร้างเอกสาร
                     </button>
                 </div>
@@ -145,16 +157,46 @@
         });
     </script>
     <script>
-        function selectDocType(type) {
-            if (type === 'user') {
+        function selectDocType(document_type) {
+            if (document_type === 'user') {
                 $('#type-user').prop('checked', true);
                 $('#user-section').removeClass('hidden');
                 $('#support-section').addClass('hidden');
-            } else if (type === 'support') {
+                $('#support_detail').prop('disabled', true);
+            } else if (document_type === 'support') {
                 $('#type-support').prop('checked', true);
                 $('#user-section').addClass('hidden');
                 $('#support-section').removeClass('hidden');
+                $('#support_detail').prop('disabled', false);
             }
+        }
+
+        function submitForm() {
+            event.preventDefault();
+            Swal.fire({
+                title: 'ต้องการสร้างเอกสารหรือไม่?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary mx-3', // DaisyUI Primary Color
+                    cancelButton: 'btn btn-ghost mx-3' // DaisyUI Ghost/subtle style
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'กำลังสร้างเอกสาร...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    const form = document.getElementById('create-form');
+                    form.submit();
+                }
+            });
         }
     </script>
 @endpush

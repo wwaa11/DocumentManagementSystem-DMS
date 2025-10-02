@@ -11,10 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::create('document_approvers', function (Blueprint $table) {
+            $table->id();
+            $table->string('document_type');
+            $table->string('userid');
+            $table->unsignedSmallInteger('step')->default(1);
+            $table->timestamps();
+        });
+
         Schema::create('document_its', function (Blueprint $table) {
             $table->id();
             $table->string('requester');
             $table->foreign('requester')->references('userid')->on('users');
+            $table->string('document_phone');
             $table->string('document_number')->unique();
             $table->string('type');
             $table->string('title');
@@ -95,6 +104,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('document_approvers');
         Schema::dropIfExists('document_its');
         Schema::dropIfExists('document_hcs');
         Schema::dropIfExists('document_pacs');

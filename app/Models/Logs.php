@@ -7,9 +7,9 @@ class Logs extends Model
 {
     protected $table = 'activity_logs';
 
-    public function logable(): MorphTo
+    public function loggable()
     {
-        // 'logable' matches the argument passed to $table->morphs('logable')
+        // 'loggable' must match the prefix used in the activity_logs table migration
         return $this->morphTo();
     }
 }
