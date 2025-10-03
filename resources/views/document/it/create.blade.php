@@ -1,11 +1,12 @@
 @extends("layouts.app")
 @section("content")
     <div class="mx-auto max-w-5xl">
-        <div class="mb-8">
-            <h2 class="text-primary mb-2 text-3xl font-bold">
-                เอกสาร แจ้งงาน/สนับสนุนการทำงาน IT
+        <div class="mb-8 bg-gradient-to-r from-primary/10 to-base-100 p-6 rounded-lg">
+            <h2 class="text-primary mb-2 text-3xl font-bold tracking-tight">
+                <i class="fas fa-file-alt mr-2"></i> เอกสาร แจ้งงาน/สนับสนุนการทำงาน IT
             </h2>
-            <div class="divider"></div>
+            <div class="divider opacity-50"></div>
+            <p class="text-base-content/70">กรอกข้อมูลด้านล่างเพื่อสร้างเอกสารใหม่</p>
         </div>
         <form id="create-form" action="{{ route("document.it.create") }}" method="POST" enctype="multipart/form-data">
             @csrf
@@ -22,30 +23,29 @@
                 @endforeach
             @endif
 
-            <div class="card bg-base-100 mb-6 mt-6 p-6 shadow-lg">
+            <input id="selfApprove" type="hidden" name="selfApprove" value="true">
+            <input id="isHardware" type="hidden" name="isHardware" value="false">
+
+            <div class="card bg-base-100 shadow-xl border border-base-300 mb-8 p-6">
                 <!-- Document Type Selection -->
-                <h3 class="mb-4 flex items-center text-xl font-semibold">
+                <h3 class="card-title text-primary mb-4 flex items-center text-xl">
                     <i class="fas fa-file-alt text-primary mr-2"></i>ประเภทเอกสาร
                 </h3>
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="type-user">
-                        <div class="card-body p-4">
-                            <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="type-user" type="radio" name="document_type" value="user" onchange="selectDocType('user')" />
-                                <div>
-                                    <h4 class="font-medium">ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม</h4>
-                                </div>
+                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="type-user">
+                        <div class="flex items-center">
+                            <input class="radio radio-primary mr-3" id="type-user" type="radio" name="document_type" value="user" onchange="selectDocType('user')" />
+                            <div>
+                                <h4 class="font-medium">ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม</h4>
                             </div>
                         </div>
                     </label>
 
-                    <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="type-support">
-                        <div class="card-body p-4">
-                            <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="type-support" type="radio" name="document_type" value="support" onchange="selectDocType('support')" />
-                                <div>
-                                    <h4 class="font-medium">ขอแจ้งงาน/สนับสนุนการทำงาน</h4>
-                                </div>
+                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="type-support">
+                        <div class="flex items-center">
+                            <input class="radio radio-primary mr-3" id="type-support" type="radio" name="document_type" value="support" onchange="selectDocType('support')" />
+                            <div>
+                                <h4 class="font-medium">ขอแจ้งงาน/สนับสนุนการทำงาน</h4>
                             </div>
                         </div>
                     </label>
@@ -56,41 +56,46 @@
                 @include("document.it.create-support")
 
                 {{-- Common Detail --}}
-                <h3 class="mb-4 mt-6 flex items-center text-xl font-semibold">
-                    <i class="fas fa-paperclip text-primary mr-2"></i>ข้อมูลเพิ่มเติม
-                </h3>
+                <div class="card bg-base-100 shadow-xl border border-base-300 mb-8 p-6">
+                    <h3 class="card-title text-primary mb-4 flex items-center text-xl">
+                        <i class="fas fa-paperclip text-primary mr-2"></i>ข้อมูลเพิ่มเติม
+                    </h3>
 
-                <div class="form-control mb-4">
-                    <label class="label">
-                        <span class="label-text">เอกสารแนบ (ถ้ามี)</span>
-                    </label>
-                    <input class="file-input file-input-bordered w-full" id="file_input" type="file" name="document_files[]" multiple>
-                    <div class="mt-2 flex-row" id="file_display">
-                        {{-- display file in this div with remove file button --}}
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">เอกสารแนบ (ถ้ามี)</span>
+                        </label>
+                        <div class="border-2 border-dashed border-base-300 rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-all" id="drop-area">
+                            <input class="hidden" id="file_input" type="file" name="document_files[]" multiple>
+                            <p class="text-base-content/70"><i class="fas fa-cloud-upload-alt mr-2"></i> ลากและวางไฟล์ที่นี่ หรือ <span class="text-primary font-bold">คลิกเพื่อเลือกไฟล์</span></p>
+                        </div>
+                        <div class="mt-4 flex flex-wrap gap-2" id="file_display">
+                            {{-- display file in this div with remove file button --}}
+                        </div>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">ส่งถึงแผนก IT</span>
+                        </label>
+                        <select class="select select-bordered w-full" name="document_admin">
+                            <option selected disabled>โปรดระบุ</option>
+                            @foreach ($it_admins as $it_admin)
+                                <option value="{{ $it_admin->userid }}">{{ $it_admin->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">เบอร์โทรศัพท์ภายในติดต่อกลับ</span>
+                        </label>
+                        <input class="input input-bordered w-full" id="document_phone" name="document_phone" type="text" placeholder="เบอร์โทรศัพท์ภายในติดต่อกลับ" />
                     </div>
                 </div>
 
-                <div class="form-control mb-4">
-                    <label class="label">
-                        <span class="label-text">ส่งถึงแผนก IT</span>
-                    </label>
-                    <select class="select select-bordered w-full" name="document_admin">
-                        <option selected disabled>โปรดระบุ</option>
-                        @foreach ($it_admins as $it_admin)
-                            <option value="{{ $it_admin->userid }}">{{ $it_admin->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="form-control mb-4">
-                    <label class="label">
-                        <span class="label-text">เบอร์โทรศัพท์ภายในติดต่อกลับ</span>
-                    </label>
-                    <input class="input input-bordered w-full" id="document_phone" name="document_phone" type="text" placeholder="เบอร์โทรศัพท์ภายในติดต่อกลับ" />
-                </div>
-
                 <div class="mt-6 flex justify-end">
-                    <button class="btn btn-primary gap-2" type="submit" onclick="submitForm()">
+                    <button class="btn btn-primary gap-2 transition-all duration-200 hover:scale-105" type="submit" onclick="submitForm()">
                         <i class="fas fa-paper-plane"></i> สร้างเอกสาร
                     </button>
                 </div>
@@ -103,24 +108,60 @@
         $(function() {
             const fileInput = document.getElementById('file_input');
             const fileDisplay = document.getElementById('file_display');
+            const dropArea = document.getElementById('drop-area');
 
             let fileStore = new DataTransfer();
 
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            // Highlight drop area when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.add('border-primary'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, () => dropArea.classList.remove('border-primary'), false);
+            });
+
+            // Handle dropped files
+            dropArea.addEventListener('drop', handleDrop, false);
+
             fileInput.addEventListener('change', (event) => {
-                Array.from(event.target.files).forEach(file => {
+                addFiles(event.target.files);
+                event.target.value = null; // Clear the input after adding files
+            });
+
+            dropArea.addEventListener('click', () => fileInput.click());
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                addFiles(files);
+            }
+
+            function addFiles(files) {
+                Array.from(files).forEach(file => {
                     fileStore.items.add(file);
                 });
-                event.target.value = null;
                 fileInput.files = fileStore.files;
                 renderFileList();
-            });
+            }
 
             function renderFileList() {
                 fileDisplay.innerHTML = '';
                 Array.from(fileStore.files).forEach((file, index) => {
                     const fileChip = document.createElement('div');
                     fileChip.classList.add(
-                        'flex', 'p-2', 'badge', 'badge-outline', 'badge-lg', 'mb-2', 'flex-nowrap'
+                        'flex', 'items-center', 'gap-2', 'badge', 'badge-outline', 'badge-lg', 'mb-2', 'flex-nowrap'
                     );
 
                     const fileNameSpan = document.createElement('span');
@@ -163,6 +204,7 @@
                 $('#user-section').removeClass('hidden');
                 $('#support-section').addClass('hidden');
                 $('#support_detail').prop('disabled', true);
+                setDataApprove(false, false);
             } else if (document_type === 'support') {
                 $('#type-support').prop('checked', true);
                 $('#user-section').addClass('hidden');
@@ -171,8 +213,27 @@
             }
         }
 
+        function setDataApprove(isSelfApprove, isHardward) {
+            $('#selfApprove').val(isSelfApprove);
+            $('#isHardware').val(isHardward);
+        }
+
         function submitForm() {
             event.preventDefault();
+
+            const type = $('#type-user').is(':checked') ? 'user' : 'support';
+            const title = $('input[name="title"]:checked').val();
+            console.log('title: ' + title);
+            if (type === 'user') {
+                doctor_hr_it = $('#doctor_hr_it').is(':checked');
+                doctor_hr_hclab = $('#doctor_hr_hclab').is(':checked');
+                doctor_hr_pacs = $('#doctor_hr_pacs').is(':checked');
+
+                console.log('doctor_hr_it: ' + doctor_hr_it);
+                console.log('doctor_hr_hclab: ' + doctor_hr_hclab);
+                console.log('doctor_hr_pacs: ' + doctor_hr_pacs);
+            }
+
             Swal.fire({
                 title: 'ต้องการสร้างเอกสารหรือไม่?',
                 icon: 'question',

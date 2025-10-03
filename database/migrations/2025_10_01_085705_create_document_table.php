@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('type');
             $table->string('title');
             $table->text('detail');
-            $table->string('status')->default('approval');
+            $table->string('status')->default('wait_approval');
             $table->string('assigned_user_id')->nullable();
             $table->timestamps();
         });
@@ -37,10 +37,11 @@ return new class extends Migration
             $table->id();
             $table->string('requester');
             $table->foreign('requester')->references('userid')->on('users');
+            $table->string('document_phone');
             $table->string('document_number')->unique();
             $table->string('title');
             $table->text('detail');
-            $table->string('status')->default('approval');
+            $table->string('status')->default('wait_approval');
             $table->string('assigned_user_id')->nullable();
             $table->timestamps();
         });
@@ -49,10 +50,11 @@ return new class extends Migration
             $table->id();
             $table->string('requester');
             $table->foreign('requester')->references('userid')->on('users');
+            $table->string('document_phone');
             $table->string('document_number')->unique();
             $table->string('title');
             $table->text('detail');
-            $table->string('status')->default('approval');
+            $table->string('status')->default('wait_approval');
             $table->string('assigned_user_id')->nullable();
             $table->timestamps();
         });

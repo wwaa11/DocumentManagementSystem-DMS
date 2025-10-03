@@ -56,13 +56,13 @@ class DatabaseSeeder extends Seeder
 
         DocumentApprover::create([
             'document_type' => 'pac',
-            'userid'        => '480054',
+            'userid'        => '440079',
             'step'          => 1,
         ]);
 
         DocumentApprover::create([
             'document_type' => 'hc',
-            'userid'        => '480054',
+            'userid'        => '540035',
             'step'          => 1,
         ]);
 

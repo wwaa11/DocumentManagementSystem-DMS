@@ -1,85 +1,83 @@
 <section class="mt-6 hidden" id="user-section">
-    <div class="card bg-base-100 shadow-lg border border-base-300">
-        <div class="card-body p-6">
-            <h3 class="card-title text-primary mb-4 flex items-center text-2xl">
-                <i class="fas fa-user-cog mr-2"></i> ขอรหัสผู้ใช้งาน/สิทธิ์
-            </h3>
+    <div class="card">
+        <h3 class="card-title text-primary mb-4 flex items-center text-xl">
+            <i class="fas fa-user-cog mr-2"></i> ขอรหัสผู้ใช้งาน/สิทธิ์
+        </h3>
 
-            <div class="mb-6">
-                <h4 class="font-medium text-lg mb-3">ประเภทการขอ</h4>
+        <div class="card mb-6 shadow-lg">
+            <div class="card-body p-6">
+                <h4 class="card-title text-primary mb-4 flex items-center text-xl">
+                    <i class="fas fa-list-alt mr-2"></i> ประเภทการขอ
+                </h4>
                 <div class="grid grid-cols-1 gap-3 md:grid-cols-5">
-                    <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="user-title-add">
-                        <div class="card-body p-4">
-                            <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="user-title-add" value="ขอเพิ่ม" type="radio" name="title" onchange="selectRequestType('add')" />
-                                <div>
-                                    <h4 class="font-medium">ขอเพิ่ม</h4>
-                                </div>
+                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="user-title-add">
+                        <div class="flex items-center">
+                            <input class="radio radio-primary mr-3" id="user-title-add" value="ขอเพิ่ม" type="radio" name="title" onchange="selectRequestType('add')" />
+                            <div>
+                                <h4 class="font-medium">ขอเพิ่ม</h4>
                             </div>
                         </div>
                     </label>
-                    <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="user-title-remove">
-                        <div class="card-body p-4">
-                            <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="user-title-remove" value="ขอลด" type="radio" name="title" onchange="selectRequestType('remove')" />
-                                <div>
-                                    <h4 class="font-medium">ขอลด</h4>
-                                </div>
+                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="user-title-remove">
+                        <div class="flex items-center">
+                            <input class="radio radio-primary mr-3" id="user-title-remove" value="ขอลด" type="radio" name="title" onchange="selectRequestType('remove')" />
+                            <div>
+                                <h4 class="font-medium">ขอลด</h4>
                             </div>
                         </div>
                     </label>
-                    <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="user-title-edit">
-                        <div class="card-body p-4">
-                            <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="user-title-edit" value="ขอแก้ไข" type="radio" name="title" onchange="selectRequestType('edit')" />
-                                <div>
-                                    <h4 class="font-medium">ขอแก้ไข</h4>
-                                </div>
+                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="user-title-edit">
+                        <div class="flex items-center">
+                            <input class="radio radio-primary mr-3" id="user-title-edit" value="ขอแก้ไข" type="radio" name="title" onchange="selectRequestType('edit')" />
+                            <div>
+                                <h4 class="font-medium">ขอแก้ไข</h4>
                             </div>
                         </div>
                     </label>
-                    <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="user-title-doctor">
-                        <div class="card-body p-4">
-                            <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="user-title-doctor" value="เลขาแพทย์" type="radio" name="title" onchange="selectRequestType('doctor')" />
-                                <div>
-                                    <h4 class="font-medium">เลขาแพทย์</h4>
-                                </div>
+                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="user-title-doctor">
+                        <div class="flex items-center">
+                            <input class="radio radio-primary mr-3" id="user-title-doctor" value="เลขาแพทย์" type="radio" name="title" onchange="selectRequestType('doctor')" />
+                            <div>
+                                <h4 class="font-medium">เลขาแพทย์</h4>
                             </div>
                         </div>
                     </label>
-                    <label class="card bg-base-100 hover:bg-primary/5 cursor-pointer border transition-all hover:shadow-md" for="user-title-hr">
-                        <div class="card-body p-4">
-                            <div class="flex items-center">
-                                <input class="radio radio-primary mr-3" id="user-title-hr" value="ฝ่ายบุคคล" type="radio" name="title" onchange="selectRequestType('hr')" />
-                                <div>
-                                    <h4 class="font-medium">ฝ่ายบุคคล</h4>
-                                </div>
+                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="user-title-hr">
+                        <div class="flex items-center">
+                            <input class="radio radio-primary mr-3" id="user-title-hr" value="ฝ่ายบุคคล" type="radio" name="title" onchange="selectRequestType('hr')" />
+                            <div>
+                                <h4 class="font-medium">ฝ่ายบุคคล</h4>
                             </div>
                         </div>
                     </label>
                 </div>
             </div>
+        </div>
 
-            <!-- Standard Request Form -->
-            <div class="hidden" id="user_search">
-                <div class="bg-base-200 mb-4 rounded-lg p-6">
-                    <h4 class="mb-4 flex items-center font-medium text-xl">
-                        <i class="fas fa-search text-primary mr-2"></i> ค้นหาข้อมูลพนักงาน
+        <input type="hidden" name="createIT" value="false" />
+        <input type="hidden" name="createHC" value="false" />
+        <input type="hidden" name="createPAC" value="false" />
+
+        <!-- Standard Request Form -->
+        <div class="hidden" id="user_search">
+            <div class="card bg-base-100 mb-6 shadow-lg">
+                <div class="card-body p-6">
+                    <h4 class="card-title text-primary mb-4 flex items-center text-xl">
+                        <i class="fas fa-search mr-2"></i> ค้นหาข้อมูลพนักงาน
                     </h4>
 
-                    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text">รหัสพนักงาน</span>
                             </label>
-                            <div class="join">
+                            <div class="join flex">
+                                <button class="btn btn-square btn-warning join-item hidden" id="reset-search-btn" type="button" onclick="resetUserForm()">
+                                    <i class="fas fa-redo"></i>
+                                </button>
                                 <input class="join-item input input-bordered w-full" id="request_userid" placeholder="รหัสพนักงาน" type="text" />
                                 <button class="btn btn-square btn-primary join-item" type="button" onclick="searchUserData()">
                                     <i class="fas fa-search"></i>
-                                </button>
-                                <button class="btn btn-square btn-warning join-item hidden" id="reset-search-btn" type="button" onclick="resetUserForm()">
-                                    <i class="fas fa-redo"></i>
                                 </button>
                             </div>
                         </div>
@@ -87,78 +85,132 @@
                             <label class="label">
                                 <span class="label-text">ชื่อ-นามสกุล</span>
                             </label>
-                            <input class="input input-bordered bg-base-100/50 w-full" id="request_name" placeholder="ชื่อ-นามสกุล" type="text" readonly />
+                            <input class="input input-bordered bg-base-200 w-full" id="request_name" placeholder="ชื่อ-นามสกุล" type="text" readonly />
                             <input id="request_name_en" type="hidden" />
                         </div>
                         <div class="form-control">
                             <label class="label">
                                 <span class="label-text">แผนก</span>
                             </label>
-                            <input class="input input-bordered bg-base-100/50 w-full" id="request_department" placeholder="แผนก" type="text" readonly />
+                            <input class="input input-bordered bg-base-200 w-full" id="request_department" placeholder="แผนก" type="text" readonly />
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <h4 class="mb-4 font-medium text-xl">สิทธิ์การใช้งานที่ต้องการ</h4>
-                    <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <label class="hover:bg-base-100 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors">
+            <div class="card bg-base-100 mb-6 shadow-lg">
+                <div class="card-body p-6">
+                    <h4 class="card-title text-primary mb-4 flex items-center text-xl">
+                        <i class="fas fa-key mr-2"></i> สิทธิ์การใช้งานที่ต้องการ
+                    </h4>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <label class="hover:bg-base-200 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors">
                             <input class="checkbox checkbox-primary" id="request_ssb" type="checkbox" />
                             <span class="label-text">SSB</span>
                         </label>
-                        <label class="hover:bg-base-100 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors">
+                        <label class="hover:bg-base-200 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors">
                             <input class="checkbox checkbox-primary" id="request_windows" type="checkbox" />
                             <span class="label-text">Windows</span>
                         </label>
-                        <label class="hover:bg-base-100 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors">
+                        <label class="hover:bg-base-200 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors">
                             <input class="checkbox checkbox-primary" id="request_email" type="checkbox" />
                             <span class="label-text">Email</span>
                         </label>
-                        <label class="hover:bg-base-100 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors">
+                        <label class="hover:bg-base-200 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors">
                             <input class="checkbox checkbox-primary" id="request_hclab" type="checkbox" />
                             <span class="label-text">HCLAB</span>
                         </label>
-                        <label class="hover:bg-base-100 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors">
+                        <label class="hover:bg-base-200 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors">
                             <input class="checkbox checkbox-primary" id="request_pacs" type="checkbox" />
                             <span class="label-text">PACS</span>
                         </label>
-                        <label class="hover:bg-base-100 flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors">
+                        <label class="hover:bg-base-200 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors">
                             <input class="checkbox checkbox-primary" id="request_other_check" type="checkbox" />
                             <span class="label-text">อื่นๆ:</span>
                             <input class="input input-bordered input-sm flex-grow" id="request_other" type="text" />
                         </label>
                     </div>
 
-                    <div class="form-control mb-4">
+                    <div class="form-control mt-4">
                         <label class="label">
                             <span class="label-text">รายละเอียดเพิ่มเติม</span>
                         </label>
                         <textarea class="textarea textarea-bordered h-24 w-full" id="request_detail" placeholder="รายละเอียดเพิ่มเติม"></textarea>
                     </div>
 
-                    <div class="mt-3 flex justify-end">
+                    <div class="mt-6 flex justify-end">
                         <button class="btn btn-primary w-full gap-2" onclick="appendUserData()" type="button">
                             <i class="fas fa-plus"></i> เพิ่มรายการ
                         </button>
                     </div>
-
-                    <div class="mt-6" id="user_result_append"></div>
-
                 </div>
             </div>
 
-            <!-- Doctor/HR Request Form -->
-            <div class="hidden" id="doctor_hr">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text w-full">รายละเอียด</span>
-                    </label>
-                    <textarea class="textarea textarea-bordered h-40 w-full" id="user_detail" name="user_detail" placeholder="รายละเอียด" disabled></textarea>
+            <div class="mt-6" id="user_result_append"></div>
+        </div>
+
+        <!-- Doctor/HR Request Form -->
+        <div class="hidden" id="doctor_hr">
+            <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title">IT Request</h2>
+                        <p>SSB, Windows, Email</p>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">มีการขอ IT Request</span>
+                                <input class="checkbox checkbox-primary" id="doctor_hr_it" type="checkbox" value="false" />
+                            </label>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title">HC Request</h2>
+                        <p>HCLAB</p>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">มีการขอ HC Request</span>
+                                <input class="checkbox checkbox-primary" id="doctor_hr_hclab" type="checkbox" value="false" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title">PAC Request</h2>
+                        <p>PACS</p>
+                        <div class="form-control">
+                            <label class="label cursor-pointer">
+                                <span class="label-text">มีการขอ PAC Request</span>
+                                <input class="checkbox checkbox-primary" id="doctor_hr_pacs" type="checkbox" value="false" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-control mt-4">
+                <label class="label">
+                    <span class="label-text">รายละเอียด</span>
+                </label>
+                <textarea class="textarea textarea-bordered h-40 w-full" id="user_detail" name="user_detail" placeholder="รายละเอียด"></textarea>
             </div>
         </div>
     </div>
 </section>
 
 @push("scripts")
+    <script type="module">
+        // Add event listeners for doctor_hr checkboxes
+        $(document).ready(function() {
+            $('#doctor_hr_it, #doctor_hr_hclab, #doctor_hr_pacs').change(function() {
+                updateCreateFlags();
+            });
+        });
+    </script>
     <script>
         function selectRequestType(type) {
             $("input[name='title']").prop("checked", false);
@@ -185,7 +237,6 @@
             }
             // Call function form Approver Page
             const user = await searchUser(userid);
-            console.log(user);
             if (user) {
                 $("#request_name").val(user.name);
                 $("#request_name_en").val(user.name_EN);
@@ -205,7 +256,6 @@
                 $("#request_department").val("");
             }
         }
-
 
         function resetUserForm() {
             // Clear the core user data fields
@@ -228,6 +278,34 @@
             $("#request_other_check").prop("checked", false);
             $("#request_other").val("");
             $("#request_detail").val("");
+        }
+
+        function updateCreateFlags() {
+            // Check doctor_hr checkboxes
+            const doctorHrIT = $('#doctor_hr_it').is(':checked');
+            const doctorHrHCLab = $('#doctor_hr_hclab').is(':checked');
+            const doctorHrPACS = $('#doctor_hr_pacs').is(':checked');
+
+            // Check standard request checkboxes
+            const hasITRequest = $('input[name^="users["][name$="[request][ssb]"]').val() === 'true' ||
+                $('input[name^="users["][name$="[request][windows]"]').val() === 'true' ||
+                $('input[name^="users["][name$="[request][email]"]').val() === 'true' ||
+                $('input[name^="users["][name$="[request][other_check]"]').val() === 'true';
+            const hasHCRequest = $('input[name^="users["][name$="[request][hclab]"]').val() === 'true';
+            const hasPACRequest = $('input[name^="users["][name$="[request][pacs]"]').val() === 'true';
+
+            console.log('hasITRequest:', hasITRequest);
+            console.log('hasHCRequest:', hasHCRequest);
+            console.log('hasPACRequest:', hasPACRequest);
+
+            // Update hidden inputs
+            $('input[name="createIT"]').val(doctorHrIT || hasITRequest ? 'true' : 'false');
+            $('input[name="createHC"]').val(doctorHrHCLab || hasHCRequest ? 'true' : 'false');
+            $('input[name="createPAC"]').val(doctorHrPACS || hasPACRequest ? 'true' : 'false');
+
+            console.log('createIT:', $('input[name="createIT"]').val());
+            console.log('createHC:', $('input[name="createHC"]').val());
+            console.log('createPAC:', $('input[name="createPAC"]').val());
         }
 
         function appendUserData() {
@@ -287,11 +365,11 @@
 
             // Build the HTML for the displayed item, including all hidden inputs
             $("#user_result_append").append(`
-                <div class="bg-base-200 p-3 rounded-lg mb-2 user-item" id="${containerId}" data-userid="${userid}">
+                <div class="bg-secondary text-white p-3 rounded-lg mb-2 user-item" id="${containerId}" data-userid="${userid}">
                     <div class="flex items-center justify-between">
                         <div class="flex-1">
                             <div class="font-medium">${userid} - ${name} (${title})</div>
-                            <div class="text-sm text-gray-600">${department}</div>
+                            <div class="text-sm ">${department}</div>
                             <div class="text-sm mt-1">
                                 <span class="font-medium">ระบบที่ขอ:</span> ${systemsRequested || "ไม่ได้ระบุ"}
                             </div>
@@ -320,12 +398,14 @@
 
             // Clear form fields after adding
             resetUserForm();
+            updateCreateFlags();
+
         }
 
         function removeUser(containerId) {
             try {
                 $(`#${containerId}`).remove();
-
+                updateCreateFlags();
                 Swal.fire({
                     icon: "success",
                     title: "ลบผู้ใช้งานเรียบร้อย",

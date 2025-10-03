@@ -9,7 +9,7 @@ class HelperController extends Controller
     public function createApprover($data, $approveable)
     {
         $approverList = [];
-        if (key_exists('selfApprove', $data)) {
+        if ($data['selfApprove'] == 'true') {
             $approverList[] = [
                 'userid'      => auth()->user()->userid,
                 'step'        => 1,
@@ -22,6 +22,7 @@ class HelperController extends Controller
                 'step'   => 1,
             ];
         }
+
         $approverType = DocumentApprover::where('document_type', $data['document_type'])->get();
         foreach ($approverType as $type) {
             $approverList[] = [

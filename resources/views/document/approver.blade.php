@@ -1,10 +1,10 @@
 <!-- Approver Section -->
  @if (auth()->user()->getapprover)
      {{-- Approver Information Card --}}
-     <div class="card border-base-300 bg-base-100 shadow-lg">
+     <div class="card border-base-300 bg-base-100 shadow-xl mb-8">
          <div class="card-body p-6">
              {{-- Header/Status --}}
-             <h2 class="card-title text-success mb-4 text-2xl">
+             <h2 class="card-title text-primary mb-4 text-2xl">
                  <i class="fas fa-user-check mr-2"></i> ผู้อนุมัติแผนก {{ auth()->user()->department }}
              </h2>
              {{-- Display Approver Details (Using a Grid for better alignment) --}}
@@ -13,10 +13,10 @@
                  <div class="form-control">
                      <label class="label pb-1">
                          <span class="label-text text-base-content/70 font-medium flex items-center">
-                             <i class="fas fa-id-badge text-success mr-2"></i> รหัสพนักงาน / ชื่อ
+                             <i class="fas fa-id-badge text-primary mr-2"></i> รหัสพนักงาน / ชื่อ
                          </span>
                      </label>
-                     <div class="input-group">
+                     <div>
                          <input id="approver_userid" type="hidden" name="approver[userid]" value="{{ auth()->user()->getapprover->approver->userid }}">
                          <input class="input input-bordered w-full font-semibold" id="approver_userid_name" type="text" readonly value="{{ auth()->user()->getapprover->approver->userid }} - {{ auth()->user()->getapprover->approver->name }}" />
                      </div>
@@ -25,10 +25,10 @@
                  <div class="form-control">
                      <label class="label pb-1">
                          <span class="label-text text-base-content/70 font-medium flex items-center">
-                             <i class="fas fa-briefcase text-success mr-2"></i> ตำแหน่ง
+                             <i class="fas fa-briefcase text-primary mr-2"></i> ตำแหน่ง
                          </span>
                      </label>
-                     <div class="input-group">
+                     <div>
                          <input class="input input-bordered w-full" id="approver_position" type="text" readonly value="{{ auth()->user()->getapprover->approver->position }}" />
                      </div>
                  </div>
@@ -36,10 +36,10 @@
                  <div class="form-control md:col-span-2">
                      <label class="label pb-1">
                          <span class="label-text text-base-content/70 font-medium flex items-center">
-                             <i class="fas fa-envelope text-success mr-2"></i> อีเมล
+                             <i class="fas fa-envelope text-primary mr-2"></i> อีเมล
                          </span>
                      </label>
-                     <div class="input-group">
+                     <div>
                          <input class="input input-bordered w-full" id="approver_email" type="email" readonly name="approver[email]" value="{{ auth()->user()->getapprover->approver->email }}" />
                      </div>
                  </div>
@@ -54,8 +54,8 @@
          </div>
      </div>
      {{-- Approver Selection Dropdown (Initially Hidden) --}}
-     <div class="dropdown dropdown-end mt-4 w-full hidden" id="approver-selection">
-         <div class="bg-base-200 rounded-box p-4 shadow-xl">
+     <div class="card border-base-300 bg-base-100 shadow-xl dropdown dropdown-end mt-4 w-full hidden" id="approver-selection">
+         <div class="card-body p-6">
              <label class="form-control mb-4">
                  <div class="label">
                      <span class="label-text font-semibold text-lg">ค้นหาผู้อนุมัติ</span>
