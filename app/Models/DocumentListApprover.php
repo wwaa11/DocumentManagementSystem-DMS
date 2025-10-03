@@ -3,10 +3,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DocumentApprover extends Model
+class DocumentListApprover extends Model
 {
-    //
-    protected $table    = 'document_approvers';
+    public $timestamps = false;
+
+    protected $table = 'document_list_approvers';
+
     protected $fillable = [
         'document_type',
         'userid',

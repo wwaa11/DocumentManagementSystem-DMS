@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\HelperController;
 use App\Models\DocumentHC;
 use App\Models\DocumentIT;
+use App\Models\DocumentNumber;
 use App\Models\DocumentPAC;
 use Illuminate\Http\Request;
 
@@ -19,7 +20,7 @@ class DocumentITController extends Controller
 
     public function createDocument(Request $request)
     {
-        dump($request->all());
+        // dump($request->all());
         // Dev bybass validation
         // $request->validate([
         //     'type'        => 'required|in:user,support',
@@ -37,6 +38,8 @@ class DocumentITController extends Controller
         if ($request->createHC == 'true') {
             $this->createDocumentHC($request);
         }
+
+        return redirect()->route('document.index')->with('success', 'Document created successfully!');
     }
 
     private function setUserFieldData($users, $title)
@@ -65,18 +68,10 @@ class DocumentITController extends Controller
         return $userField;
     }
 
-    private function setDocumentCode($data)
-    {
-        // type = user : ITU
-        // type = support : ITJ, ITS, ITR
-
-    }
-
     private function createDocumentIT(Request $request)
     {
         $dataField                  = $request->all();
         $dataField['document_type'] = ($request->isHardware == 'true') ? 'it-hardware' : 'it';
-
         //Set Title
         $title = $request->title;
         if ($request->title == 'OTHER') {
@@ -99,19 +94,20 @@ class DocumentITController extends Controller
 
         $document                   = new DocumentIT();
         $document->requester        = auth()->user()->userid;
+        $document->document_phone   = $request->document_phone;
+        $document->document_number  = DocumentNumber::getNextNumber($dataField['documentCode']);
         $document->type             = $request->document_type;
         $document->title            = $title;
         $document->detail           = $detail;
         $document->assigned_user_id = ($request->document_admin) ? $request->document_admin : null;
-        $document->document_phone   = $request->document_phone;
         $document->save();
 
         // Assuming $document is the fileable model
         $this->helper->createApprover($dataField, $document);
         $this->helper->createFile($request, $document);
         $log = [
-            'action' => 'create',
-            'detail' => 'สร้างเอกสาร IT',
+            'action'  => 'create',
+            'details' => 'สร้างเอกสาร IT',
         ];
         $this->helper->createLog($log, $document);
         if ($request->document_admin) {
@@ -131,20 +127,20 @@ class DocumentITController extends Controller
         $title  = $request->title;
         $detail = $this->setUserFieldData($request->users, $title);
 
-        $document                 = new DocumentPac();
-        $document->requester      = auth()->user()->userid;
-        $document->type           = $request->document_type;
-        $document->title          = $request->title;
-        $document->detail         = $detail;
-        $document->document_phone = $request->document_phone;
+        $document                  = new DocumentPac();
+        $document->requester       = auth()->user()->userid;
+        $document->document_phone  = $request->document_phone;
+        $document->document_number = DocumentNumber::getNextNumber('PAC');
+        $document->title           = $request->title;
+        $document->detail          = $detail;
         $document->save();
 
         // Assuming $document is the fileable model
         $this->helper->createApprover($dataField, $document);
         $this->helper->createFile($request, $document);
         $log = [
-            'action' => 'create',
-            'detail' => 'สร้างเอกสาร PACS',
+            'action'  => 'create',
+            'details' => 'สร้างเอกสาร PACS',
         ];
         $this->helper->createLog($log, $document);
     }
@@ -157,19 +153,19 @@ class DocumentITController extends Controller
         $title  = $request->title;
         $detail = $this->setUserFieldData($request->users, $title);
 
-        $document                 = new DocumentHc();
-        $document->requester      = auth()->user()->userid;
-        $document->type           = $request->document_type;
-        $document->title          = $title;
-        $document->detail         = $detail;
-        $document->document_phone = $request->document_phone;
+        $document                  = new DocumentHc();
+        $document->requester       = auth()->user()->userid;
+        $document->document_phone  = $request->document_phone;
+        $document->document_number = DocumentNumber::getNextNumber('HC');
+        $document->title           = $title;
+        $document->detail          = $detail;
         $document->save();
 
         $this->helper->createApprover($dataField, $document);
         $this->helper->createFile($request, $document);
         $log = [
-            'action' => 'create',
-            'detail' => 'สร้างเอกสาร HCLAB',
+            'action'  => 'create',
+            'details' => 'สร้างเอกสาร HCLAB',
         ];
         $this->helper->createLog($log, $document);
     }

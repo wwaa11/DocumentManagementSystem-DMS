@@ -19,7 +19,7 @@ class WebController extends Controller
     public function myDocument()
     {
         $my_documents = auth()->user()->getAllDocumentsOrdered();
-
+        dump($my_documents);
         return view('document.lists', compact('my_documents'));
     }
 

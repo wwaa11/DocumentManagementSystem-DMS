@@ -20,11 +20,33 @@ class DocumentIT extends Model
         'finish',        // Document is finished
     ];
 
+    protected $appends = [
+        'document_type_name',
+    ];
+
+    public function getDocumentTypeNameAttribute()
+    {
+        if ($this->type == 'user') {
+
+            return 'ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม';
+        } else {
+
+            return 'ขอแจ้งงาน/สนับสนุนการทำงาน';
+        }
+    }
+
     // Relationship to Approver
     public function approvers()
     {
         // 'approvable' must match the prefix used in the approvers table migration
         return $this->morphMany(Approver::class, 'approvable');
+    }
+
+    // Relationship to Tasks
+    public function tasks()
+    {
+        // 'taskable' must match the prefix used in the tasks table migration
+        return $this->morphMany(Task::class, 'taskable');
     }
 
     // Relationship to Files
@@ -35,10 +57,10 @@ class DocumentIT extends Model
     }
 
     // Relationship to Activity Logs
-    public function activityLogs()
+    public function logs()
     {
         // 'loggable' must match the prefix used in the activity_logs table migration
-        return $this->morphMany(ActivityLog::class, 'loggable');
+        return $this->morphMany(Log::class, 'loggable');
     }
 
 }

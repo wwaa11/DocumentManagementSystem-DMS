@@ -1,7 +1,10 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Approver;
 use App\Models\DocumentApprover;
+use App\Models\File;
+use App\Models\Log;
 use Illuminate\Http\Request;
 
 class HelperController extends Controller
@@ -10,25 +13,25 @@ class HelperController extends Controller
     {
         $approverList = [];
         if ($data['selfApprove'] == 'true') {
-            $approverList[] = [
+            $approverList[] = new Approver([
                 'userid'      => auth()->user()->userid,
                 'step'        => 1,
                 'status'      => 'Approve',
                 'approved_at' => date('Y-m-d H:i:s'),
-            ];
+            ]);
         } else {
-            $approverList[] = [
+            $approverList[] = new Approver([
                 'userid' => $data['approver']['userid'],
                 'step'   => 1,
-            ];
+            ]);
         }
 
         $approverType = DocumentApprover::where('document_type', $data['document_type'])->get();
         foreach ($approverType as $type) {
-            $approverList[] = [
+            $approverList[] = new Approver([
                 'userid' => $type->userid,
                 'step'   => $type->step + 1,
-            ];
+            ]);
         }
 
         $approveable->approvers()->saveMany($approverList);
@@ -61,11 +64,11 @@ class HelperController extends Controller
 
     public function createLog($log, $logable)
     {
-        $logData = [
-            'userid' => auth()->user()->userid,
-            'action' => $log['action'],
-            'detail' => $log['detail'],
-        ];
+        $logData = new Log([
+            'userid'  => auth()->user()->userid,
+            'action'  => $log['action'],
+            'details' => $log['details'],
+        ]);
 
         $logable->logs()->save($logData);
     }

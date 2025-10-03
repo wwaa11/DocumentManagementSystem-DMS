@@ -239,6 +239,13 @@
                 $("#request_userid").prop('disabled', true);
                 $("#search-btn").addClass('hidden');
                 $("#reset-search-btn").removeClass('hidden');
+
+                Swal.fire({
+                    icon: "success",
+                    title: "โหลดข้อมูลสำเร็จ",
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
             } else {
                 Swal.fire({
                     icon: "error",

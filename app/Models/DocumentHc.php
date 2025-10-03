@@ -25,6 +25,13 @@ class DocumentHc extends Model
         return $this->morphMany(Approver::class, 'approvable');
     }
 
+    // Relationship to Tasks
+    public function tasks()
+    {
+        // 'taskable' must match the prefix used in the tasks table migration
+        return $this->morphMany(Task::class, 'taskable');
+    }
+
     // Relationship to Files
     public function files()
     {
@@ -32,10 +39,10 @@ class DocumentHc extends Model
         return $this->morphMany(File::class, 'fileable');
     }
 
-    // Relationship to Activity Logs
-    public function activityLogs()
+    // Relationship to Logs
+    public function logs()
     {
-        // 'loggable' must match the prefix used in the activity_logs table migration
-        return $this->morphMany(ActivityLog::class, 'loggable');
+        // 'loggable' must match the prefix used in the logs table migration
+        return $this->morphMany(Log::class, 'loggable');
     }
 }

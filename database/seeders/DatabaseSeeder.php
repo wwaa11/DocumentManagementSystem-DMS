@@ -3,7 +3,8 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\Document;
-use App\Models\DocumentApprover;
+use App\Models\DocumentListApprover;
+use App\Models\DocumentListTask;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -11,6 +12,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Create User
         User::create([
             'userid'     => '650017',
             'name'       => 'ภควา ค้าผลดี',
@@ -21,73 +23,55 @@ class DatabaseSeeder extends Seeder
             'role'       => 'admin',
         ]);
 
-        Document::create([
-            'short_name' => 'it',
-            'name'       => 'แจ้งงาน IT',
-        ]);
+        // Create Document Type
+        $documentType = [
+            ['short_name' => 'it', 'name' => 'แจ้งงาน IT'],
+            ['short_name' => 'media', 'name' => 'เอกสารขออนุมัติผลิตสื่อ'],
+            ['short_name' => 'purchase', 'name' => 'แจ้งงานจัดซื้อ'],
+        ];
+        foreach ($documentType as $type) {
+            Document::create($type);
+            DocumentListApprover::create([
+                'document_type' => $type['short_name'],
+                'userid'        => 'head_of_department',
+                'step'          => 1,
+            ]);
+        }
 
-        Document::create([
-            'short_name' => 'media',
-            'name'       => 'เอกสารขออนุมัติผลิตสื่อ',
-        ]);
+        // Create Document Task List
+        $documentTaskList = [
+            ['document_type' => 'it', 'step' => 1, 'task_user' => 'head_of_department', 'task_position' => '-', 'task_name' => 'wait for approve', 'task_description' => 'wait head of department for approval'],
+            ['document_type' => 'it', 'step' => 2, 'task_user' => 'IT Department', 'task_position' => 'IT Department', 'task_name' => 'wait for process', 'task_description' => 'wait IT Department for process document'],
+            ['document_type' => 'it', 'step' => 3, 'task_user' => '480054', 'task_position' => 'รองผู้จัดการฝ่าย', 'task_name' => 'wait for complete', 'task_description' => 'wait for complete document'],
 
-        Document::create([
-            'short_name' => 'purchase',
-            'name'       => 'แจ้งงานจัดซื้อ',
-        ]);
+            ['document_type' => 'it-hardware', 'step' => 1, 'task_user' => 'head_of_department', 'task_position' => '-', 'task_name' => 'wait for approve', 'task_description' => 'wait head of department for approval'],
+            ['document_type' => 'it-hardware', 'step' => 2, 'task_user' => 'IT Unit Support', 'task_position' => 'IT Unit Support', 'task_name' => 'wait for approve', 'task_description' => 'wait Head or IT Support Unit for approval'],
+            ['document_type' => 'it-hardware', 'step' => 3, 'task_user' => 'IT Department', 'task_position' => 'IT Department', 'task_name' => 'wait for process', 'task_description' => 'wait IT Department for process document'],
+            ['document_type' => 'it-hardware', 'step' => 4, 'task_user' => '480054', 'task_position' => 'รองผู้จัดการฝ่าย', 'task_name' => 'wait for complete', 'task_description' => 'wait for complete document'],
 
-        DocumentApprover::create([
-            'document_type' => 'it',
-            'userid'        => '480054',
-            'step'          => 1,
-        ]);
+            ['document_type' => 'hc', 'step' => 1, 'task_user' => 'head_of_department', 'task_position' => '-', 'task_name' => 'wait for approve', 'task_description' => 'wait head of department for approval'],
+            ['document_type' => 'hc', 'step' => 2, 'task_user' => 'LAB', 'task_position' => 'Laboratory Department', 'task_name' => 'wait for process', 'task_description' => 'wait LAB for process document'],
+            ['document_type' => 'hc', 'step' => 3, 'task_user' => '540035', 'task_position' => 'รักษาการหัวหน้าแผนก', 'task_name' => 'wait for complete', 'task_description' => 'wait for complete document'],
 
-        DocumentApprover::create([
-            'document_type' => 'it-hardware',
-            'userid'        => 'IT Support Unit',
-            'step'          => 1,
-        ]);
+            ['document_type' => 'pac', 'step' => 1, 'task_user' => 'head_of_department', 'task_position' => '-', 'task_name' => 'wait for approve', 'task_description' => 'wait head of department for approval'],
+            ['document_type' => 'pac', 'step' => 2, 'task_user' => 'Xray', 'task_position' => 'Xray Department', 'task_name' => 'wait for process', 'task_description' => 'wait Xray Department for process document'],
+            ['document_type' => 'pac', 'step' => 3, 'task_user' => '440079', 'task_position' => 'หัวหน้าแผนก', 'task_name' => 'wait for complete', 'task_description' => 'wait for complete document'],
 
-        DocumentApprover::create([
-            'document_type' => 'it-hardware',
-            'userid'        => '480054',
-            'step'          => 2,
-        ]);
+            ['document_type' => 'media', 'step' => 1, 'task_user' => 'head_of_department', 'task_position' => '-', 'task_name' => 'wait for approve', 'task_description' => 'wait head of department for approval'],
+            ['document_type' => 'media', 'step' => 2, 'task_user' => 'Marcom', 'task_position' => 'Marcom & Branding', 'task_name' => 'wait for process', 'task_description' => 'wait Marcom & Branding for process document'],
+            ['document_type' => 'media', 'step' => 3, 'task_user' => '630040', 'task_position' => 'หัวหน้าแผนก', 'task_name' => 'wait for complete', 'task_description' => 'wait for complete document'],
 
-        DocumentApprover::create([
-            'document_type' => 'pac',
-            'userid'        => '440079',
-            'step'          => 1,
-        ]);
+            ['document_type' => 'purchase', 'step' => 1, 'task_user' => 'head_of_department', 'task_position' => '-', 'task_name' => 'wait for approve', 'task_description' => 'wait head of department for approval'],
+            ['document_type' => 'purchase', 'step' => 2, 'task_user' => 'Purchasing', 'task_position' => 'Purchasing Department', 'task_name' => 'wait for process', 'task_description' => 'wait Purchasing Department for process document'],
+            ['document_type' => 'purchase', 'step' => 3, 'task_user' => '650148', 'task_position' => 'หัวหน้าแผนก', 'task_name' => 'wait for complete', 'task_description' => 'wait for complete document'],
 
-        DocumentApprover::create([
-            'document_type' => 'hc',
-            'userid'        => '540035',
-            'step'          => 1,
-        ]);
-
-        DocumentApprover::create([
-            'document_type' => 'media',
-            'userid'        => '630040',
-            'step'          => 1,
-        ]);
-
-        DocumentApprover::create([
-            'document_type' => 'purchase',
-            'userid'        => '650148',
-            'step'          => 1,
-        ]);
-
-        DocumentApprover::create([
-            'document_type' => 'purchase-edit',
-            'userid'        => '650148',
-            'step'          => 1,
-        ]);
-
-        DocumentApprover::create([
-            'document_type' => 'purchase-edit',
-            'userid'        => '670041',
-            'step'          => 2,
-        ]);
+            ['document_type' => 'purchase-edit', 'step' => 1, 'task_user' => 'head_of_department', 'task_position' => '-', 'task_name' => 'wait for approve', 'task_description' => 'wait head of department for approval'],
+            ['document_type' => 'purchase-edit', 'step' => 2, 'task_user' => 'Purchasing', 'task_position' => 'Purchasing Department', 'task_name' => 'wait for process', 'task_description' => 'wait Purchasing Department for process document'],
+            ['document_type' => 'purchase-edit', 'step' => 3, 'task_user' => '650148', 'task_position' => 'หัวหน้าแผนก', 'task_name' => 'wait for complete', 'task_description' => 'wait for approve document'],
+            ['document_type' => 'purchase-edit', 'step' => 4, 'task_user' => '670041', 'task_position' => 'รองกรรมการผู้อำนวยการ', 'task_name' => 'wait for complete', 'task_description' => 'wait for complete document'],
+        ];
+        foreach ($documentTaskList as $task) {
+            DocumentListTask::create($task);
+        }
     }
 }
