@@ -20,6 +20,7 @@ class DocumentITController extends Controller
 
     public function createDocument(Request $request)
     {
+        dd($request);
         // dump($request->all());
         // Dev bybass validation
         // $request->validate([
@@ -103,6 +104,7 @@ class DocumentITController extends Controller
 
         $this->helper->createApprover('it', $dataField, $document);
         $this->helper->createTask($ishardWare, $document);
+
         $this->helper->createFile($request, $document);
 
         // Log

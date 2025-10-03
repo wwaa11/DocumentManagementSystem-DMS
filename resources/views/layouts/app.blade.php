@@ -30,9 +30,9 @@
                 </a>
                 <li class="menu-title">Praram9 - DMS</li>
                 <div class="text-info-content bg-neutral-content flex flex-col gap-0.5 rounded-md p-3 text-xs">
-                    <div><span class="fas fa-user font-bold"></span> : {{ auth()->user()->userid }}</div>
-                    <div>{{ auth()->user()->name }}</div>
-                    <div>{{ auth()->user()->department }}</div>
+                    <div><i class="fa-regular fa-user"></i> : {{ auth()->user()->userid }}</div>
+                    <div><i class="fa-solid fa-minus"></i> : {{ auth()->user()->name }}</div>
+                    <div><i class="fa-solid fa-minus"></i> : {{ auth()->user()->department }}</div>
                 </div>
                 <li><a class="nav-link" data-route="document.index" href="{{ route("document.index") }}">เอกสารทั้งหมด</a></li>
                 <li><a class="nav-link" data-route="document.create" href="{{ route("document.create") }}">สร้างเอกสาร</a></li>

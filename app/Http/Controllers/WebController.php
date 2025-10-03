@@ -3,6 +3,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\HelperController;
 use App\Models\Document;
+use App\Models\DocumentHc;
+use App\Models\DocumentIT;
+use App\Models\DocumentPac;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -29,6 +32,7 @@ class WebController extends Controller
             $detail                  = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100) . '...' : $documentData->detail;
             $documents[$document_id] = [
                 'flag'               => 'approve',
+                'id'                 => $documentData->id,
                 'document_tag'       => $documentData->document_tag,
                 'document_number'    => $documentData->document_number,
                 'document_type_name' => $documentData->document_type_name,
@@ -44,6 +48,7 @@ class WebController extends Controller
                 $detail                  = strlen($item->detail) > 100 ? mb_substr($item->detail, 0, 100) . '...' : $item->detail;
                 $documents[$document_id] = [
                     'flag'               => 'my',
+                    'id'                 => $item->id,
                     'document_tag'       => $item->document_tag,
                     'document_number'    => $item->document_number,
                     'document_type_name' => $item->document_type_name,
@@ -62,14 +67,14 @@ class WebController extends Controller
             'path' => LengthAwarePaginator::resolveCurrentPath(),
         ]);
 
-        return view('document.lists', ['documents' => $paginatedDocuments]);
+        return view('documnet_index', ['documents' => $paginatedDocuments]);
     }
 
     public function createDocument()
     {
         $document = Document::active()->get();
 
-        return view('document.create', compact('document'));
+        return view('document_create', compact('document'));
     }
 
     public function createDocumentByType($document_type)
@@ -109,6 +114,26 @@ class WebController extends Controller
         }
 
         return response()->json(['status' => true, 'user' => $response['user']]);
+    }
+
+    public function viewDocument($document_type, $document_id)
+    {
+        switch ($document_type) {
+            case 'IT':
+                $document = DocumentIT::find($document_id);
+                break;
+            case 'PAC':
+                $document = DocumentPac::find($document_id);
+                break;
+            case 'HCLAB':
+                $document = DocumentHc::find($document_id);
+                break;
+            default:
+                return redirect()->route('document.index');
+                break;
+        }
+
+        return view('document.view', compact('document'));
     }
 
 }

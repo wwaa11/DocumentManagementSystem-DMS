@@ -48,7 +48,7 @@
                             </div>
                         </td>
                         <td>
-                            <a class="btn btn-sm btn-primary" href="#">View</a>
+                            <a class="btn btn-sm btn-primary" href="{{ route("document.type.view", ["document_type" => $document["document_tag"]["document_tag"], "document_id" => $document["id"]]) }}">View</a>
                         </td>
                     </tr>
                 @endforeach

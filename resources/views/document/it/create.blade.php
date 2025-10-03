@@ -10,7 +10,7 @@
         </div>
         <form id="create-form" action="{{ route("document.it.create") }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @include("document.approver")
+            @include("document.component.create_approver")
 
             @if ($errors->any())
                 <div class="alert alert-error" role="alert">
@@ -98,11 +98,13 @@
 @push("scripts")
     <script type="module">
         $(function() {
-            const fileInput = document.getElementById('file_input');
+            const fileInput = document.getElementById('file_input'); // Assign here
             const fileDisplay = document.getElementById('file_display');
             const dropArea = document.getElementById('drop-area');
 
-            let fileStore = new DataTransfer();
+            console.log(fileInput);
+
+            fileStore = new DataTransfer(); // Assign here
 
             // Prevent default drag behaviors
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -252,6 +254,10 @@
                         }
                     });
                     const form = document.getElementById('create-form');
+                    // Ensure fileInput.files is updated before submission
+                    if (fileInput && fileStore) {
+                        fileInput.files = fileStore.files;
+                    }
                     form.submit();
                 }
             });

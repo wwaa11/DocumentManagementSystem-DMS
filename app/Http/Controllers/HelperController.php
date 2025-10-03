@@ -52,7 +52,9 @@ class HelperController extends Controller
 
     public function createFile(Request $request, $fileable)
     {
+
         $uploadedFiles = $request->file('document_files');
+        dd($uploadedFiles);
         if ($uploadedFiles) {
             foreach ($uploadedFiles as $file) {
                 $originalFilename = $file->getClientOriginalName();

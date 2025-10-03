@@ -13,6 +13,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [WebController::class, 'myDocument'])->name('document.index');
     Route::get('/document/create', [WebController::class, 'createDocument'])->name('document.create');
     Route::get('/document/{document_type}/create', [WebController::class, 'createDocumentByType'])->name('document.create.type');
+    Route::get('/document/{document_type}/view/{document_id}', [WebController::class, 'viewDocument'])->name('document.type.view');
 
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
 
