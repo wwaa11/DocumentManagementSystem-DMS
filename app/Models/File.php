@@ -15,8 +15,8 @@ class File extends Model
         'size',
     ];
 
-    public function fileable()
+    public function document()
     {
-        return $this->morphTo();
+        return $this->morphTo('document', 'fileable_type', 'fileable_id');
     }
 }

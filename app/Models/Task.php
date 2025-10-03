@@ -15,8 +15,8 @@ class Task extends Model
         'date',
     ];
 
-    public function taskable()
+    public function document()
     {
-        return $this->morphTo();
+        return $this->morphTo('document', 'taskable_type', 'taskable_id');
     }
 }

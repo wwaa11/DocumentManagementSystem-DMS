@@ -13,9 +13,8 @@ class Log extends Model
         'details',
     ];
 
-    public function loggable()
+    public function document()
     {
-        // 'loggable' must match the prefix used in the logs table migration
-        return $this->morphTo();
+        return $this->morphTo('document', 'loggable_type', 'loggable_id');
     }
 }

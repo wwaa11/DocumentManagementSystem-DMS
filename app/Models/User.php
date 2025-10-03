@@ -4,7 +4,6 @@ namespace App\Models;
 use App\Models\DocumentHc;
 use App\Models\DocumentIT;
 use App\Models\DocumentPac;
-use App\Models\Approver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -72,42 +71,60 @@ class User extends Authenticatable
         return $this->hasMany(DocumentPac::class, 'requester', 'userid');
     }
 
-    public static function getAllDocumentsOrdered()
+    public function getApproveDocument()
+    {
+
+        return Approver::where('userid', $this->userid)->where('status', 'wait')->orderByDesc('id')->get();
+    }
+
+    public function getAllDocumentsOrdered()
     {
         $userId = auth()->user()->userid;
 
-        // Select columns for documents where the user is the requester
         $its = DocumentIT::where('requester', $userId)
-            ->select('id', 'requester', 'document_number', 'title', 'document_its.status as status', 'created_at', DB::raw("'document_its' as document_type"), DB::raw('NULL as is_approver'));
+            ->select(
+                'id',
+                'requester',
+                'document_number',
+                'title',
+                'detail',
+                'document_its.status as status',
+                'created_at',
+                DB::raw("'document_its' as document_type"),
+                DB::raw('NULL as is_approver')
+            );
 
         $hcs = DocumentHc::where('requester', $userId)
-            ->select('id', 'requester', 'document_number', 'title', 'document_hcs.status as status', 'created_at', DB::raw("'document_hcs' as document_type"), DB::raw('NULL as is_approver'));
+            ->select(
+                'id',
+                'requester',
+                'document_number',
+                'title',
+                'detail',
+                'document_hcs.status as status',
+                'created_at',
+                DB::raw("'document_hcs' as document_type"),
+                DB::raw('NULL as is_approver')
+            );
 
         $pacs = DocumentPac::where('requester', $userId)
-            ->select('id', 'requester', 'document_number', 'title', 'document_pacs.status as status', 'created_at', DB::raw("'document_pacs' as document_type"), DB::raw('NULL as is_approver'));
+            ->select(
+                'id',
+                'requester',
+                'document_number',
+                'title',
+                'detail',
+                'document_pacs.status as status',
+                'created_at',
+                DB::raw("'document_pacs' as document_type"),
+                DB::raw('NULL as is_approver')
+            );
 
-        // Select columns for documents where the user is an approver
-        $approverIts = Approver::where('userid', $userId)
-            ->where('approvable_type', DocumentIT::class)
-            ->join('document_its', 'approvers.approvable_id', '=', 'document_its.id')
-            ->select('approvable_id as id', DB::raw('NULL as requester'), 'document_its.document_number', 'document_its.title', 'document_its.status as status', 'document_its.created_at', DB::raw('1 as is_approver'), DB::raw("'document_its' as document_type"));
-
-        $approverHcs = Approver::where('userid', $userId)
-            ->where('approvable_type', DocumentHc::class)
-            ->join('document_hcs', 'approvers.approvable_id', '=', 'document_hcs.id')
-            ->select('approvable_id as id', DB::raw('NULL as requester'), 'document_hcs.document_number', 'document_hcs.title', 'document_hcs.status as status', 'document_hcs.created_at', DB::raw('1 as is_approver'), DB::raw("'document_hcs' as document_type"));
-
-        $approverPacs = Approver::where('userid', $userId)
-            ->where('approvable_type', DocumentPac::class)
-            ->join('document_pacs', 'approvers.approvable_id', '=', 'document_pacs.id')
-            ->select('approvable_id as id', DB::raw('NULL as requester'), 'document_pacs.document_number', 'document_pacs.title', 'document_pacs.status as status', 'document_pacs.created_at', DB::raw('1 as is_approver'), DB::raw("'document_pacs' as document_type"));
-
-        return $its->unionAll($hcs)
+        $document = $its->unionAll($hcs)
             ->unionAll($pacs)
-            ->unionAll($approverIts)
-            ->unionAll($approverHcs)
-            ->unionAll($approverPacs)
             ->orderByDesc('created_at')
             ->get();
+
+        return $document;
     }
 }

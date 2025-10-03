@@ -2,39 +2,52 @@
 namespace App\Http\Controllers;
 
 use App\Models\Approver;
-use App\Models\DocumentApprover;
+use App\Models\DocumentListApprover;
+use App\Models\DocumentListTask;
 use App\Models\File;
 use App\Models\Log;
 use Illuminate\Http\Request;
 
 class HelperController extends Controller
 {
-    public function createApprover($data, $approveable)
+    public function createApprover($type, $dataField, $approveable)
     {
-        $approverList = [];
-        if ($data['selfApprove'] == 'true') {
-            $approverList[] = new Approver([
-                'userid'      => auth()->user()->userid,
-                'step'        => 1,
-                'status'      => 'Approve',
-                'approved_at' => date('Y-m-d H:i:s'),
-            ]);
-        } else {
-            $approverList[] = new Approver([
-                'userid' => $data['approver']['userid'],
-                'step'   => 1,
-            ]);
-        }
-
-        $approverType = DocumentApprover::where('document_type', $data['document_type'])->get();
-        foreach ($approverType as $type) {
-            $approverList[] = new Approver([
-                'userid' => $type->userid,
-                'step'   => $type->step + 1,
-            ]);
+        $approverGetList = DocumentListApprover::where('document_type', $type)->orderBy('step', 'asc')->get();
+        $approverList    = [];
+        foreach ($approverGetList as $approver) {
+            if ($approver->userid == 'head_of_department') {
+                if ($dataField['selfApprove'] == 'true') {
+                    $approverList[] = new Approver([
+                        'userid'      => auth()->user()->userid,
+                        'step'        => $approver->step,
+                        'status'      => 'Approve',
+                        'approved_at' => date('Y-m-d H:i:s'),
+                    ]);
+                } else {
+                    $approverList[] = new Approver([
+                        'userid' => $dataField['approver']['userid'],
+                        'step'   => $approver->step,
+                    ]);
+                }
+            } else {
+                $approverList[] = new Approver([
+                    'userid' => $approver->userid,
+                    'step'   => $approver->step,
+                ]);
+            }
         }
 
         $approveable->approvers()->saveMany($approverList);
+    }
+
+    public function createTask($documentType, $taskable)
+    {
+        $taskList = DocumentListTask::where('document_type', $documentType)->orderBy('step', 'asc')->get();
+        foreach ($taskList as $task) {
+            $taskable->tasks()->create([
+                'step' => $task->step,
+            ]);
+        }
     }
 
     public function createFile(Request $request, $fileable)
@@ -47,17 +60,14 @@ class HelperController extends Controller
                 $size             = $file->getSize();
                 $storedPath       = $file->store('public/uploads'); // Store in storage/app/public/uploads
 
-                $fileData = [
+                $fileData = new File([
                     'original_filename' => $originalFilename,
                     'stored_path'       => $storedPath,
                     'mime_type'         => $mimeType,
                     'size'              => $size,
-                ];
+                ]);
 
-                // Create a new File model instance
-                $fileEntry = new File($fileData);
-                // Associate the file with the fileable model
-                $fileable->files()->save($fileEntry);
+                $fileable->files()->save($fileData);
             }
         }
     }

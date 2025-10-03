@@ -8,8 +8,6 @@ class DocumentIT extends Model
     protected $table = 'document_its';
 
     private $documentStatuses = [
-        'user',          // Document type ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม
-        'support',       // Document type ขอแจ้งงาน/สนับสนุนการทำงาน
         'wait_approval', // Wait for Approval
         'not_approval',  // Not-Approval Document
         'cancel',        // Requester cancel the request
@@ -22,6 +20,7 @@ class DocumentIT extends Model
 
     protected $appends = [
         'document_type_name',
+        'document_tag',
     ];
 
     public function getDocumentTypeNameAttribute()
@@ -33,6 +32,14 @@ class DocumentIT extends Model
 
             return 'ขอแจ้งงาน/สนับสนุนการทำงาน';
         }
+    }
+
+    public function getDocumentTagAttribute()
+    {
+        return [
+            'document_tag' => 'IT',
+            'colour'       => 'secondary',
+        ];
     }
 
     // Relationship to Approver

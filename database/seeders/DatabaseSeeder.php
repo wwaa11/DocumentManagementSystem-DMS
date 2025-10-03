@@ -31,11 +31,17 @@ class DatabaseSeeder extends Seeder
         ];
         foreach ($documentType as $type) {
             Document::create($type);
-            DocumentListApprover::create([
-                'document_type' => $type['short_name'],
-                'userid'        => 'head_of_department',
-                'step'          => 1,
-            ]);
+        }
+
+        $documentApproveList = [
+            ['document_type' => 'it', 'userid' => 'head_of_department', 'step' => 1],
+            ['document_type' => 'media', 'userid' => 'head_of_department', 'step' => 1],
+            ['document_type' => 'pac', 'userid' => 'head_of_department', 'step' => 1],
+            ['document_type' => 'hc', 'userid' => 'head_of_department', 'step' => 1],
+            ['document_type' => 'purchase', 'userid' => 'head_of_department', 'step' => 1],
+        ];
+        foreach ($documentApproveList as $approve) {
+            DocumentListApprover::create($approve);
         }
 
         // Create Document Task List

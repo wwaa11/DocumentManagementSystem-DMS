@@ -70,9 +70,9 @@ class DocumentITController extends Controller
 
     private function createDocumentIT(Request $request)
     {
-        $dataField                  = $request->all();
-        $dataField['document_type'] = ($request->isHardware == 'true') ? 'it-hardware' : 'it';
-        //Set Title
+        $dataField  = $request->all();
+        $ishardWare = ($request->isHardware == 'true') ? 'it-hardware' : 'it';
+
         $title = $request->title;
         if ($request->title == 'OTHER') {
             $title = $request->title_other_text;
@@ -80,7 +80,6 @@ class DocumentITController extends Controller
         if (str_contains($request->request_type_detail, 'อื่นๆ')) {
             $title .= ' ' . $request->request_type_detail . ' ' . $request->request_type_detail_other;
         }
-        // Set Detail
         $detail = '';
         if ($request->document_type == 'support') {
             $detail = $request->support_detail;
@@ -102,9 +101,11 @@ class DocumentITController extends Controller
         $document->assigned_user_id = ($request->document_admin) ? $request->document_admin : null;
         $document->save();
 
-        // Assuming $document is the fileable model
-        $this->helper->createApprover($dataField, $document);
+        $this->helper->createApprover('it', $dataField, $document);
+        $this->helper->createTask($ishardWare, $document);
         $this->helper->createFile($request, $document);
+
+        // Log
         $log = [
             'action'  => 'create',
             'details' => 'สร้างเอกสาร IT',
@@ -121,11 +122,13 @@ class DocumentITController extends Controller
 
     private function createDocumentPAC($request)
     {
-        $dataField                  = $request->all();
-        $dataField['document_type'] = 'pac';
-        // Set Detail
-        $title  = $request->title;
-        $detail = $this->setUserFieldData($request->users, $title);
+        $dataField = $request->all();
+        $title     = $request->title;
+        if ($request->title == 'ฝ่ายบุคคล' || $request->title == 'เลขาแพทย์') {
+            $detail = $request->user_detail;
+        } else {
+            $detail = $this->setUserFieldData($request->users, $title);
+        }
 
         $document                  = new DocumentPac();
         $document->requester       = auth()->user()->userid;
@@ -135,9 +138,11 @@ class DocumentITController extends Controller
         $document->detail          = $detail;
         $document->save();
 
-        // Assuming $document is the fileable model
-        $this->helper->createApprover($dataField, $document);
+        $this->helper->createApprover('pac', $dataField, $document);
+        $this->helper->createTask('pac', $document);
         $this->helper->createFile($request, $document);
+
+        // Log
         $log = [
             'action'  => 'create',
             'details' => 'สร้างเอกสาร PACS',
@@ -147,11 +152,14 @@ class DocumentITController extends Controller
 
     private function createDocumentHC($request)
     {
-        $dataField                  = $request->all();
-        $dataField['document_type'] = 'hc';
+        $dataField = $request->all();
 
-        $title  = $request->title;
-        $detail = $this->setUserFieldData($request->users, $title);
+        $title = $request->title;
+        if ($request->title == 'ฝ่ายบุคคล' || $request->title == 'เลขาแพทย์') {
+            $detail = $request->user_detail;
+        } else {
+            $detail = $this->setUserFieldData($request->users, $title);
+        }
 
         $document                  = new DocumentHc();
         $document->requester       = auth()->user()->userid;
@@ -161,8 +169,11 @@ class DocumentITController extends Controller
         $document->detail          = $detail;
         $document->save();
 
-        $this->helper->createApprover($dataField, $document);
+        $this->helper->createApprover('hc', $dataField, $document);
+        $this->helper->createTask('hc', $document);
         $this->helper->createFile($request, $document);
+
+        // Log
         $log = [
             'action'  => 'create',
             'details' => 'สร้างเอกสาร HCLAB',

@@ -18,6 +18,24 @@ class DocumentPac extends Model
         'finish',        // Document is finished
     ];
 
+    protected $appends = [
+        'document_type_name',
+        'document_tag',
+    ];
+
+    public function getDocumentTypeNameAttribute()
+    {
+        return 'ขอสิทธิใช้งานโปรแกรม';
+    }
+
+    public function getDocumentTagAttribute()
+    {
+        return [
+            'document_tag' => 'PAC',
+            'colour'       => 'warning',
+        ];
+    }
+
     // Relationship to Approver
     public function approvers()
     {
