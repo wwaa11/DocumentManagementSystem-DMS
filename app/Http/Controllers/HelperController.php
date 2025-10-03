@@ -31,8 +31,7 @@ class HelperController extends Controller
             ];
         }
 
-        dump($approverList);
-        // $approveable->approvers()->saveMany($approverList);
+        $approveable->approvers()->saveMany($approverList);
     }
 
     public function createFile(Request $request, $fileable)
@@ -51,12 +50,11 @@ class HelperController extends Controller
                     'mime_type'         => $mimeType,
                     'size'              => $size,
                 ];
-                dump($fileData);
 
                 // Create a new File model instance
-                // $fileEntry = new File($fileData);
+                $fileEntry = new File($fileData);
                 // Associate the file with the fileable model
-                // $fileable->files()->save($fileEntry);
+                $fileable->files()->save($fileEntry);
             }
         }
     }
@@ -68,8 +66,7 @@ class HelperController extends Controller
             'action' => $log['action'],
             'detail' => $log['detail'],
         ];
-        dump($logData);
 
-        // $logable->logs()->save($logData);
+        $logable->logs()->save($logData);
     }
 }

@@ -28,44 +28,13 @@ class DocumentITController extends Controller
         //     'description' => 'required|string',
         // ]);
 
-        $createIT  = false;
-        $createPAC = false;
-        $createHC  = false;
-
-        if ($request->document_type == 'user') {
-            $checkTitle = ['ขอเพิ่ม', 'ขอลด', 'ขอแก้ไข'];
-            if (in_array($request->title, $checkTitle)) {
-                foreach ($request->users as $user) {
-                    foreach ($user['request'] as $service => $value) {
-                        if ($value == 'true') {
-                            switch ($service) {
-                                case 'hclab':
-                                    $createHC = true;
-                                    break;
-                                case 'pacs':
-                                    $createPAC = true;
-                                    break;
-                                default:
-                                    $createIT = true;
-                                    break;
-                            }
-                        }
-                    }
-                }
-            } else {
-                $createIT = true;
-            }
-        } else {
-            $createIT = true;
-        }
-
-        if ($createIT) {
+        if ($request->createIT == 'true') {
             $this->createDocumentIT($request);
         }
-        if ($createPAC) {
+        if ($request->createPAC == 'true') {
             $this->createDocumentPAC($request);
         }
-        if ($createHC) {
+        if ($request->createHC == 'true') {
             $this->createDocumentHC($request);
         }
     }
@@ -94,6 +63,13 @@ class DocumentITController extends Controller
             }
         }
         return $userField;
+    }
+
+    private function setDocumentCode($data)
+    {
+        // type = user : ITU
+        // type = support : ITJ, ITS, ITR
+
     }
 
     private function createDocumentIT(Request $request)
@@ -128,8 +104,7 @@ class DocumentITController extends Controller
         $document->detail           = $detail;
         $document->assigned_user_id = ($request->document_admin) ? $request->document_admin : null;
         $document->document_phone   = $request->document_phone;
-        dump($document);
-        // $document->save();
+        $document->save();
 
         // Assuming $document is the fileable model
         $this->helper->createApprover($dataField, $document);
@@ -147,9 +122,9 @@ class DocumentITController extends Controller
             $this->helper->createLog($log, $document);
         }
     }
+
     private function createDocumentPAC($request)
     {
-        dump('createDocumentPAC');
         $dataField                  = $request->all();
         $dataField['document_type'] = 'pac';
         // Set Detail
@@ -162,8 +137,7 @@ class DocumentITController extends Controller
         $document->title          = $request->title;
         $document->detail         = $detail;
         $document->document_phone = $request->document_phone;
-        dump($document);
-        // $document->save();
+        $document->save();
 
         // Assuming $document is the fileable model
         $this->helper->createApprover($dataField, $document);
@@ -174,9 +148,9 @@ class DocumentITController extends Controller
         ];
         $this->helper->createLog($log, $document);
     }
+
     private function createDocumentHC($request)
     {
-        dump('createDocumentHC');
         $dataField                  = $request->all();
         $dataField['document_type'] = 'hc';
 
@@ -189,8 +163,7 @@ class DocumentITController extends Controller
         $document->title          = $title;
         $document->detail         = $detail;
         $document->document_phone = $request->document_phone;
-        dump($document);
-        // $document->save();
+        $document->save();
 
         $this->helper->createApprover($dataField, $document);
         $this->helper->createFile($request, $document);
