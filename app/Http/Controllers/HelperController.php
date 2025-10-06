@@ -54,7 +54,6 @@ class HelperController extends Controller
     {
 
         $uploadedFiles = $request->file('document_files');
-        dd($uploadedFiles);
         if ($uploadedFiles) {
             foreach ($uploadedFiles as $file) {
                 $originalFilename = $file->getClientOriginalName();

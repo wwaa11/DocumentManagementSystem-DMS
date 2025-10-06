@@ -69,6 +69,109 @@
                         {{-- display file in this div with remove file button --}}
                     </div>
 
+@push('scripts')
+<script>
+    let files = []; // To store selected files, accessible globally within this script block
+    let fileInput; // Declare fileInput in a higher scope
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropArea = document.getElementById('drop-area');
+        fileInput = document.getElementById('file_input'); // Assign to the higher-scoped variable
+        const fileDisplay = document.getElementById('file_display');
+
+        // Prevent default drag behaviors
+        ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop area when item is dragged over it
+        ;['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ;['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        // Handle file input change
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        // Handle click on drop area to open file input
+        dropArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight() {
+            dropArea.classList.add('border-primary');
+            dropArea.classList.remove('border-base-300');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('border-primary');
+            dropArea.classList.add('border-base-300');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const newFiles = dt.files;
+            handleFiles(newFiles);
+        }
+
+        function handleFiles(newFiles) {
+            newFiles = Array.from(newFiles);
+            newFiles.forEach(file => {
+                if (!files.some(existingFile => existingFile.name === file.name && existingFile.size === file.size)) {
+                    files.push(file);
+                }
+            });
+            updateFileDisplay();
+        }
+
+        function updateFileDisplay() {
+            fileDisplay.innerHTML = ''; // Clear current display
+            files.forEach((file, index) => {
+                const fileElement = document.createElement('div');
+                fileElement.className = 'flex items-center gap-2 bg-base-200 p-2 rounded-md';
+                fileElement.innerHTML = `
+                    <span class="text-sm">${file.name}</span>
+                    <button type="button" class="remove-file-btn text-error hover:text-error-focus" data-index="${index}">
+                        <i class="fas fa-times-circle"></i>
+                    </button>
+                `;
+                fileDisplay.appendChild(fileElement);
+            });
+            updateFileInput();
+        }
+
+        function updateFileInput() {
+            const dataTransfer = new DataTransfer();
+            files.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files;
+        }
+
+        // Handle remove file button click
+        fileDisplay.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-file-btn')) {
+                const indexToRemove = parseInt(e.target.closest('.remove-file-btn').dataset.index);
+                files.splice(indexToRemove, 1); // Remove file from array
+                updateFileDisplay();
+            }
+        });
+    });
+</script>
+@endpush
+
                     <h3 class="card-title text-primary mb-2 mt-3 flex items-center text-xl">
                         <i class="fas fa-user-shield text-primary mr-2"></i>ส่งถึงแผนก IT
                     </h3>
@@ -96,101 +199,6 @@
     </div>
 @endsection
 @push("scripts")
-    <script type="module">
-        $(function() {
-            const fileInput = document.getElementById('file_input'); // Assign here
-            const fileDisplay = document.getElementById('file_display');
-            const dropArea = document.getElementById('drop-area');
-
-            console.log(fileInput);
-
-            fileStore = new DataTransfer(); // Assign here
-
-            // Prevent default drag behaviors
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-                document.body.addEventListener(eventName, preventDefaults, false);
-            });
-
-            // Highlight drop area when item is dragged over it
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, () => dropArea.classList.add('border-primary'), false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, () => dropArea.classList.remove('border-primary'), false);
-            });
-
-            // Handle dropped files
-            dropArea.addEventListener('drop', handleDrop, false);
-
-            fileInput.addEventListener('change', (event) => {
-                addFiles(event.target.files);
-                event.target.value = null; // Clear the input after adding files
-            });
-
-            dropArea.addEventListener('click', () => fileInput.click());
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                addFiles(files);
-            }
-
-            function addFiles(files) {
-                Array.from(files).forEach(file => {
-                    fileStore.items.add(file);
-                });
-                fileInput.files = fileStore.files;
-                renderFileList();
-            }
-
-            function renderFileList() {
-                fileDisplay.innerHTML = '';
-                Array.from(fileStore.files).forEach((file, index) => {
-                    const fileChip = document.createElement('div');
-                    fileChip.classList.add(
-                        'flex', 'items-center', 'gap-2', 'badge', 'badge-outline', 'badge-lg', 'mb-2', 'flex-nowrap'
-                    );
-
-                    const fileNameSpan = document.createElement('span');
-                    fileNameSpan.textContent = file.name;
-
-                    const removeButton = document.createElement('button');
-                    removeButton.classList.add('btn', 'btn-xs', 'btn-circle', 'btn-error');
-                    removeButton.innerHTML = '<i class="fas fa-times text-white"></i>';
-                    removeButton.type = 'button';
-
-                    removeButton.setAttribute('data-filename', file.name);
-
-                    removeButton.addEventListener('click', (e) => {
-                        removeFileByName(e.currentTarget.getAttribute('data-filename'));
-                    });
-
-                    fileChip.appendChild(fileNameSpan);
-                    fileChip.appendChild(removeButton);
-                    fileDisplay.appendChild(fileChip);
-                });
-                fileInput.files = fileStore.files;
-            }
-
-            function removeFileByName(fileNameToRemove) {
-                let newFileStore = new DataTransfer();
-                Array.from(fileStore.files).forEach((file) => {
-                    if (file.name !== fileNameToRemove) {
-                        newFileStore.items.add(file);
-                    }
-                });
-                fileStore = newFileStore;
-                renderFileList();
-            }
-        });
-    </script>
     <script>
         function selectDocType(document_type) {
             if (document_type === 'user') {
@@ -222,7 +230,7 @@
 
             const type = $('#type-user').is(':checked') ? 'user' : 'support';
             const title = $('input[name="title"]:checked').val();
-            console.log('title: ' + title);
+            
             if (type === 'user') {
                 doctor_hr_it = $('#doctor_hr_it').is(':checked');
                 doctor_hr_hclab = $('#doctor_hr_hclab').is(':checked');
@@ -255,8 +263,10 @@
                     });
                     const form = document.getElementById('create-form');
                     // Ensure fileInput.files is updated before submission
-                    if (fileInput && fileStore) {
-                        fileInput.files = fileStore.files;
+                    if (fileInput) {
+                        const dataTransfer = new DataTransfer();
+                        files.forEach(file => dataTransfer.items.add(file));
+                        fileInput.files = dataTransfer.files;
                     }
                     form.submit();
                 }
