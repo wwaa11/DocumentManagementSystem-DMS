@@ -79,7 +79,9 @@ class DocumentITController extends Controller
             $title = $request->title_other_text;
         }
         if (str_contains($request->request_type_detail, 'อื่นๆ')) {
-            $title .= ' ' . $request->request_type_detail . ' ' . $request->request_type_detail_other;
+            $title .= '|' . $request->request_type_detail . ' ' . $request->request_type_detail_other;
+        } else {
+            $title .= '|' . $request->request_type_detail;
         }
         $detail = '';
         if ($request->document_type == 'support') {
@@ -115,8 +117,8 @@ class DocumentITController extends Controller
         $this->helper->createLog($log, $document);
         if ($request->document_admin) {
             $log = [
-                'action' => 'info',
-                'detail' => 'มอบหมายงานไปยัง ' . $request->document_admin,
+                'action'  => 'info',
+                'details' => 'มอบหมายงานไปยัง ' . $request->document_admin,
             ];
             $this->helper->createLog($log, $document);
         }

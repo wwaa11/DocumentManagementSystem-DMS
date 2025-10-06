@@ -14,10 +14,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/document/create', [WebController::class, 'createDocument'])->name('document.create');
     Route::get('/document/{document_type}/create', [WebController::class, 'createDocumentByType'])->name('document.create.type');
     Route::get('/document/{document_type}/view/{document_id}', [WebController::class, 'viewDocument'])->name('document.type.view');
+    Route::get('/document/files/{file}', [WebController::class, 'fileShow'])->name('document.files.show');
+    Route::get('/document/files/download/{file}', [WebController::class, 'fileDownload'])->name('document.files.download');
 
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
 
     Route::prefix('it')->group(function () {
         Route::post('/create', [DocumentITController::class, 'createDocument'])->name('document.it.create');
     });
+
 });

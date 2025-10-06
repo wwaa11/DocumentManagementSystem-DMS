@@ -23,11 +23,22 @@ class HelperController extends Controller
                         'status'      => 'Approve',
                         'approved_at' => date('Y-m-d H:i:s'),
                     ]);
+                    $approveable->status = 'pending';
+                    $approveable->save();
                 } else {
-                    $approverList[] = new Approver([
-                        'userid' => $dataField['approver']['userid'],
-                        'step'   => $approver->step,
-                    ]);
+                    if ($dataField['approver']['userid'] == auth()->user()->userid) {
+                        $approverList[] = new Approver([
+                            'userid'      => $dataField['approver']['userid'],
+                            'step'        => $approver->step,
+                            'status'      => 'Approve',
+                            'approved_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    } else {
+                        $approverList[] = new Approver([
+                            'userid' => $dataField['approver']['userid'],
+                            'step'   => $approver->step,
+                        ]);
+                    }
                 }
             } else {
                 $approverList[] = new Approver([
@@ -54,12 +65,13 @@ class HelperController extends Controller
     {
 
         $uploadedFiles = $request->file('document_files');
+
         if ($uploadedFiles) {
             foreach ($uploadedFiles as $file) {
                 $originalFilename = $file->getClientOriginalName();
                 $mimeType         = $file->getMimeType();
                 $size             = $file->getSize();
-                $storedPath       = $file->store('public/uploads'); // Store in storage/app/public/uploads
+                $storedPath       = $file->store('uploads', 'public'); // Store in storage/app/public/uploads
 
                 $fileData = new File([
                     'original_filename' => $originalFilename,

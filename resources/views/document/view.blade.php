@@ -10,12 +10,11 @@
                     <div class="card-body">
                         <p class="card-text">{{ $document->document_number }}</p>
                         <p class="card-text">{{ $document->document_type_name }}</p>
-                        <h5 class="card-title">Files</h5>
-                        <p class="card-text">{{ $document->files }}</p>
                         <p class="card-text">{{ $document->title }}</p>
                         <p class="card-text">{!! $document->detail !!}</p>
                         <p class="card-text">{{ $document->status }}</p>
                     </div>
+                    @include("document.files", ["files" => $document->files])
                     <div class="card-body">
                         <h5 class="card-title">Approvers</h5>
                         <p class="card-text">{{ $document->approvers }}</p>

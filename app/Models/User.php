@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class User extends Authenticatable
@@ -90,8 +89,7 @@ class User extends Authenticatable
                 'detail',
                 'document_its.status as status',
                 'created_at',
-                DB::raw("'document_its' as document_type"),
-                DB::raw('NULL as is_approver')
+
             );
 
         $hcs = DocumentHc::where('requester', $userId)
@@ -103,8 +101,6 @@ class User extends Authenticatable
                 'detail',
                 'document_hcs.status as status',
                 'created_at',
-                DB::raw("'document_hcs' as document_type"),
-                DB::raw('NULL as is_approver')
             );
 
         $pacs = DocumentPac::where('requester', $userId)
@@ -116,14 +112,18 @@ class User extends Authenticatable
                 'detail',
                 'document_pacs.status as status',
                 'created_at',
-                DB::raw("'document_pacs' as document_type"),
-                DB::raw('NULL as is_approver')
             );
 
-        $document = $its->unionAll($hcs)
-            ->unionAll($pacs)
-            ->orderByDesc('created_at')
-            ->get();
+        $document = [];
+        foreach ($its->get() as $item) {
+            $document[] = $item;
+        }
+        foreach ($hcs->get() as $item) {
+            $document[] = $item;
+        }
+        foreach ($pacs->get() as $item) {
+            $document[] = $item;
+        }
 
         return $document;
     }

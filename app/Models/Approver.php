@@ -11,6 +11,8 @@ class Approver extends Model
     protected $fillable = [
         'userid',
         'step',
+        'status',
+        'approved_at',
     ];
 
     public function document()

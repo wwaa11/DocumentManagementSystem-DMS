@@ -6,10 +6,12 @@ use App\Models\Document;
 use App\Models\DocumentHc;
 use App\Models\DocumentIT;
 use App\Models\DocumentPac;
+use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class WebController extends Controller
 {
@@ -134,6 +136,28 @@ class WebController extends Controller
         }
 
         return view('document.view', compact('document'));
+    }
+
+    public function fileShow(File $file)
+    {
+        $path = $file->stored_path;
+
+        if (! Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->response($path, $file->original_filename);
+    }
+
+    public function fileDownload(File $file)
+    {
+        $path = $file->stored_path;
+
+        if (! Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->download($path, $file->original_filename);
     }
 
 }
