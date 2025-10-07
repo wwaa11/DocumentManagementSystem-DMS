@@ -71,18 +71,27 @@ class DocumentITController extends Controller
 
     private function createDocumentIT(Request $request)
     {
-        $dataField  = $request->all();
-        $ishardWare = ($request->isHardware == 'true') ? 'it-hardware' : 'it';
+        $dataField = $request->all();
+        $taskData  = [
+            'document_type' => ($request->isHardware == 'true') ? 'it-hardware' : 'it',
+            'selfApprove'   => ($request['selfApprove'] == 'true') ? true : false,
+            'approver'      => $request['approver'],
+        ];
 
         $title = $request->title;
         if ($request->title == 'OTHER') {
             $title = $request->title_other_text;
         }
+        // set Detail Title
         if (str_contains($request->request_type_detail, 'อื่นๆ')) {
             $title .= '|' . $request->request_type_detail . ' ' . $request->request_type_detail_other;
         } else {
-            $title .= '|' . $request->request_type_detail;
+            $isEmpty = empty($request->request_type_detail);
+            if (! $isEmpty) {
+                $title .= '|' . $request->request_type_detail;
+            }
         }
+
         $detail = '';
         if ($request->document_type == 'support') {
             $detail = $request->support_detail;
@@ -105,8 +114,7 @@ class DocumentITController extends Controller
         $document->save();
 
         $this->helper->createApprover('it', $dataField, $document);
-        $this->helper->createTask($ishardWare, $document);
-
+        $this->helper->createTask($taskData, $document);
         $this->helper->createFile($request, $document);
 
         // Log
@@ -127,7 +135,12 @@ class DocumentITController extends Controller
     private function createDocumentPAC($request)
     {
         $dataField = $request->all();
-        $title     = $request->title;
+        $taskData  = [
+            'document_type' => 'pac',
+            'selfApprove'   => false,
+            'approver'      => $request['approver'],
+        ];
+        $title = $request->title;
         if ($request->title == 'ฝ่ายบุคคล' || $request->title == 'เลขาแพทย์') {
             $detail = $request->user_detail;
         } else {
@@ -143,7 +156,7 @@ class DocumentITController extends Controller
         $document->save();
 
         $this->helper->createApprover('pac', $dataField, $document);
-        $this->helper->createTask('pac', $document);
+        $this->helper->createTask($taskData, $document);
         $this->helper->createFile($request, $document);
 
         // Log
@@ -157,7 +170,11 @@ class DocumentITController extends Controller
     private function createDocumentHC($request)
     {
         $dataField = $request->all();
-
+        $taskData  = [
+            'document_type' => 'hc',
+            'selfApprove'   => false,
+            'approver'      => $request['approver'],
+        ];
         $title = $request->title;
         if ($request->title == 'ฝ่ายบุคคล' || $request->title == 'เลขาแพทย์') {
             $detail = $request->user_detail;
@@ -174,7 +191,7 @@ class DocumentITController extends Controller
         $document->save();
 
         $this->helper->createApprover('hc', $dataField, $document);
-        $this->helper->createTask('hc', $document);
+        $this->helper->createTask($taskData, $document);
         $this->helper->createFile($request, $document);
 
         // Log

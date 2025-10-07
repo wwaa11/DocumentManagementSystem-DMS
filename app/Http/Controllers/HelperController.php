@@ -48,16 +48,40 @@ class HelperController extends Controller
             }
         }
 
+        // To implement send EMAIL
+        // $dataField['approver']['email']
+
         $approveable->approvers()->saveMany($approverList);
     }
 
-    public function createTask($documentType, $taskable)
+    public function createTask($taskData, $taskable)
     {
-        $taskList = DocumentListTask::where('document_type', $documentType)->orderBy('step', 'asc')->get();
+        $taskList = DocumentListTask::where('document_type', $taskData['document_type'])->orderBy('step', 'asc')->get();
         foreach ($taskList as $task) {
-            $taskable->tasks()->create([
-                'step' => $task->step,
-            ]);
+            $taskAttributes = [
+                'step'          => $task->step,
+                'task_name'     => $task->task_name,
+                'task_user'     => $task->task_user,
+                'task_position' => $task->task_position,
+            ];
+
+            if (
+                ($task->step == 1 && $task->task_user == 'head_of_department' && $taskData['selfApprove']) ||
+                ($task->step == 1 && $taskData['approver']['userid'] == auth()->user()->userid)
+            ) {
+                $taskAttributes['status']        = 'approve';
+                $taskAttributes['task_name']     = 'อนุมัติ';
+                $taskAttributes['task_user']     = auth()->user()->userid;
+                $taskAttributes['task_position'] = auth()->user()->position;
+                $taskAttributes['date']          = date('Y-m-d H:i:s');
+            }
+
+            if ($task->task_user == 'head_of_department') {
+                $taskAttributes['task_user']     = $taskData['approver']['userid'];
+                $taskAttributes['task_position'] = $taskData['approver']['position'];
+            }
+
+            $taskable->tasks()->create($taskAttributes);
         }
     }
 

@@ -36,6 +36,10 @@ class DocumentPac extends Model
         ];
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'requester', 'userid');
+    }
     // Relationship to Approver
     public function approvers()
     {

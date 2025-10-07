@@ -17,4 +17,9 @@ class Log extends Model
     {
         return $this->morphTo('document', 'loggable_type', 'loggable_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'userid', 'userid');
+    }
 }

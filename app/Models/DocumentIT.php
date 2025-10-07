@@ -23,6 +23,11 @@ class DocumentIT extends Model
         'document_tag',
     ];
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'requester', 'userid');
+    }
+
     public function getDocumentTypeNameAttribute()
     {
         if ($this->type == 'user') {

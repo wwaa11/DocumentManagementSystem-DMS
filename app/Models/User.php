@@ -125,6 +125,11 @@ class User extends Authenticatable
             $document[] = $item;
         }
 
+        // sort by created_at
+        usort($document, function ($a, $b) {
+            return strtotime($b->created_at) - strtotime($a->created_at);
+        });
+
         return $document;
     }
 }

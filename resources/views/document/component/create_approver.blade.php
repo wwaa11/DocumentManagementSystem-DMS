@@ -29,7 +29,7 @@
                         </span>
                     </label>
                     <div>
-                        <input class="input input-bordered w-full" id="approver_position" type="text" readonly value="{{ auth()->user()->getapprover->approver->position }}" />
+                        <input class="input input-bordered w-full" id="approver_position" name="approver[position]" type="text" readonly value="{{ auth()->user()->getapprover->approver->position }}" />
                     </div>
                 </div>
                 {{-- Email --}}

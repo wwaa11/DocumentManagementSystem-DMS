@@ -15,16 +15,17 @@
 
 <body class="">
     <div class="drawer lg:drawer-open">
-        <input class="drawer-toggle" id="my-drawer-2" type="checkbox" />
-        <label class="btn btn-primary drawer-button text-end-safe m-3 lg:hidden" for="my-drawer-2">
-            <span class="fa fa-bars"></span>
-        </label>
-        <div class="drawer-content bg-base-100 min-h-screen p-6">
+        <input class="drawer-toggle" id="my-drawer" type="checkbox" />
+        <div class="drawer-content">
+            <div class="flex p-6">
+                <label class="btn btn-primary drawer-button m-auto flex-1 lg:hidden" for="my-drawer">MENU</label>
+            </div>
+            <!-- Page content here -->
             @yield("content")
         </div>
         <div class="drawer-side">
-            <label class="drawer-overlay" for="my-drawer-2" aria-label="close sidebar"></label>
-            <ul class="menu bg-base-200 text-base-content relative min-h-full gap-2 p-4 md:w-[13vw]">
+            <label class="drawer-overlay" for="my-drawer" aria-label="close sidebar"></label>
+            <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
                 <a href="{{ route("document.index") }}">
                     <img class="m-3 mx-auto w-24" src="{{ asset("images/Vertical Logo.png") }}" alt="logo">
                 </a>
@@ -95,7 +96,7 @@
         });
     });
 </script>
-    @stack('scripts')
+@stack("scripts")
 </body>
 
 </html>

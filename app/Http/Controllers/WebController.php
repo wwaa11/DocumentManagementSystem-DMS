@@ -123,19 +123,22 @@ class WebController extends Controller
         switch ($document_type) {
             case 'IT':
                 $document = DocumentIT::find($document_id);
+                $view     = 'document.it.view';
                 break;
             case 'PAC':
                 $document = DocumentPac::find($document_id);
+                $view     = 'document.it.view';
                 break;
             case 'HCLAB':
                 $document = DocumentHc::find($document_id);
+                $view     = 'document.it.view';
                 break;
             default:
                 return redirect()->route('document.index');
                 break;
         }
 
-        return view('document.view', compact('document'));
+        return view($view, compact('document'));
     }
 
     public function fileShow(File $file)

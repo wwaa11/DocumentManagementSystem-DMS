@@ -97,7 +97,10 @@ return new class extends Migration
             $table->morphs('taskable');
             $table->unsignedSmallInteger('step');
             $table->string('status')->default('wait');
-            $table->datetime('date')->nullable();
+            $table->string('task_name');
+            $table->string('task_user');
+            $table->string('task_position')->nullable();
+            $table->dateTime('date')->nullable();
             $table->timestamps();
             // Create a unique index to prevent the same user from being listed as an approver twice for the same document
             $table->unique(['taskable_id', 'taskable_type', 'step']);

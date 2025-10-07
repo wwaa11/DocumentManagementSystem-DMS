@@ -23,6 +23,11 @@ class DocumentHc extends Model
         'document_tag',
     ];
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'requester', 'userid');
+    }
+
     public function getDocumentTypeNameAttribute()
     {
         return 'ขอสิทธิใช้งานโปรแกรม';
