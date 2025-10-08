@@ -50,7 +50,13 @@
 
     $("form").submit(function(e) {
         e.preventDefault();
-
+        Swal.fire({
+            title: 'กำลังเข้าสู่ระบบ...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
         axios.post('{{ route("post.login") }}', {
                 userid: $("input[name='userid']").val(),
                 password: $("input[name='password']").val(),

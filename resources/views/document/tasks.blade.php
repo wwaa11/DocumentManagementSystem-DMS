@@ -8,7 +8,7 @@
             if ($task->status == "approve") {
                 $stepClass = "step-success";
                 $icon = "fa-check";
-            } elseif ($task->status == "cancel") {
+            } elseif ($task->status == "cancel" || $task->status == "reject") {
                 $stepClass = "step-error";
                 $icon = "fa-times";
             }

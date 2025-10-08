@@ -37,7 +37,7 @@ class DocumentHc extends Model
     {
         return [
             'document_tag' => 'HCLAB',
-            'colour'       => 'success',
+            'colour'       => 'info',
         ];
     }
 

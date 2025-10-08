@@ -23,9 +23,51 @@ class WebController extends Controller
         $this->helper = new HelperController();
     }
 
-    public function myDocument()
+    private function getDocument($document_type, $document_id)
     {
-        $my_documents     = auth()->user()->getAllDocumentsOrdered();
+        switch ($document_type) {
+            case 'IT':
+                $document = DocumentIT::find($document_id);
+                break;
+            case 'HCLAB':
+                $document = DocumentHc::find($document_id);
+                break;
+            case 'PAC':
+                $document = DocumentPac::find($document_id);
+                break;
+            default:
+                $document = null;
+                break;
+        }
+
+        return $document;
+    }
+
+    public function fileShow(File $file)
+    {
+        $path = $file->stored_path;
+
+        if (! Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->response($path, $file->original_filename);
+    }
+
+    public function fileDownload(File $file)
+    {
+        $path = $file->stored_path;
+
+        if (! Storage::disk('public')->exists($path)) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->download($path, $file->original_filename);
+    }
+
+    public function myDocument(Request $request)
+    {
+        $my_documents     = auth()->user()->getMyDocuments();
         $approveDocuments = auth()->user()->getApproveDocument();
         $documents        = [];
         foreach ($approveDocuments as $item) {
@@ -33,7 +75,7 @@ class WebController extends Controller
             $document_id             = $documentData->document_tag["document_tag"] . $documentData->id;
             $detail                  = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100) . '...' : $documentData->detail;
             $documents[$document_id] = [
-                'flag'               => 'approve',
+                'flag'               => ($item->status == 'wait' ? 'approve' : 'approved'),
                 'id'                 => $documentData->id,
                 'document_tag'       => $documentData->document_tag,
                 'document_number'    => $documentData->document_number,
@@ -61,6 +103,37 @@ class WebController extends Controller
                 ];
             }
         }
+
+        // Apply filters
+        $documents = collect($documents)->filter(function ($document) use ($request) {
+            $documentNumber = $request->input('document_number');
+            $flag           = $request->input('flag');
+            $document_tag   = $request->input('document_tag');
+            $status         = $request->input('status');
+            $createdAtStart = $request->input('created_at_start');
+            $createdAtEnd   = $request->input('created_at_end');
+
+            if ($documentNumber && ! str_contains(strtolower($document['document_number']), strtolower($documentNumber))) {
+                return false;
+            }
+            if ($flag && $document['flag'] !== $flag) {
+                return false;
+            }
+            if ($document_tag && ! str_contains(strtolower($document['document_tag']['document_tag']), strtolower($document_tag))) {
+                return false;
+            }
+            if ($status && $document['status'] !== $status) {
+                return false;
+            }
+            if ($createdAtStart && strtotime($document['created_at']) < strtotime($createdAtStart)) {
+                return false;
+            }
+            if ($createdAtEnd && strtotime($document['created_at']) > strtotime($createdAtEnd . ' 23:59:59')) {
+                return false;
+            }
+
+            return true;
+        })->toArray();
 
         $perPage            = 15;
         $currentPage        = LengthAwarePaginator::resolveCurrentPage();
@@ -120,47 +193,99 @@ class WebController extends Controller
 
     public function viewDocument($document_type, $document_id)
     {
-        switch ($document_type) {
-            case 'IT':
-                $document = DocumentIT::find($document_id);
-                $view     = 'document.it.view';
-                break;
-            case 'PAC':
-                $document = DocumentPac::find($document_id);
-                $view     = 'document.it.view';
-                break;
-            case 'HCLAB':
-                $document = DocumentHc::find($document_id);
-                $view     = 'document.it.view';
-                break;
-            default:
-                return redirect()->route('document.index');
-                break;
+        $document = $this->getDocument($document_type, $document_id);
+        if (! $document) {
+
+            return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
-        return view($view, compact('document'));
+        return view('document.view', compact('document', 'document_type'));
     }
 
-    public function fileShow(File $file)
+    public function cancelDocument(Request $request, $document_type, $document_id)
     {
-        $path = $file->stored_path;
+        $document = $this->getDocument($document_type, $document_id);
+        if (! $document) {
 
-        if (! Storage::disk('public')->exists($path)) {
-            abort(404);
+            return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
+        $document->status = 'cancel';
+        $document->save();
+        $document->approvers()->update(['status' => 'cancel']);
+        $document->tasks()->update(['status' => 'cancel', 'task_name' => 'ยกเลิกเอกสาร']);
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'cancel',
+            'details' => 'ยกเลิกเอกสาร ' . $request->input('reason'),
+        ]);
 
-        return Storage::disk('public')->response($path, $file->original_filename);
+        return response()->json(['status' => 'success']);
     }
 
-    public function fileDownload(File $file)
+    public function approveDocument($document_type, $document_id)
     {
-        $path = $file->stored_path;
+        $document = $this->getDocument($document_type, $document_id);
+        if (! $document) {
 
-        if (! Storage::disk('public')->exists($path)) {
-            abort(404);
+            return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
-        return Storage::disk('public')->download($path, $file->original_filename);
+        $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
+        if (! $approveList) {
+            return redirect()->route('document.index')->with('error', 'ไม่มีสิทธิ์อนุมัติเอกสารนี้');
+        }
+        // Check if the previous step is approved
+        if ($approveList->step > 1) {
+            $previousStep = $document->approvers()->where('step', $approveList->step - 1)->first();
+            if (! $previousStep || $previousStep->status !== 'approve') {
+                return redirect()->route('document.index')->with('error', 'ผู้อนุมัติขั้นก่อนหน้า สำหรับเอกสารนี้ยังไม่ถูกอนุมัติ');
+            }
+        }
+
+        return view('document.approve', compact('document', 'document_type'));
+    }
+
+    public function approveDocumentRequest(Request $request, $document_type, $document_id)
+    {
+        $document = $this->getDocument($document_type, $document_id);
+        if (! $document) {
+
+            return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
+        }
+
+        $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
+        if ($request->status == 'approve') {
+            $approveList->status = 'approve';
+            $document->tasks()->where('step', $approveList->step)->update([
+                'status' => 'approve',
+            ]);
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'อนุมัติ',
+                'details' => 'อนุมัติเอกสาร',
+            ]);
+            $checkNextStep = $document->approvers()->where('step', $approveList->step + 1)->first();
+            if (! $checkNextStep) {
+                $document->status = 'pending';
+            }
+        } else {
+            $document->status    = 'not_approval';
+            $approveList->status = 'reject';
+            $document->tasks()->where('step', $approveList->step)->update([
+                'status' => 'reject',
+            ]);
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'ไม่อนุมัติ',
+                'details' => $request->reason,
+            ]);
+        }
+        $approveList->save();
+        $document->save();
+
+        return response()->json([
+            'status' => 'success',
+        ]);
     }
 
 }

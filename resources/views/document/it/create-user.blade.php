@@ -144,7 +144,7 @@
                     <div class="form-control">
                         <label class="label cursor-pointer">
                             <span class="label-text">มีการขอ IT Request</span>
-                            <input class="checkbox checkbox-accent" id="doctor_hr_it" type="checkbox" value="false" />
+                            <input class="checkbox checkbox-accent" id="doctor_hr_it" onclick="toggleCjeckID('#doctor_hr_it')" type="checkbox" value="false" />
                         </label>
                     </div>
                 </div>
@@ -156,7 +156,7 @@
                     <div class="form-control">
                         <label class="label cursor-pointer">
                             <span class="label-text">มีการขอ HC Request</span>
-                            <input class="checkbox checkbox-accent" id="doctor_hr_hclab" type="checkbox" value="false" />
+                            <input class="checkbox checkbox-accent" id="doctor_hr_hclab" onclick="toggleCjeckID('#doctor_hr_hclab')" type="checkbox" value="false" />
                         </label>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
                     <div class="form-control">
                         <label class="label cursor-pointer">
                             <span class="label-text">มีการขอ PAC Request</span>
-                            <input class="checkbox checkbox-accent" id="doctor_hr_pacs" type="checkbox" value="false" />
+                            <input class="checkbox checkbox-accent" id="doctor_hr_pacs" onclick="toggleCjeckID('#doctor_hr_pacs')" type="checkbox" value="false" />
                         </label>
                     </div>
                 </div>

@@ -16,23 +16,30 @@ class HelperController extends Controller
         $approverList    = [];
         foreach ($approverGetList as $approver) {
             if ($approver->userid == 'head_of_department') {
+                $islastStep = $approver->step == $approverGetList->count();
                 if ($dataField['selfApprove'] == 'true') {
                     $approverList[] = new Approver([
                         'userid'      => auth()->user()->userid,
                         'step'        => $approver->step,
-                        'status'      => 'Approve',
+                        'status'      => 'approve',
                         'approved_at' => date('Y-m-d H:i:s'),
                     ]);
-                    $approveable->status = 'pending';
-                    $approveable->save();
+                    if ($islastStep) {
+                        $approveable->status = 'pending';
+                        $approveable->save();
+                    }
                 } else {
                     if ($dataField['approver']['userid'] == auth()->user()->userid) {
                         $approverList[] = new Approver([
                             'userid'      => $dataField['approver']['userid'],
                             'step'        => $approver->step,
-                            'status'      => 'Approve',
+                            'status'      => 'approve',
                             'approved_at' => date('Y-m-d H:i:s'),
                         ]);
+                        if ($islastStep) {
+                            $approveable->status = 'pending';
+                            $approveable->save();
+                        }
                     } else {
                         $approverList[] = new Approver([
                             'userid' => $dataField['approver']['userid'],

@@ -72,11 +72,20 @@ class User extends Authenticatable
 
     public function getApproveDocument()
     {
+        $documentList         = Approver::where('userid', $this->userid)->whereIn('status', ['wait', 'approve'])->orderByDesc('id')->get();
+        $filteredDocumentList = $documentList->filter(function ($item) {
+            if ($item->step == 1) {
+                return true;
+            } else {
+                $checkBeforeStep = Approver::where('approvable_type', $item->approvable_type)->where('approvable_id', $item->approvable_id)->where('step', $item->step - 1)->first();
+                return $checkBeforeStep && $checkBeforeStep->status == 'approve';
+            }
+        });
 
-        return Approver::where('userid', $this->userid)->where('status', 'wait')->orderByDesc('id')->get();
+        return (object) $filteredDocumentList->values();
     }
 
-    public function getAllDocumentsOrdered()
+    public function getMyDocuments()
     {
         $userId = auth()->user()->userid;
 
