@@ -8,8 +8,8 @@
             <div class="card-body">
                 @include("document.logs", ["logs" => $document->logs])
                 <div class="divider"></div>
-                <button class="btn btn-primary w-xs" type="button" onclick="approveDocument()">Approve</button>
-                <button class="btn btn-error w-xs" type="button" onclick="rejectDocument()">Reject</button>
+                <button class="btn btn-primary w-full" type="button" onclick="approveDocument()">Approve</button>
+                <button class="btn btn-error w-full" type="button" onclick="rejectDocument()">Reject</button>
             </div>
         </div>
     </div>

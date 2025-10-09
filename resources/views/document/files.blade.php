@@ -10,7 +10,7 @@
             <div class="flex gap-1">
                 @php
                     $mimeType = $file->mime_type;
-                    $viewableMimeTypes = ["image/jpeg", "image/png", "image/gif", "application/pdf", "text/plain", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+                    $viewableMimeTypes = ["image/jpeg", "image/png", "image/gif", "application/pdf"];
                 @endphp
                 @if (in_array(strtolower($mimeType), $viewableMimeTypes))
                     <a class="btn btn-xs btn-accent" href="{{ route("document.files.show", $file->id) }}" target="_blank">View</a>

@@ -34,7 +34,11 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/count', [DocumentITController::class, 'listDocumentCount'])->name('admin.it.count');
         Route::get('/admin/view/{document_id}/{action}', [DocumentITController::class, 'viewDocument'])->name('admin.it.view');
 
-        Route::post('/admin/hardware/approve', [DocumentITController::class, 'approveHardwareDocument'])->name('document.it.hardware.approve');
+        Route::post('/admin/hardware/approve', [DocumentITController::class, 'approveHardwareDocument'])->name('admin.it.hardware.approve');
+        Route::post('/admin/accept', [DocumentITController::class, 'acceptDocument'])->name('admin.it.accept');
+        Route::post('/admin/cancel', [DocumentITController::class, 'cancelDocument'])->name('admin.it.cancel');
+        Route::post('/admin/canceljob', [DocumentITController::class, 'cancelJob'])->name('admin.it.canceljob');
+        Route::post('/admin/process', [DocumentITController::class, 'processDocument'])->name('admin.it.process');
 
     });
 

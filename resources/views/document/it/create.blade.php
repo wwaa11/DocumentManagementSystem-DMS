@@ -69,9 +69,6 @@
                         {{-- display file in this div with remove file button --}}
                     </div>
 
-                    @push("scripts")
-                    @endpush
-
                     <h3 class="card-title text-primary mb-2 mt-3 flex items-center text-xl">
                         <i class="fas fa-user-shield text-primary mr-2"></i>ส่งถึงแผนก IT
                     </h3>

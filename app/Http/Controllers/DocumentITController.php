@@ -6,6 +6,8 @@ use App\Models\DocumentHC;
 use App\Models\DocumentIT;
 use App\Models\DocumentNumber;
 use App\Models\DocumentPAC;
+use App\Models\File;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class DocumentITController extends Controller
@@ -40,7 +42,7 @@ class DocumentITController extends Controller
             $this->createDocumentHC($request);
         }
 
-        return redirect()->route('document.index')->with('success', 'Document created successfully!');
+        return redirect()->route('document.index')->with('success', 'สร้างเอกสารสำเร็จ!');
     }
 
     private function setUserFieldData($users, $title)
@@ -293,6 +295,149 @@ class DocumentITController extends Controller
         return view('admin.it.list', compact('documents', 'action'));
     }
 
+    public function acceptDocument(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:document_its,id',
+        ]);
+
+        $document = DocumentIT::find($request->id);
+        if ($document->assigned_user_id !== null) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'เอกสารนี้ได้ถูกรับงานแล้ว!',
+            ]);
+        }
+        $document->status           = 'process';
+        $document->assigned_user_id = auth()->user()->userid;
+        $document->save();
+
+        // Log
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'accept',
+            'details' => 'รับงาน',
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'รับงานสำเร็จ!',
+        ]);
+    }
+
+    public function cancelDocument(Request $request)
+    {
+        $request->validate([
+            'id'     => 'required|exists:document_its,id',
+            'reason' => 'required',
+        ]);
+
+        $document         = DocumentIT::find($request->id);
+        $document->status = 'reject';
+        $document->save();
+
+        $document->tasks()->where('task_position', 'IT Department')->update([
+            'status'        => 'reject',
+            'task_name'     => 'ปฏิเสธ',
+            'task_user'     => auth()->user()->userid,
+            'task_position' => auth()->user()->position,
+            'date'          => date('Y-m-d H:i:s'),
+        ]);
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'cancel',
+            'details' => 'ยกเลิกเอกสาร : ' . $request->reason,
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'ยกเลิกเอกสารสำเร็จ!',
+        ]);
+    }
+
+    public function cancelJob(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:document_its,id',
+        ]);
+
+        $document = DocumentIT::find($request->id);
+        if ($document->status !== 'process' || $document->assigned_user_id !== auth()->user()->userid) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'เอกสารนี้ไม่สามารถยกเลิกงานได้!',
+            ]);
+        }
+        $document->status           = 'pending';
+        $document->assigned_user_id = null;
+        $document->save();
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'transfer',
+            'details' => 'ยกเลิกการรับงาน ส่งใบงานไปยังใบงานใหม่',
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'ยกเลิกการรับงานสำเร็จ!',
+        ]);
+    }
+
+    public function processDocument(Request $request)
+    {
+        $document = DocumentIT::find($request->id);
+        if ($request->detail !== null) {
+            $uploadedFiles = $request->file('document_files');
+            if ($uploadedFiles) {
+                foreach ($uploadedFiles as $file) {
+                    $originalFilename = 'IT_' . $file->getClientOriginalName();
+                    $mimeType         = $file->getMimeType();
+                    $size             = $file->getSize();
+                    $storedPath       = $file->store('uploads', 'public');
+
+                    $document->files()->create([
+                        'original_filename' => $originalFilename,
+                        'stored_path'       => $storedPath,
+                        'mime_type'         => $mimeType,
+                        'size'              => $size,
+                    ]);
+                }
+            }
+
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'process',
+                'details' => $request->detail,
+            ]);
+        }
+        if ($request->transfer_userid == null) {
+            if ($request->detail === null) {
+                return redirect()->route('admin.it.mylist')->with('error', 'กรุณากรอกรายละเอียดการดำเนินการ!');
+            }
+            $document->status           = 'done';
+            $document->assigned_user_id = null;
+            $document->save();
+            $document->tasks()->where('task_user', 'IT Department')->update([
+                'status'        => 'approve',
+                'task_name'     => 'ดำเนินการเสร็จสิ้น',
+                'task_user'     => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date'          => date('Y-m-d H:i:s'),
+            ]);
+        } else {
+            $document->status           = 'process';
+            $document->assigned_user_id = $request->transfer_userid;
+            $document->save();
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'transfer',
+                'details' => 'ส่งใบงานไปยัง ' . $request->transfer_userid,
+            ]);
+        }
+
+        return redirect()->route('admin.it.mylist')->with('success', 'ดำเนินการสำเร็จ!');
+    }
+
     public function listApproveDocuments()
     {
         $documents = DocumentIT::where('status', 'done')->get();
@@ -312,8 +457,12 @@ class DocumentITController extends Controller
     public function viewDocument($document_id, $action)
     {
         $document = DocumentIT::find($document_id);
+        $userList = [];
+        if ($action == 'my') {
+            $userList = User::whereIn('role', ['admin', 'it', 'it-hardware', 'it-approver'])->get();
+        }
 
-        return view('admin.it.view', compact('document', 'action'));
+        return view('admin.it.view', compact('document', 'action', 'userList'));
     }
 
 }

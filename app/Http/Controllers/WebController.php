@@ -266,12 +266,16 @@ class WebController extends Controller
             ]);
             $document->logs()->create([
                 'userid'  => auth()->user()->userid,
-                'action'  => 'อนุมัติ',
+                'action'  => 'approve',
                 'details' => 'อนุมัติเอกสาร',
             ]);
             $checkNextStep = $document->approvers()->where('step', $approveList->step + 1)->first();
             if (! $checkNextStep) {
-                $document->status = 'pending';
+                if ($document->assigned_user_id == null) {
+                    $document->status = 'pending';
+                } else {
+                    $document->status = 'process';
+                }
             }
         } else {
             $document->status    = 'not_approval';
@@ -285,7 +289,7 @@ class WebController extends Controller
             ]);
             $document->logs()->create([
                 'userid'  => auth()->user()->userid,
-                'action'  => 'ไม่อนุมัติ',
+                'action'  => 'reject',
                 'details' => $request->reason,
             ]);
         }

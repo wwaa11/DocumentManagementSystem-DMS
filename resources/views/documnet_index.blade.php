@@ -19,18 +19,19 @@
         <div class="badge badge-outline badge-error">Error</div>
     </div>
     <div class="mx-8">
-        <h1 class="text-primary text-2xl font-bold">เอกสารทั้งหมด</h1>
+        <h1 class="text-primary text-2xl font-bold">เอกสารทั้งหมด <span class="float-end"><a class="btn btn-accent" href="{{ route("document.create") }}">สร้างเอกสารใหม่</a></span></h1>
+        <span class="countdown font-mono text-sm">Refesh in <span class="bg-base-300 mx-2 rounded-md px-2" id="countdown" style="--value:30;"></span> seconds</span>
         <div class="divider"></div>
         <form class="mb-4" action="{{ route("document.index") }}" method="GET">
-            <div class="bg-base-200 rounded-box flex flex-wrap gap-4 p-4">
-                <input class="input input-bordered w-full max-w-xs" type="text" name="document_number" placeholder="Search Document Number" value="{{ request("document_number") }}">
-                <select class="select select-bordered w-full max-w-xs" name="document_tag">
+            <div class="bg-base-200 rounded-box grid grid-cols-1 gap-4 p-4 lg:grid-cols-4">
+                <input class="input input-bordered w-full" type="text" name="document_number" placeholder="Search Document Number" value="{{ request("document_number") }}">
+                <select class="select select-bordered w-full" name="document_tag">
                     <option value="">ประเภทเอกสาร</option>
                     <option value="IT" {{ request("document_tag") == "IT" ? "selected" : "" }}>IT</option>
                     <option value="HCLAB" {{ request("document_tag") == "HCLAB" ? "selected" : "" }}>HCLAB</option>
                     <option value="PAC" {{ request("document_tag") == "PAC" ? "selected" : "" }}>PAC</option>
                 </select>
-                <select class="select select-bordered w-full max-w-xs" name="status">
+                <select class="select select-bordered w-full" name="status">
                     <option value="">สถานะเอกสาร</option>
                     <option value="wait_approval" {{ request("status") == "wait_approval" ? "selected" : "" }}>รออนุมัติจากหัวหน้าแผนก</option>
                     <option value="not_approval" {{ request("status") == "not_approval" ? "selected" : "" }}>เอกสารที่ไม่อนุมัติ</option>
@@ -45,23 +46,23 @@
                     <input class="join-item input input-bordered w-full max-w-xs" type="date" name="created_at_start" value="{{ request("created_at_start") }}">
                     <input class="join-item input input-bordered w-full max-w-xs" type="date" name="created_at_end" value="{{ request("created_at_end") }}">
                 </div>
-                <div class="flex flex-row gap-2">
+                <div class="my-auto gap-3 lg:col-span-2">
                     <label class="inline-flex items-center">
-                        <input class="radio radio-xs radio-primary" type="radio" name="flag" value="" {{ request("flag") == "" ? "checked" : "" }}>
+                        <input class="radio radio-xs radio-primary" onchange="this.form.submit()" type="radio" name="flag" value="" {{ request("flag") == "" ? "checked" : "" }}>
                         <span class="ml-2">เอกสารทั้งหมด</span>
                     </label>
                     <label class="inline-flex items-center">
-                        <input class="radio radio-xs radio-primary" type="radio" name="flag" value="my" {{ request("flag") == "my" ? "checked" : "" }}>
+                        <input class="radio radio-xs radio-primary" onchange="this.form.submit()" type="radio" name="flag" value="my" {{ request("flag") == "my" ? "checked" : "" }}>
                         <span class="ml-2">เอกสารของฉัน</span>
                     </label>
                     <label class="inline-flex items-center">
-                        <input class="radio radio-xs radio-primary" type="radio" name="flag" value="approve" {{ request("flag") == "approve" ? "checked" : "" }}>
+                        <input class="radio radio-xs radio-primary" onchange="this.form.submit()" type="radio" name="flag" value="approve" {{ request("flag") == "approve" ? "checked" : "" }}>
                         <span class="ml-2">เอกสารที่ต้องอนุมัติ</span>
                     </label>
                 </div>
-                <div class="flex flex-1 flex-row justify-end gap-2">
-                    <button class="btn btn-primary" type="submit">Apply Filters</button>
+                <div class="my-auto gap-3 text-end lg:col-span-2">
                     <a class="btn btn-ghost" href="{{ route("document.index") }}">Clear Filters</a>
+                    <button class="btn btn-primary" type="submit">Apply Filters</button>
                 </div>
             </div>
         </form>
@@ -168,28 +169,18 @@
     </div>
 @endsection
 @push("scripts")
-    @if (session("success"))
-        <script type="module">
-            Swal.fire({
-                icon: "success",
-                title: "Success",
-                text: "{{ session("success") }}",
-                timer: 3000,
-                timerProgressBar: true,
-                showConfirmButton: false,
-            });
-        </script>
-    @endif
-    @if (session("error"))
-        <script type="module">
-            Swal.fire({
-                icon: "error",
-                title: "Error",
-                text: "{{ session("error") }}",
-                timer: 3000,
-                timerProgressBar: true,
-                showConfirmButton: false,
-            });
-        </script>
-    @endif
+    <script>
+        let seconds = 30;
+
+        function countdown() {
+            document.getElementById('countdown').style.setProperty('--value', seconds);
+            if (seconds === 0) {
+                location.reload();
+            } else {
+                seconds--;
+                setTimeout(countdown, 1000);
+            }
+        }
+        countdown();
+    </script>
 @endpush

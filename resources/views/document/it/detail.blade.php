@@ -1,12 +1,6 @@
 <div class="card bg-base-100 mb-4 shadow-xl">
-
     <div class="card-body">
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li><a class="text-accent" href="{{ route("document.index") }}">เอกสารทั้งหมด</a></li>
-                <li>{{ $document->document_number }}</li>
-            </ul>
-        </div>
+        <button class="text-accent w-24 cursor-pointer" onclick="window.history.back()"> <i class="fas fa-arrow-left"></i> ย้อนกลับ</button>
         <div class="flex items-center">
             <img class="mr-4 h-auto w-36" src="{{ asset("images/Side Logo.png") }}" alt="Side Logo">
             <div class="flex-1 text-end">

@@ -18,7 +18,7 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    axios.post("{{ route("document.it.hardware.approve") }}", {
+                    axios.post("{{ route("admin.it.hardware.approve") }}", {
                         id: '{{ $document->id }}',
                         status: "approve",
                     }).then((response) => {
@@ -29,8 +29,9 @@
                                 timer: 1000,
                                 timerProgressBar: true,
                                 allowOutsideClick: false,
+                                showConfirmButton: false,
                             }).then(() => {
-                                window.location.replace = "{{ route("admin.it.hardwarelist") }}";
+                                window.location.href = "{{ route("admin.it.hardwarelist") }}";
                             });
                         }
                     });
@@ -55,9 +56,9 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed && result.value) {
-                    axios.post("{{ route("document.it.hardware.approve") }}", {
+                    axios.post("{{ route("admin.it.hardware.approve") }}", {
                         id: '{{ $document->id }}',
-                        status: "rejected",
+                        status: "reject",
                         reason: result.value
                     }).then((response) => {
                         if (response.data.status === "success") {
@@ -67,8 +68,9 @@
                                 timer: 1000,
                                 timerProgressBar: true,
                                 allowOutsideClick: false,
+                                showConfirmButton: false,
                             }).then(() => {
-                                window.location.replace = "{{ route("admin.it.hardwarelist") }}";
+                                window.location.href = "{{ route("admin.it.hardwarelist") }}";
                             });
                         }
                     });

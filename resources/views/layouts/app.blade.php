@@ -63,6 +63,30 @@
     </div>
 </body>
 
+@if (session("success"))
+    <script type="module">
+        Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "{{ session("success") }}",
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+        });
+    </script>
+@endif
+@if (session("error"))
+    <script type="module">
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "{{ session("error") }}",
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+        });
+    </script>
+@endif
 <script type="module">
     $(function() {
         const navLinks = document.querySelectorAll('.nav-link');
