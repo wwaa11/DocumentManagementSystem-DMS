@@ -5,7 +5,6 @@ use App\Models\Approver;
 use App\Models\DocumentListApprover;
 use App\Models\DocumentListTask;
 use App\Models\File;
-use App\Models\Log;
 use Illuminate\Http\Request;
 
 class HelperController extends Controller
@@ -81,6 +80,12 @@ class HelperController extends Controller
                 $taskAttributes['task_user']     = auth()->user()->userid;
                 $taskAttributes['task_position'] = auth()->user()->position;
                 $taskAttributes['date']          = date('Y-m-d H:i:s');
+
+                $findOtherApprove = $taskable->approvers()->where('status', 'wait')->first();
+                if (! $findOtherApprove && $taskable->assigned_user_id !== null) {
+                    $taskable->status = 'process';
+                    $taskable->save();
+                }
             }
 
             if ($task->task_user == 'head_of_department') {
@@ -116,14 +121,4 @@ class HelperController extends Controller
         }
     }
 
-    public function createLog($log, $logable)
-    {
-        $logData = new Log([
-            'userid'  => auth()->user()->userid,
-            'action'  => $log['action'],
-            'details' => $log['details'],
-        ]);
-
-        $logable->logs()->save($logData);
-    }
 }

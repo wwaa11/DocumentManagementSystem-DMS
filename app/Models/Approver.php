@@ -20,4 +20,9 @@ class Approver extends Model
         return $this->morphTo('document', 'approvable_type', 'approvable_id');
     }
 
+    public function user()
+    {
+        return $this->hasOne(User::class, 'userid', 'userid');
+    }
+
 }

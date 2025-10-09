@@ -65,6 +65,7 @@ class WebController extends Controller
         return Storage::disk('public')->download($path, $file->original_filename);
     }
 
+    // Index
     public function myDocument(Request $request)
     {
         $my_documents     = auth()->user()->getMyDocuments();
@@ -75,7 +76,7 @@ class WebController extends Controller
             $document_id             = $documentData->document_tag["document_tag"] . $documentData->id;
             $detail                  = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100) . '...' : $documentData->detail;
             $documents[$document_id] = [
-                'flag'               => ($item->status == 'wait' ? 'approve' : 'approved'),
+                'flag'               => ($item->status == 'wait' ? 'approve' : 'my'),
                 'id'                 => $documentData->id,
                 'document_tag'       => $documentData->document_tag,
                 'document_number'    => $documentData->document_number,
@@ -133,7 +134,7 @@ class WebController extends Controller
             }
 
             return true;
-        })->toArray();
+        })->sortByDesc('flag')->sortByDesc('created_at')->toArray();
 
         $perPage            = 15;
         $currentPage        = LengthAwarePaginator::resolveCurrentPage();
@@ -257,7 +258,11 @@ class WebController extends Controller
         if ($request->status == 'approve') {
             $approveList->status = 'approve';
             $document->tasks()->where('step', $approveList->step)->update([
-                'status' => 'approve',
+                'status'        => 'approve',
+                'task_name'     => 'อนุมัติ',
+                'task_user'     => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date'          => date('Y-m-d H:i:s'),
             ]);
             $document->logs()->create([
                 'userid'  => auth()->user()->userid,
@@ -272,7 +277,11 @@ class WebController extends Controller
             $document->status    = 'not_approval';
             $approveList->status = 'reject';
             $document->tasks()->where('step', $approveList->step)->update([
-                'status' => 'reject',
+                'status'        => 'reject',
+                'task_name'     => 'ไม่อนุมัติ',
+                'task_user'     => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date'          => date('Y-m-d H:i:s'),
             ]);
             $document->logs()->create([
                 'userid'  => auth()->user()->userid,

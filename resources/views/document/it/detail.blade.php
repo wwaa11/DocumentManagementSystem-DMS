@@ -1,5 +1,12 @@
 <div class="card bg-base-100 mb-4 shadow-xl">
+
     <div class="card-body">
+        <div class="breadcrumbs text-sm">
+            <ul>
+                <li><a class="text-accent" href="{{ route("document.index") }}">เอกสารทั้งหมด</a></li>
+                <li>{{ $document->document_number }}</li>
+            </ul>
+        </div>
         <div class="flex items-center">
             <img class="mr-4 h-auto w-36" src="{{ asset("images/Side Logo.png") }}" alt="Side Logo">
             <div class="flex-1 text-end">
@@ -11,8 +18,16 @@
         <div class="divider"></div>
         <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-                <p><strong>เรื่อง:</strong> {{ $document->title }}</p>
-                <p><strong>วันที่:</strong> {{ $document->created_at->format("d-m-Y") }}</p>
+                <p><strong>เรื่อง:</strong>
+                    @if (is_array($document->title))
+                        @foreach ($document->title as $title)
+                            {{ $title }} <br>
+                        @endforeach
+                    @else
+                        {{ $document->title }}
+                    @endif
+                </p>
+                <p><strong>วันที่:</strong> {{ $document->created_at->format("d/m/Y") }}</p>
             </div>
             <div>
                 <p><strong>ผู้ขอ:</strong> {{ $document->creator->name }}</p>

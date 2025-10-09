@@ -26,6 +26,16 @@ Route::group(['middleware' => 'auth'], function () {
     // IT Document
     Route::prefix('it')->group(function () {
         Route::post('/create', [DocumentITController::class, 'createDocument'])->name('document.it.create');
+        Route::get('/admin/hardwaredocument', [DocumentITController::class, 'listHardwareDocuments'])->name('admin.it.hardwarelist');
+        Route::get('/admin/newdocument', [DocumentITController::class, 'listNewDocuments'])->name('admin.it.newlist');
+        Route::get('/admin/mydocument', [DocumentITController::class, 'listMyDocuments'])->name('admin.it.mylist');
+        Route::get('/admin/approvelist', [DocumentITController::class, 'listApproveDocuments'])->name('admin.it.approvelist');
+        Route::get('/admin/alldocument', [DocumentITController::class, 'listAllDocuments'])->name('admin.it.alllist');
+        Route::get('/admin/count', [DocumentITController::class, 'listDocumentCount'])->name('admin.it.count');
+        Route::get('/admin/view/{document_id}/{action}', [DocumentITController::class, 'viewDocument'])->name('admin.it.view');
+
+        Route::post('/admin/hardware/approve', [DocumentITController::class, 'approveHardwareDocument'])->name('document.it.hardware.approve');
+
     });
 
 });

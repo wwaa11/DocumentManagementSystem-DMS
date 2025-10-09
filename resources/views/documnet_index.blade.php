@@ -34,6 +34,7 @@
                     <option value="">สถานะเอกสาร</option>
                     <option value="wait_approval" {{ request("status") == "wait_approval" ? "selected" : "" }}>รออนุมัติจากหัวหน้าแผนก</option>
                     <option value="not_approval" {{ request("status") == "not_approval" ? "selected" : "" }}>เอกสารที่ไม่อนุมัติ</option>
+                    <option value="cancel" {{ request("status") == "cancel" ? "selected" : "" }}>เอกสารที่ถูกยกเลิก</option>
                     <option value="pending" {{ request("status") == "pending" ? "selected" : "" }}>รอดำเนินการจากหน่วยงาน</option>
                     <option value="reject" {{ request("status") == "reject" ? "selected" : "" }}>เอกสารที่ถูกปฏิเสธจากหน่วยงาน</option>
                     <option value="process" {{ request("status") == "process" ? "selected" : "" }}>เอกสารที่กำลังดำเนินการ</option>
@@ -57,10 +58,6 @@
                         <input class="radio radio-xs radio-primary" type="radio" name="flag" value="approve" {{ request("flag") == "approve" ? "checked" : "" }}>
                         <span class="ml-2">เอกสารที่ต้องอนุมัติ</span>
                     </label>
-                    <label class="inline-flex items-center">
-                        <input class="radio radio-xs radio-primary" type="radio" name="flag" value="approved" {{ request("flag") == "approved" ? "checked" : "" }}>
-                        <span class="ml-2">เอกสารที่อนุมัติ</span>
-                    </label>
                 </div>
                 <div class="flex flex-1 flex-row justify-end gap-2">
                     <button class="btn btn-primary" type="submit">Apply Filters</button>
@@ -75,7 +72,6 @@
             <table class="table w-full">
                 <thead>
                     <tr>
-                        <th></th>
                         <th>หมายเลขเอกสาร</th>
                         <th>ประเภทเอกสาร</th>
                         <th>รายละเอียด</th>
@@ -87,52 +83,66 @@
                 <tbody>
                     @foreach ($documents as $document)
                         <tr class="hover:bg-base-300">
-                            <td class="flex flex-col gap-2">
-                                <div class="badge badge-{{ $document["document_tag"]["colour"] }}">{{ $document["document_tag"]["document_tag"] }}</div>
-                                @if ($document["flag"] == "approve")
-                                    <div class="badge badge-outline badge-accent">เอกสารที่ต้องอนุมัติ</div>
-                                @elseif($document["flag"] == "approved")
-                                    <div class="badge badge-outline badge-accent">เอกสารที่อนุมัติ</div>
-                                @elseif($document["flag"] == "my")
-                                    <div class="badge badge-outline badge-primary">เอกสารของฉัน</div>
-                                @endif
+                            <td class="">
+                                <div class="join">
+                                    <div class="join-item badge badge-{{ $document["document_tag"]["colour"] }}">{{ $document["document_tag"]["document_tag"] }}</div>
+                                    @if ($document["flag"] == "approve")
+                                        <div class="join-item badge badge-outline badge-accent">เอกสารที่ต้องอนุมัติ</div>
+                                    @elseif($document["flag"] == "my")
+                                        <div class="join-item badge badge-outline badge-primary">เอกสารของฉัน</div>
+                                    @endif
+                                </div>
+                                <div>
+                                    {{ $document["document_number"] }}
+                                </div>
                             </td>
-                            <td>{{ $document["document_number"] }}</td>
-                            <td>
+                            <td class="w-64">
                                 <div class="text-sm">{{ $document["document_type_name"] }}</div>
-                                <div>{{ $document["title"] }}</div>
+                                <div>
+                                    @if (is_array($document["title"]))
+                                        @foreach ($document["title"] as $title)
+                                            {{ $title }} <br>
+                                        @endforeach
+                                    @else
+                                        {{ $document["title"] }}
+                                    @endif
+                                </div>
                             </td>
                             <td class="max-w-xs overflow-hidden truncate text-ellipsis whitespace-nowrap">{!! $document["detail"] !!}</td>
                             <td>
-                                @php
-                                    switch ($document["status"]) {
-                                        case "wait_approval":
-                                            $status = "รออนุมัติจากหัวหน้าแผนก";
-                                            break;
-                                        case "not_approval":
-                                            $status = "เอกสารที่ไม่อนุมัติ";
-                                            break;
-                                        case "pending":
-                                            $status = "รอดำเนินการจากหน่วยงาน";
-                                            break;
-                                        case "reject":
-                                            $status = "เอกสารที่ถูกปฏิเสธจากหน่วยงาน";
-                                            break;
-                                        case "process":
-                                            $status = "เอกสารที่กำลังดำเนินการ";
-                                            break;
-                                        case "done":
-                                            $status = "เอกสารที่รออนุมัติ";
-                                            break;
-                                        case "finish":
-                                            $status = "เอกสารที่เสร็จสมบูรณ์";
-                                            break;
-                                        default:
-                                            $status = $document["status"];
-                                            break;
-                                    }
-                                @endphp
-                                {{ $status }}
+                                @switch($document["status"])
+                                    @case("wait_approval")
+                                        <div class="badge badge-soft badge-accent">รออนุมัติจากหัวหน้าแผนก</div>
+                                    @break
+
+                                    @case("cancel")
+                                        <div class="badge badge-soft badge-grey">เอกสารที่ถูกยกเลิก</div>
+                                    @break
+
+                                    @case("not_approval")
+                                        <div class="badge badge-soft badge-error">เอกสารที่ไม่อนุมัติ</div>
+                                    @break
+
+                                    @case("pending")
+                                        <div class="badge badge-soft badge-warning">รอดำเนินการจากหน่วยงาน</div>
+                                    @break
+
+                                    @case("reject")
+                                        <div class="badge badge-soft badge-error">เอกสารที่ถูกปฏิเสธจากหน่วยงาน</div>
+                                    @break
+
+                                    @case("process")
+                                        <div class="badge badge-soft badge-warning">เอกสารที่กำลังดำเนินการ</div>
+                                    @break
+
+                                    @case("done")
+                                        <div class="badge badge-soft badge-primary">เอกสารที่รออนุมัติ</div>
+                                    @break
+
+                                    @case("finish")
+                                        <div class="badge badge-soft badge-success">เอกสารที่เสร็จสมบูรณ์</div>
+                                    @break
+                                @endswitch
                             </td>
                             <td>
                                 <div class="text-base-content/50 text-sm">

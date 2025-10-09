@@ -263,9 +263,11 @@
             } else if (type === 'RESET_PASSWORD') {
                 $('#reset_password_request_fieldset').removeClass('hidden');
                 $('#documentCode').val('ITS');
+                $('#selfApprove').val('true');
             } else if (type === 'OTHER') {
                 $('#other_request_fieldset').removeClass('hidden');
                 $('#title_other_text').prop('disabled', false);
+                $('#selfApprove').val('true');
                 $('#documentCode').val('ITS');
             }
 

@@ -28,7 +28,51 @@ class User extends Authenticatable
 
     protected $appends = [
         'getapprover',
+        'menu',
     ];
+
+    public function getMenuAttribute()
+    {
+        switch ($this->role) {
+            case 'admin':
+                return [
+                    [
+                        'count' => ['admin.it.count'],
+                        'lists' => [
+                            [
+                                'title' => 'Hardware Jobs',
+                                'link'  => 'admin.it.hardwarelist',
+                                'count' => true,
+                            ],
+                            [
+                                'title' => 'Approve Jobs',
+                                'link'  => 'admin.it.approvelist',
+                                'count' => true,
+                            ],
+                            [
+                                'title' => 'New Jobs',
+                                'link'  => 'admin.it.newlist',
+                                'count' => true,
+                            ],
+                            [
+                                'title' => 'My Jobs',
+                                'link'  => 'admin.it.mylist',
+                                'count' => true,
+                            ],
+                            [
+                                'title' => 'All Jobs',
+                                'link'  => 'admin.it.alllist',
+                                'count' => false,
+                            ],
+                        ],
+                    ],
+                ];
+                break;
+            default:
+                return false;
+                break;
+        }
+    }
 
     public function getGetApproverAttribute()
     {
@@ -141,4 +185,5 @@ class User extends Authenticatable
 
         return $document;
     }
+
 }

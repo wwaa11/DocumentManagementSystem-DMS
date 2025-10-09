@@ -30,19 +30,81 @@
                     <img class="m-3 mx-auto w-24" src="{{ asset("images/Vertical Logo.png") }}" alt="logo">
                 </a>
                 <li class="menu-title">Praram9 - DMS</li>
-                <div class="text-info-content bg-neutral-content flex flex-col gap-0.5 rounded-md p-3 text-xs">
-                    <div><i class="fa-regular fa-user"></i> : {{ auth()->user()->userid }}</div>
+                <div class="text-info-content bg-neutral-content mb-1 flex flex-col gap-0.5 rounded-md p-3 text-xs">
+                    <div><i class="fa-regular fa-user"></i> : {{ auth()->user()->userid }} <a class="text-error float-right cursor-pointer" onclick="logoutRequest()">ออกจากระบบ</a></div>
                     <div><i class="fa-solid fa-minus"></i> : {{ auth()->user()->name }}</div>
                     <div><i class="fa-solid fa-minus"></i> : {{ auth()->user()->department }}</div>
                 </div>
-                <li><a class="nav-link" data-route="document.index" href="{{ route("document.index") }}">เอกสารทั้งหมด</a></li>
-                <li><a class="nav-link" data-route="document.create" href="{{ route("document.create") }}">สร้างเอกสาร</a></li>
-                <li class="absolute bottom-4 left-4 right-4"><a class="btn btn-error" onclick="logoutRequest()">Logout</a></li>
+                <li class="mb-1"><a class="nav-link" data-route="document.index" href="{{ route("document.index") }}">เอกสารทั้งหมด</a></li>
+                <li class="mb-1"><a class="nav-link" data-route="document.create" href="{{ route("document.create") }}">สร้างเอกสาร</a></li>
+                @if (auth()->user()->role !== "user" && auth()->user()->menu)
+                    <ul>
+                        <li>
+                            <a>Admin</a>
+                            <ul>
+                                @foreach (auth()->user()->menu as $key => $data)
+                                    @foreach ($data["lists"] as $key => $link)
+                                        <li class="mb-1">
+                                            <a class="nav-link" data-route="{{ $link["link"] }}" href="{{ route($link["link"]) }}">
+                                                {{ $link["title"] }}
+                                                @if ($link["count"])
+                                                    <span class="badge badge-sm badge-primary float-right" id="{{ $link["link"] }}">-</span>
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                @endforeach
+                            </ul>
+                        </li>
+                    </ul>
+                @endif
             </ul>
         </div>
     </div>
 </body>
+
+<script type="module">
+    $(function() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        const activeRoute = localStorage.getItem('activeRoute') || 'document.index';
+        navLinks.forEach(link => {
+            if (link.getAttribute('data-route') === activeRoute) {
+                link.classList.add('menu-active');
+            }
+
+            link.addEventListener('click', function() {
+                navLinks.forEach(l => l.classList.remove('menu-active'));
+                this.classList.add('menu-active');
+                localStorage.setItem('activeRoute', this.getAttribute('data-route'));
+            });
+        });
+
+        @if (auth()->user()->role !== "user" && auth()->user()->menu)
+            @foreach (auth()->user()->menu as $index => $data)
+                @foreach ($data["count"] as $link)
+                    getCount{{ $index }}();
+
+                    function getCount{{ $index }}() {
+                        axios.get("{{ route($link) }}")
+                            .then(function(response) {
+                                Object.keys(response.data).forEach(key => {
+                                    updateCount(key, response.data[key]);
+                                });
+                                setTimeout(() => {
+                                    getCount{{ $index }}();
+                                }, 60 * 1000);
+                            });
+                    }
+                @endforeach
+            @endforeach
+        @endif
+    });
+</script>
 <script>
+    function updateCount(id, number) {
+        document.getElementById(id).textContent = number;
+    }
+
     function logoutRequest() {
         Swal.fire({
             title: "ต้องการออกจากระบบหรือไม่?",
@@ -67,34 +129,6 @@
             }
         });
     }
-</script>
-<script type="module">
-    $(function() {
-        // Get all navigation links
-        const navLinks = document.querySelectorAll('.nav-link');
-
-        // Get active route from localStorage or set default
-        const activeRoute = localStorage.getItem('activeRoute') || 'document.index';
-
-        // Apply active class to the active route
-        navLinks.forEach(link => {
-            if (link.getAttribute('data-route') === activeRoute) {
-                link.classList.add('menu-active');
-            }
-
-            // Add click event listener to each link
-            link.addEventListener('click', function() {
-                // Remove active class from all links
-                navLinks.forEach(l => l.classList.remove('menu-active'));
-
-                // Add active class to clicked link
-                this.classList.add('menu-active');
-
-                // Store active route in localStorage
-                localStorage.setItem('activeRoute', this.getAttribute('data-route'));
-            });
-        });
-    });
 </script>
 @stack("scripts")
 </body>

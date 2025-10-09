@@ -2,7 +2,7 @@
     @if ($document->status == "wait_approval")
         <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>
     @elseif($document->status == "pending")
-        <button class="btn btn-neutral w-full">ไม่สามาถยกเลิกใบงานได้</button>
+        {{-- <button class="btn btn-neutral w-full">ไม่สามาถยกเลิกใบงานได้</button> --}}
     @endif
 </div>
 <div class="divider"></div>

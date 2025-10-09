@@ -21,6 +21,7 @@ class DocumentIT extends Model
     protected $appends = [
         'document_type_name',
         'document_tag',
+        'list_detail',
     ];
 
     public function creator()
@@ -45,6 +46,17 @@ class DocumentIT extends Model
             'document_tag' => 'IT',
             'colour'       => 'secondary',
         ];
+    }
+
+    public function getTitleAttribute($value)
+    {
+        return str_contains($value, '|') ? explode('|', $value) : $value;
+    }
+
+    public function getListDetailAttribute()
+    {
+
+        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
     }
 
     // Relationship to Approver
