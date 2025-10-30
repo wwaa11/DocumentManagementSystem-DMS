@@ -22,6 +22,10 @@
                 @endforeach
             @endif
 
+            <input type="hidden" name="createIT" value="false" />
+            <input type="hidden" name="createHC" value="false" />
+            <input type="hidden" name="createPAC" value="false" />
+            <input type="hidden" name="createBorrow" value="false" />
             <input id="selfApprove" type="hidden" name="selfApprove" value="true">
             <input id="isHardware" type="hidden" name="isHardware" value="false">
             <input id="documentCode" type="hidden" name="documentCode" value="">
@@ -49,11 +53,22 @@
                             </div>
                         </div>
                     </label>
+
+                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="type-borrow">
+                        <div class="flex items-center">
+                            <input class="radio radio-primary mr-3" id="type-borrow" type="radio" name="document_type" value="borrow" onchange="selectDocType('borrow')" />
+                            <div>
+                                <h4 class="font-medium">ขอยืมอุปกรณ์</h4>
+                            </div>
+                        </div>
+                    </label>
                 </div>
 
                 @include("document.it.create-user")
 
                 @include("document.it.create-support")
+
+                @include("document.it.create-borrow")
 
                 <div class="hidden" id="document-addtional-info">
                     <div class="divider"></div>
@@ -204,17 +219,34 @@
                 $('#type-user').prop('checked', true);
                 $('#user-section').removeClass('hidden');
                 $('#support-section').addClass('hidden');
+                $('#borrow-section').addClass('hidden');
                 $('#support_detail').prop('disabled', true);
                 setDataApprove(false, false, 'ITU');
+
+                $('input[name="createBorrow"]').val('false');
             } else if (document_type === 'support') {
                 $('#type-support').prop('checked', true);
                 $('#user-section').addClass('hidden');
                 $('#support-section').removeClass('hidden');
+                $('#borrow-section').addClass('hidden');
                 $('#support_detail').prop('disabled', false);
 
                 $('input[name="createIT"]').val('true');
                 $('input[name="createHC"]').val('false');
                 $('input[name="createPAC"]').val('false');
+                $('input[name="createBorrow"]').val('false');
+            } else if (document_type === 'borrow') {
+                $('#type-borrow').prop('checked', true);
+                $('#user-section').addClass('hidden');
+                $('#support-section').addClass('hidden');
+                $('#support_detail').prop('disabled', true);
+                $('#borrow-section').removeClass('hidden');
+                setDataApprove(false, false, 'ITB');
+
+                $('input[name="createIT"]').val('false');
+                $('input[name="createHC"]').val('false');
+                $('input[name="createPAC"]').val('false');
+                $('input[name="createBorrow"]').val('true');
             }
         }
 
@@ -234,10 +266,6 @@
                 doctor_hr_it = $('#doctor_hr_it').is(':checked');
                 doctor_hr_hclab = $('#doctor_hr_hclab').is(':checked');
                 doctor_hr_pacs = $('#doctor_hr_pacs').is(':checked');
-
-                console.log('doctor_hr_it: ' + doctor_hr_it);
-                console.log('doctor_hr_hclab: ' + doctor_hr_hclab);
-                console.log('doctor_hr_pacs: ' + doctor_hr_pacs);
             }
 
             Swal.fire({
@@ -261,7 +289,6 @@
                         }
                     });
                     const form = document.getElementById('create-form');
-                    // Ensure fileInput.files is updated before submission
                     if (fileInput) {
                         const dataTransfer = new DataTransfer();
                         files.forEach(file => dataTransfer.items.add(file));

@@ -46,10 +46,6 @@
         </label>
     </div>
 
-    <input type="hidden" name="createIT" value="false" />
-    <input type="hidden" name="createHC" value="false" />
-    <input type="hidden" name="createPAC" value="false" />
-
     <!-- Standard Request Form -->
     <div class="border-accent hidden rounded border-2 border-dashed p-6" id="user_search">
         <h4 class="card-title text-primary mb-4 flex items-center text-xl">
