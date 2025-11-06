@@ -15,6 +15,7 @@
         <p class="label">ส่งต่องาน <span class="text-error">*กรณีมีการระบุ ใบงานจะถูกส่งต่อไปยังผู้ใช้งานนี้</span></p>
         <select class="select select-primary mb-2 w-full" name="transfer_userid">
             <option value="" selected>ใบงานนี้ดำเนินการเรียบร้อย</option>
+            <option class="text-warning" value="new">ใบงานนี้ดำเนินการเรียบร้อย ส่งต่อไปยังใบงานใหม่</option>
             @foreach ($userList as $user)
                 <option value="{{ $user->userid }}">{{ $user->name }}</option>
             @endforeach

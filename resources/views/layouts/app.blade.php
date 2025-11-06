@@ -42,17 +42,15 @@
                         <li>
                             <a>Admin</a>
                             <ul>
-                                @foreach (auth()->user()->menu as $key => $data)
-                                    @foreach ($data["lists"] as $key => $link)
-                                        <li class="mb-1">
-                                            <a class="nav-link" data-route="{{ $link["link"] }}" href="{{ route($link["link"]) }}">
-                                                {{ $link["title"] }}
-                                                @if ($link["count"])
-                                                    <span class="badge badge-sm badge-primary float-right" id="{{ $link["link"] }}">-</span>
-                                                @endif
-                                            </a>
-                                        </li>
-                                    @endforeach
+                                @foreach (auth()->user()->menu["lists"] as $key => $link)
+                                    <li class="mb-1">
+                                        <a class="nav-link" data-route="{{ $link["link"] }}" href="{{ route($link["link"]) }}">
+                                            {{ $link["title"] }}
+                                            @if ($link["count"])
+                                                <span class="badge badge-sm badge-primary float-right" id="{{ $link["link"] }}">-</span>
+                                            @endif
+                                        </a>
+                                    </li>
                                 @endforeach
                             </ul>
                         </li>
@@ -104,22 +102,20 @@
         });
 
         @if (auth()->user()->role !== "user" && auth()->user()->menu)
-            @foreach (auth()->user()->menu as $index => $data)
-                @foreach ($data["count"] as $link)
-                    getCount{{ $index }}();
+            @foreach (auth()->user()->menu["count"] as $index => $link)
+                getCount{{ $index }}();
 
-                    function getCount{{ $index }}() {
-                        axios.get("{{ route($link) }}")
-                            .then(function(response) {
-                                Object.keys(response.data).forEach(key => {
-                                    updateCount(key, response.data[key]);
-                                });
-                                setTimeout(() => {
-                                    getCount{{ $index }}();
-                                }, 60 * 1000);
+                function getCount{{ $index }}() {
+                    axios.get("{{ route($link) }}")
+                        .then(function(response) {
+                            Object.keys(response.data).forEach(key => {
+                                updateCount(key, response.data[key]);
                             });
-                    }
-                @endforeach
+                            setTimeout(() => {
+                                getCount{{ $index }}();
+                            }, 60 * 1000);
+                        });
+                }
             @endforeach
         @endif
     });

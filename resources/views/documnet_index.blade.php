@@ -133,14 +133,14 @@
                                     @break
 
                                     @case("process")
-                                        <div class="badge badge-soft badge-warning">เอกสารที่กำลังดำเนินการ</div>
+                                        <div class="badge badge-soft badge-grey">เอกสารที่กำลังดำเนินการ</div>
                                     @break
 
                                     @case("done")
-                                        <div class="badge badge-soft badge-primary">เอกสารที่รออนุมัติ</div>
+                                        <div class="badge badge-soft badge-grey">เอกสารที่รออนุมัติ</div>
                                     @break
 
-                                    @case("finish")
+                                    @case("complete")
                                         <div class="badge badge-soft badge-success">เอกสารที่เสร็จสมบูรณ์</div>
                                     @break
                                 @endswitch

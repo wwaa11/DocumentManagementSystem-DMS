@@ -4,11 +4,6 @@
         <h1 class="text-primary text-2xl font-bold">รายการเอกสาร </h1>
         <span class="countdown font-mono text-sm">Refesh in <span class="bg-base-300 mx-2 rounded-md px-2" id="countdown" style="--value:30;"></span> seconds</span>
         <div class="divider"></div>
-        @if ($action == "approve")
-            <div class="mb-3 text-end">
-                <button class="btn btn-primary" type="button" onclick="approveAllDocuments()">อนุมัติเอกสารทั้งหมด</button>
-            </div>
-        @endif
         <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
             <table class="table">
                 <thead>
@@ -53,44 +48,8 @@
                                     {{ $approver->user->name ?? $approver->userid }}
                                 @endforeach
                             </td>
-                            <td class="text-center">
-                                @php
-                                    switch ($document->status) {
-                                        case "wait_approval":
-                                            $text = "รออนุมัติจากหน่วยงาน";
-                                            $class = "badge-soft badge-warning";
-                                            break;
-                                        case "not_approval":
-                                            $text = "หน่วยงานไม่อนุมัติ";
-                                            $class = "badge-soft badge-error";
-                                            break;
-                                        case "cancel":
-                                            $text = "ผู้ขอ ยกเลิกเอกสาร";
-                                            $class = "badge-soft badge-error";
-                                            break;
-                                        case "pending":
-                                            $text = "รอการดำเนินการ";
-                                            $class = "badge-soft badge-warning";
-                                            break;
-                                        case "reject":
-                                            $text = "ยกเลิกเอกสาร";
-                                            $class = "badge-soft badge-error";
-                                            break;
-                                        case "process":
-                                            $text = "กำลังดำเนินการ";
-                                            $class = "badge-soft badge-warning";
-                                            break;
-                                        case "done":
-                                            $text = "เอกสารรออนุมัติ";
-                                            $class = "badge-soft badge-success";
-                                            break;
-                                        case "complete":
-                                            $text = "เอกสารเสร็จสมบูรณ์";
-                                            $class = "badge-soft badge-success";
-                                            break;
-                                    }
-                                @endphp
-                                <div class="badge {{ $class }}">{{ $text }}</div>
+                            <td>
+                                {{ $document->status }}
                             </td>
                             <td class="text-center">
                                 @if ($action == "new")
@@ -126,53 +85,9 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        axios.post("{{ route("admin.it.accept") }}", {
+                        axios.post("{{ route("admin.pac.accept") }}", {
                             id: documentId
                         }).then((response) => {
-                            if (response.data.status == "success") {
-                                Swal.fire({
-                                    title: 'สำเร็จ',
-                                    text: response.data.message,
-                                    icon: 'success',
-                                    showConfirmButton: false,
-                                    timerProgressBar: true,
-                                    timer: 1000
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'ผิดพลาด',
-                                    text: response.data.message,
-                                    icon: 'error',
-                                    showConfirmButton: false,
-                                    timerProgressBar: true,
-                                    timer: 1000
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-        </script>
-    @elseif($action == "approve")
-        <script>
-            function approveAllDocuments() {
-                Swal.fire({
-                    title: 'ยืนยันการอนุมัติ?',
-                    text: "ต้องการอนุมัติเอกสารทั้งหมดหรือไม่?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'ยืนยัน',
-                    cancelButtonText: 'ยกเลิก',
-                    buttonsStyling: false,
-                    customClass: {
-                        confirmButton: 'btn btn-accent me-2',
-                        cancelButton: 'btn btn-ghost'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        axios.post("{{ route("admin.it.completeall") }}").then((response) => {
                             if (response.data.status == "success") {
                                 Swal.fire({
                                     title: 'สำเร็จ',

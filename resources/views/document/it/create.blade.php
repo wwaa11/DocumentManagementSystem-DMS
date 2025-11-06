@@ -74,7 +74,7 @@
                     <div class="divider"></div>
 
                     <h3 class="card-title text-primary mb-2 flex items-center text-xl">
-                        <i class="fas fa-paperclip text-primary mr-2"></i>เอกสารแนบ (ถ้ามี)
+                        <i class="fas fa-paperclip text-primary mr-2"></i>เอกสารแนบ (ถ้ามี) <span class="text-accent text-xs">* max 20 files</span>
                     </h3>
                     <div class="border-base-300 hover:border-primary cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-all" id="drop-area">
                         <input class="hidden" id="file_input" type="file" name="document_files[]" multiple>

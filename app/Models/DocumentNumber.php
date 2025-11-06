@@ -19,11 +19,10 @@ class DocumentNumber extends Model
     public static function getNextNumber($type)
     {
         $documentNumber = self::where('document_type', $type)
-            ->whereYear('date', date('Y'))
-            ->whereMonth('date', date('m'))
+            ->whereDate('date', date('Y-m-01'))
             ->first();
 
-        if (! $documentNumber) {
+        if ($documentNumber == null) {
             $documentNumber = self::create([
                 'document_type' => $type,
                 'date'          => date('Y-m-01'),

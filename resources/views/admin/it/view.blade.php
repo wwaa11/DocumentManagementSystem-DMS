@@ -6,10 +6,13 @@
             <div class="card-body">
                 <h5 class="card-title">รายการดำเนินงาน</h5>
                 @if ($document->logs()->where("action", "process")->count() > 0)
-                    @foreach ($document->logs()->where("action", "process")->get() as $log)
-                        <div class="rounded-box border-accent w-full border p-2">
+                    @foreach ($document->logs()->whereIn("action", ["process", "reject"])->get() as $log)
+                        @php
+                            $actionCss = $log->action == "process" ? "primary" : "accent";
+                        @endphp
+                        <div class="rounded-box border-{{ $actionCss }} w-full border p-2">
                             <textarea class="textarea w-full border-0 focus:outline-none" readonly>{!! $log->details !!}</textarea>
-                            <div class="text-accent flex justify-between text-xs">
+                            <div class="text-{{ $actionCss }} flex justify-between text-xs">
                                 <div>{{ $log->userid }} {{ $log->user->name }}</div>
                                 <div>{{ $log->created_at->format("Y-m-d H:i:s") }}</div>
                             </div>

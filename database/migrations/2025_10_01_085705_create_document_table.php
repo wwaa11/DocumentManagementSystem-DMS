@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('document_numbers', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('document_type')->unique();
+            $table->string('document_type');
             $table->unsignedBigInteger('number')->default(0);
             $table->date('date');
+
+            $table->unique(['document_type', 'date']);
         });
 
         Schema::create('document_list_approvers', function (Blueprint $table) {

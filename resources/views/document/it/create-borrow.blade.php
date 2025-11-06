@@ -70,7 +70,7 @@
         <span class="fa fa-info-circle"></span>
         <span class="label-text">รายละเอียดเพิ่มเติม</span>
     </label>
-    <textarea class="textarea textarea-bordered h-24 w-full" id="support_detail" name="support_detail" placeholder="รายละเอียดเพิ่มเติม"></textarea>
+    <textarea class="textarea textarea-bordered h-24 w-full" id="borrow_detail" name="borrow_detail" placeholder="รายละเอียดเพิ่มเติม"></textarea>
 </section>
 @push("scripts")
     <script>

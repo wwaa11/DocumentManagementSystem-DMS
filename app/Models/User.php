@@ -36,34 +36,54 @@ class User extends Authenticatable
         switch ($this->role) {
             case 'admin':
                 return [
-                    [
-                        'count' => ['admin.it.count'],
-                        'lists' => [
-                            [
-                                'title' => 'Hardware Jobs',
-                                'link'  => 'admin.it.hardwarelist',
-                                'count' => true,
-                            ],
-                            [
-                                'title' => 'Approve Jobs',
-                                'link'  => 'admin.it.approvelist',
-                                'count' => true,
-                            ],
-                            [
-                                'title' => 'New Jobs',
-                                'link'  => 'admin.it.newlist',
-                                'count' => true,
-                            ],
-                            [
-                                'title' => 'My Jobs',
-                                'link'  => 'admin.it.mylist',
-                                'count' => true,
-                            ],
-                            [
-                                'title' => 'All Jobs',
-                                'link'  => 'admin.it.alllist',
-                                'count' => false,
-                            ],
+                    'count' => ['admin.it.count'],
+                    'lists' => [
+                        // IT
+                        [
+                            'title' => 'Hardware Jobs',
+                            'link'  => 'admin.it.hardwarelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'link'  => 'admin.it.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'link'  => 'admin.it.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'link'  => 'admin.it.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'link'  => 'admin.it.alllist',
+                            'count' => false,
+                        ],
+                        // PAC
+                        [
+                            'title' => 'Pac Approve Jobs',
+                            'link'  => 'admin.pac.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Pac New Jobs',
+                            'link'  => 'admin.pac.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Pac My Jobs',
+                            'link'  => 'admin.pac.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Pac All Jobs',
+                            'link'  => 'admin.pac.alllist',
+                            'count' => false,
                         ],
                     ],
                 ];

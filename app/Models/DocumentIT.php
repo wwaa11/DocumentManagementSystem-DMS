@@ -15,7 +15,7 @@ class DocumentIT extends Model
         'reject',        // Document reject by admin
         'process',       // Document is processing
         'done',          // Document is done wait for head of admin to approve
-        'finish',        // Document is finished
+        'complete',      // Document is completed
     ];
 
     protected $appends = [

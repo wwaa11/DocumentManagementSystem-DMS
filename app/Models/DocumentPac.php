@@ -15,12 +15,13 @@ class DocumentPac extends Model
         'reject',        // Document reject by admin
         'process',       // Document is processing
         'done',          // Document is done wait for head of admin to approve
-        'finish',        // Document is finished
+        'complete',      // Document is completed
     ];
 
     protected $appends = [
         'document_type_name',
         'document_tag',
+        'list_detail',
     ];
 
     public function getDocumentTypeNameAttribute()
@@ -34,6 +35,12 @@ class DocumentPac extends Model
             'document_tag' => 'PAC',
             'colour'       => 'warning',
         ];
+    }
+
+    public function getListDetailAttribute()
+    {
+
+        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
     }
 
     public function creator()
