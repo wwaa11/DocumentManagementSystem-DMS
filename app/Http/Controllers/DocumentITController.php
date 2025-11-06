@@ -23,7 +23,7 @@ class DocumentITController extends Controller
     // Create Document
     public function createDocument(Request $request)
     {
-        // dd($request);
+        dd($request);
         // dump($request->all());
         // Dev bybass validation
         // $request->validate([

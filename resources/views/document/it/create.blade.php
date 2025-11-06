@@ -22,10 +22,14 @@
                 @endforeach
             @endif
 
+            <input type="hidden" name="main_document_type" value="false" />
             <input type="hidden" name="createIT" value="false" />
             <input type="hidden" name="createHC" value="false" />
             <input type="hidden" name="createPAC" value="false" />
+            <input type="hidden" name="createHeartStream" value="false" />
+            <input type="hidden" name="createRegist" value="false" />
             <input type="hidden" name="createBorrow" value="false" />
+
             <input id="selfApprove" type="hidden" name="selfApprove" value="true">
             <input id="isHardware" type="hidden" name="isHardware" value="false">
             <input id="documentCode" type="hidden" name="documentCode" value="">
@@ -41,6 +45,7 @@
                             <input class="radio radio-primary mr-3" id="type-user" type="radio" name="document_type" value="user" onchange="selectDocType('user')" />
                             <div>
                                 <h4 class="font-medium">ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม</h4>
+                                <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
                             </div>
                         </div>
                     </label>
@@ -74,7 +79,10 @@
                     <div class="divider"></div>
 
                     <h3 class="card-title text-primary mb-2 flex items-center text-xl">
-                        <i class="fas fa-paperclip text-primary mr-2"></i>เอกสารแนบ (ถ้ามี) <span class="text-accent text-xs">* max 20 files</span>
+                        <div>
+                            <i class="fas fa-paperclip text-primary mr-2"></i>เอกสารแนบ (ถ้ามี)
+                            <div class="text-accent text-xs">* ใส่เอกสารแนบได้ไม่เกิน 20 ไฟล์</div>
+                        </div>
                     </h3>
                     <div class="border-base-300 hover:border-primary cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-all" id="drop-area">
                         <input class="hidden" id="file_input" type="file" name="document_files[]" multiple>
@@ -221,8 +229,13 @@
                 $('#support-section').addClass('hidden');
                 $('#borrow-section').addClass('hidden');
                 $('#support_detail').prop('disabled', true);
-                setDataApprove(false, false, 'ITU');
+                setDataApprove('user', false, 'ITU');
 
+                $('input[name="createIT"]').val('false');
+                $('input[name="createHC"]').val('false');
+                $('input[name="createPAC"]').val('false');
+                $('input[name="createHeartStream"]').val('false');
+                $('input[name="createRegister"]').val('false');
                 $('input[name="createBorrow"]').val('false');
             } else if (document_type === 'support') {
                 $('#type-support').prop('checked', true);
@@ -234,31 +247,37 @@
                 $('input[name="createIT"]').val('true');
                 $('input[name="createHC"]').val('false');
                 $('input[name="createPAC"]').val('false');
+                $('input[name="createHeartStream"]').val('false');
+                $('input[name="createRegister"]').val('false');
                 $('input[name="createBorrow"]').val('false');
+
             } else if (document_type === 'borrow') {
                 $('#type-borrow').prop('checked', true);
                 $('#user-section').addClass('hidden');
                 $('#support-section').addClass('hidden');
                 $('#support_detail').prop('disabled', true);
                 $('#borrow-section').removeClass('hidden');
-                setDataApprove(false, false, 'ITB');
+                setDataApprove('borrow', false, 'ITB');
 
                 $('input[name="createIT"]').val('false');
                 $('input[name="createHC"]').val('false');
                 $('input[name="createPAC"]').val('false');
+                $('input[name="createHeartStream"]').val('false');
+                $('input[name="createRegister"]').val('false');
                 $('input[name="createBorrow"]').val('true');
             }
         }
 
-        function setDataApprove(isSelfApprove, isHardward, code) {
+        function setDataApprove(type, isSelfApprove, code) {
+            $('input[name="main_document_type"]').val(type);
             $('#selfApprove').val(isSelfApprove);
-            $('#isHardware').val(isHardward);
             $('#documentCode').val(code);
         }
 
         function submitForm() {
             event.preventDefault();
 
+            //Validate Required Fields
             const type = $('#type-user').is(':checked') ? 'user' : 'support';
             const title = $('input[name="title"]:checked').val();
 

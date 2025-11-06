@@ -65,23 +65,29 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_1">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_1" onclick="setDataApprove(false, true, 'ITJ')" value="ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ" name="request_type_detail" type="radio" />
-                        <span class="label-text">ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ</span>
+                        <input class="radio radio-primary mr-3" id="request_hardware_1" onclick="setDataApprove('hardware', false, 'ITJ')" value="ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
                     </div>
                 </div>
             </label>
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_2">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_2" onclick="setDataApprove(false, true, 'ITJ')" value="ขอย้ายจุดติดตั้งคอมพิวเตอร์ / Printer" name="request_type_detail" type="radio" />
-                        <span class="label-text">ขอย้ายจุดติดตั้งคอมพิวเตอร์ / Printer</span>
+                        <input class="radio radio-primary mr-3" id="request_hardware_2" onclick="setDataApprove('hardware', false, 'ITJ')" value="ขอย้ายจุดติดตั้งคอมพิวเตอร์ / Printer" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">ขอย้ายจุดติดตั้งคอมพิวเตอร์ / Printer</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
                     </div>
                 </div>
             </label>
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_3">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_3" onclick="setDataApprove(true, false, 'ITS')" value="ติดตั้งระบบ Conference" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_3" onclick="setDataApprove('support', true, 'ITS')" value="ติดตั้งระบบ Conference" name="request_type_detail" type="radio" />
                         <span class="label-text">ติดตั้งระบบ Conference</span>
                     </div>
                 </div>
@@ -89,7 +95,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_4">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_4" onclick="setDataApprove(true, false, 'ITS')" value="แจ้งซ่อม คอมพิวเตอร์ ชำรุด" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_4" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งซ่อม คอมพิวเตอร์ ชำรุด" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งซ่อม คอมพิวเตอร์ ชำรุด</span>
                     </div>
                 </div>
@@ -97,7 +103,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_5">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_5" onclick="setDataApprove(true, false, 'ITS')" value="แจ้งซ่อม ปริ้นเตอร์ (Printer) ใช้งานไม่ได้" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_5" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งซ่อม ปริ้นเตอร์ (Printer) ใช้งานไม่ได้" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งซ่อม ปริ้นเตอร์ (Printer) ใช้งานไม่ได้</span>
                     </div>
                 </div>
@@ -105,7 +111,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_6">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_6" onclick="setDataApprove(true, false)" value="แจ้งซ่อม เมาส์-คีย์บอร์ด ชำรุด" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_6" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งซ่อม เมาส์-คีย์บอร์ด ชำรุด" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งซ่อม เมาส์-คีย์บอร์ด ชำรุด</span>
                     </div>
                 </div>
@@ -113,7 +119,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_7">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_7" onclick="setDataApprove(true, false, 'ITS')" value="แจ้งซ่อม เครื่องสำรองไฟ (UPS) ชำรุด" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_7" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งซ่อม เครื่องสำรองไฟ (UPS) ชำรุด" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งซ่อม เครื่องสำรองไฟ (UPS) ชำรุด</span>
                     </div>
                 </div>
@@ -121,7 +127,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_8">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_8" onclick="setDataApprove(true, false, 'ITS')" value="แจ้งซ่อม ประตูอัตโนมัติ Access Control (เฉพาะ อาคาร A)" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_8" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งซ่อม ประตูอัตโนมัติ Access Control (เฉพาะ อาคาร A)" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งซ่อม ประตูอัตโนมัติ Access Control (เฉพาะ อาคาร A)</span>
                     </div>
                 </div>
@@ -129,7 +135,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_9">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_9" onclick="setDataApprove(true, false, 'ITS')" value="แจ้งปัญหาการใช้งานคอมพิวเตอร์ หรือ อุปกรณ์ต่อพวงอื่นๆ" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_9" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งปัญหาการใช้งานคอมพิวเตอร์ หรือ อุปกรณ์ต่อพวงอื่นๆ" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งปัญหาการใช้งานคอมพิวเตอร์ หรือ อุปกรณ์ต่อพวงอื่นๆ</span>
                     </div>
                 </div>
@@ -137,7 +143,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_10">
                 <div class="card-body p-4">
                     <div class="flex w-full items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_10" onclick="setDataApprove(true, false, 'ITS')" value="อื่นๆ" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_10" onclick="setDataApprove('support', true, 'ITS')" value="อื่นๆ" name="request_type_detail" type="radio" />
                         <span class="label-text mr-2">อื่นๆ:</span>
                         <input class="input input-bordered input-sm flex-grow" id="request_other_hardware" placeholder="ระบุรายละเอียด" name="request_type_detail_other" type="text" />
                     </div>
@@ -154,7 +160,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_software_1">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_software_1" onclick="setDataApprove(true, false, 'ITS')" value="แจ้งปัญหาการใช้งาน Microsoft Office, Office365 ไม่ได้" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_software_1" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งปัญหาการใช้งาน Microsoft Office, Office365 ไม่ได้" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งปัญหาการใช้งาน Microsoft Office, Office365 ไม่ได้</span>
                     </div>
                 </div>
@@ -162,7 +168,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_software_2">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_software_2" onclick="setDataApprove(true, false, 'ITS')" value="แจ้งปัญหาการใช้งานโปรแกรมบนหน้า Desktop ไม่ได้" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_software_2" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งปัญหาการใช้งานโปรแกรมบนหน้า Desktop ไม่ได้" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งปัญหาการใช้งานโปรแกรมบนหน้า Desktop ไม่ได้</span>
                     </div>
                 </div>
@@ -170,7 +176,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_software_3">
                 <div class="card-body p-4">
                     <div class="flex w-full items-center">
-                        <input class="radio radio-primary mr-3" id="request_software_3" onclick="setDataApprove(true, false, 'ITS')" value="อื่นๆ" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_software_3" onclick="setDataApprove('support', true, 'ITS')" value="อื่นๆ" name="request_type_detail" type="radio" />
                         <span class="label-text mr-2">อื่นๆ:</span>
                         <input class="input input-bordered input-sm flex-grow" id="request_other_software" name="request_type_detail_other" type="text" />
                     </div>
@@ -187,7 +193,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_ssb_1">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_ssb_1" onclick="setDataApprove(true, false,'ITS')" value="แจ้งปัญหาเกี่ยวกับโปรแกรม SSB" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_ssb_1" onclick="setDataApprove('support', true,'ITS')" value="แจ้งปัญหาเกี่ยวกับโปรแกรม SSB" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งปัญหาเกี่ยวกับโปรแกรม SSB</span>
                     </div>
                 </div>
@@ -195,7 +201,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_ssb_2">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_ssb_2" onclick="setDataApprove(true, false, 'ITS')" value="แจ้งปัญหา “พิมพ์เอกสารไม่ได้” หรือ “พิมพ์เอกสารไม่เป็นหน้า-หลัง”" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_ssb_2" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งปัญหา “พิมพ์เอกสารไม่ได้” หรือ “พิมพ์เอกสารไม่เป็นหน้า-หลัง”" name="request_type_detail" type="radio" />
                         <span class="label-text">แจ้งปัญหา “พิมพ์เอกสารไม่ได้” หรือ “พิมพ์เอกสารไม่เป็นหน้า-หลัง”</span>
                     </div>
                 </div>
@@ -203,31 +209,40 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_ssb_3">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_ssb_3" onclick="setDataApprove(false, false, 'ITJ')" value="แจ้งขอ Setup/Config ต่างๆ ในระบบ SSB" name="request_type_detail" type="radio" />
-                        <span class="label-text">แจ้งขอ Setup/Config ต่างๆ ในระบบ SSB</span>
+                        <input class="radio radio-primary mr-3" id="request_ssb_3" onclick="setDataApprove('support', false, 'ITJ')" value="แจ้งขอ Setup/Config ต่างๆ ในระบบ SSB" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้งขอ Setup/Config ต่างๆ ในระบบ SSB</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
                     </div>
                 </div>
             </label>
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_ssb_4">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_ssb_4" onclick="setDataApprove(false, false, 'ITR')" value="แจ้งขอ แก้ไข/ปรับปรุง รายงานใน SSB" name="request_type_detail" type="radio" />
-                        <span class="label-text">แจ้งขอ แก้ไข/ปรับปรุง รายงานใน SSB</span>
+                        <input class="radio radio-primary mr-3" id="request_ssb_4" onclick="setDataApprove('support', false, 'ITR')" value="แจ้งขอ แก้ไข/ปรับปรุง รายงานใน SSB" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้งขอ แก้ไข/ปรับปรุง รายงานใน SSB</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
                     </div>
                 </div>
             </label>
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_ssb_5">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_ssb_5" onclick="setDataApprove(false, false, 'ITR')" value="แจ้งขอ รายงานใหม่" name="request_type_detail" type="radio" />
-                        <span class="label-text">แจ้งขอ รายงานใหม่</span>
+                        <input class="radio radio-primary mr-3" id="request_ssb_5" onclick="setDataApprove('support', false, 'ITR')" value="แจ้งขอ รายงานใหม่" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้งขอ รายงานใหม่</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
                     </div>
                 </div>
             </label>
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_ssb_6">
                 <div class="card-body p-4">
                     <div class="flex w-full items-center">
-                        <input class="radio radio-primary mr-3" id="request_ssb_6" onclick="setDataApprove(true, false, 'ITS')" value="อื่นๆ" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_ssb_6" onclick="setDataApprove('support', true, 'ITS')" value="อื่นๆ" name="request_type_detail" type="radio" />
                         <span class="label-text mr-2">อื่นๆ:</span>
                         <input class="input input-bordered input-sm flex-grow" id="request_other_ssb" name="request_type_detail_other" type="text" />
                     </div>
