@@ -27,7 +27,7 @@
             <input type="hidden" name="createHC" value="false" />
             <input type="hidden" name="createPAC" value="false" />
             <input type="hidden" name="createHeartStream" value="false" />
-            <input type="hidden" name="createRegist" value="false" />
+            <input type="hidden" name="createRegister" value="false" />
             <input type="hidden" name="createBorrow" value="false" />
 
             <input id="selfApprove" type="hidden" name="selfApprove" value="true">
