@@ -2,10 +2,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\HelperController;
-use App\Models\DocumentHC;
+use App\Models\DocumentHc;
+use App\Models\DocumentHeartstream;
 use App\Models\DocumentIT;
+use App\Models\DocumentItUser;
 use App\Models\DocumentNumber;
 use App\Models\DocumentPAC;
+use App\Models\DocumentRegister;
 use App\Models\DocumentUser;
 use App\Models\File;
 use App\Models\User;
@@ -145,8 +148,9 @@ class DocumentITController extends Controller
 
     private function createDocumentUser($request)
     {
-        dump($request);
-        $title = $request->title;
+        $dataField = $request->all();
+        $title     = $request->title;
+        $approver  = $request['approver'];
 
         $document                 = new DocumentUser();
         $document->requester      = auth()->user()->userid;
@@ -164,79 +168,78 @@ class DocumentITController extends Controller
                 break;
         }
         $document->detail = $detail;
-        // $document->save();
-
-        dump($document);
-        die();
-    }
-
-    private function createDocumentPAC($request)
-    {
-        $dataField = $request->all();
-        $taskData  = [
-            'document_type' => 'pac',
-            'selfApprove'   => false,
-            'approver'      => $request['approver'],
-        ];
-        $title = $request->title;
-        if ($request->title == 'ฝ่ายบุคคล' || $request->title == 'เลขาแพทย์') {
-            $detail = $request->user_detail;
-        } else {
-            $detail = $this->setUserFieldData($request->users, $title);
-        }
-
-        $document                  = new DocumentPac();
-        $document->requester       = auth()->user()->userid;
-        $document->document_phone  = $request->document_phone;
-        $document->document_number = DocumentNumber::getNextNumber('PAC');
-        $document->title           = $request->title;
-        $document->detail          = $detail;
         $document->save();
 
-        $this->helper->createApprover('pac', $dataField, $document);
-        $this->helper->createTask($taskData, $document);
+        $approverField = [
+            'selfApprove' => $request['selfApprove'],
+            'approver'    => $approver,
+        ];
+        $this->helper->createApprover('user', $approverField, $document);
         $this->helper->createFile($request, $document);
 
-        // Log
+        if ($request->createIT) {
+            $this->createSubUserDocument('it', $document, $approver);
+        }
+        if ($request->createHC) {
+            $this->createSubUserDocument('hc', $document, $approver);
+        }
+        if ($request->createPAC) {
+            $this->createSubUserDocument('pac', $document, $approver);
+        }
+        if ($request->createHeartStream) {
+            $this->createSubUserDocument('heart-steam', $document, $approver);
+        }
+        if ($request->createRegister) {
+            $this->createSubUserDocument('register', $document, $approver);
+        }
+
+    }
+
+    private function createSubUserDocument($type, $documentUser, $approver)
+    {
+        switch ($type) {
+            case 'it':
+                $document   = new DocumentItUser();
+                $NumberType = 'ITU';
+                $logDetails = 'สร้างเอกสาร IT';
+                break;
+            case 'hc':
+                $document   = new DocumentHc();
+                $NumberType = 'HC';
+                $logDetails = 'สร้างเอกสาร HC';
+                break;
+            case 'pac':
+                $document   = new DocumentPac();
+                $NumberType = 'PAC';
+                $logDetails = 'สร้างเอกสาร PAC';
+                break;
+            case 'heart-steam':
+                $document   = new DocumentHeartstream();
+                $NumberType = 'HS';
+                $logDetails = 'สร้างเอกสาร Heart Stream';
+                break;
+            case 'register':
+                $document   = new DocumentRegister();
+                $NumberType = 'REG';
+                $logDetails = 'สร้างเอกสาร Register';
+                break;
+        }
+
+        $document->document_user_id = $documentUser->id;
+        $document->document_number  = DocumentNumber::getNextNumber($NumberType);
+        $document->save();
+
+        $taskData = [
+            'document_type' => $type,
+            'selfApprove'   => false,
+            'approver'      => $approver,
+        ];
+        $this->helper->createTask($taskData, $document);
+
         $document->logs()->create([
             'userid'  => auth()->user()->userid,
             'action'  => 'create',
-            'details' => 'สร้างเอกสาร PACS',
-        ]);
-    }
-
-    private function createDocumentHC($request)
-    {
-        $dataField = $request->all();
-        $taskData  = [
-            'document_type' => 'hc',
-            'selfApprove'   => false,
-            'approver'      => $request['approver'],
-        ];
-        $title = $request->title;
-        if ($request->title == 'ฝ่ายบุคคล' || $request->title == 'เลขาแพทย์') {
-            $detail = $request->user_detail;
-        } else {
-            $detail = $this->setUserFieldData($request->users, $title);
-        }
-
-        $document                  = new DocumentHc();
-        $document->requester       = auth()->user()->userid;
-        $document->document_phone  = $request->document_phone;
-        $document->document_number = DocumentNumber::getNextNumber('HC');
-        $document->title           = $title;
-        $document->detail          = $detail;
-        $document->save();
-
-        $this->helper->createApprover('hc', $dataField, $document);
-        $this->helper->createTask($taskData, $document);
-        $this->helper->createFile($request, $document);
-
-        // Log
-        $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'create',
-            'details' => 'สร้างเอกสาร HCLAB',
+            'details' => $logDetails,
         ]);
     }
 

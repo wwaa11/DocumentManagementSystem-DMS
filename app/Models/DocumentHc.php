@@ -18,61 +18,35 @@ class DocumentHc extends Model
         'complete',      // Document is completed
     ];
 
-    protected $appends = [
-        'document_type_name',
-        'document_tag',
-        'list_detail',
+    protected $fillable = [
+        'document_user_id',
+        'document_number',
     ];
+
+    protected $appends = [
+        'document_tag',
+    ];
+
+    public function getDocumentTagAttribute()
+    {
+        return [
+            'document_tag' => 'HC',
+            'colour'       => 'warning',
+        ];
+    }
 
     public function creator()
     {
         return $this->belongsTo(User::class, 'requester', 'userid');
     }
 
-    public function getDocumentTypeNameAttribute()
-    {
-        return 'ขอสิทธิใช้งานโปรแกรม';
-    }
-
-    public function getDocumentTagAttribute()
-    {
-        return [
-            'document_tag' => 'HCLAB',
-            'colour'       => 'info',
-        ];
-    }
-
-    public function getListDetailAttribute()
-    {
-
-        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
-    }
-
-    // Relationship to Approver
-    public function approvers()
-    {
-        // 'approvable' must match the prefix used in the approvers table migration
-        return $this->morphMany(Approver::class, 'approvable');
-    }
-
-    // Relationship to Tasks
     public function tasks()
     {
-        // 'taskable' must match the prefix used in the tasks table migration
         return $this->morphMany(Task::class, 'taskable');
     }
 
-    // Relationship to Files
-    public function files()
-    {
-        // 'fileable' must match the prefix used in the files table migration
-        return $this->morphMany(File::class, 'fileable');
-    }
-
-    // Relationship to Logs
     public function logs()
     {
-        // 'loggable' must match the prefix used in the logs table migration
         return $this->morphMany(Log::class, 'loggable');
     }
 }

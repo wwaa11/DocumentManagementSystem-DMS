@@ -92,15 +92,17 @@
                         {{-- display file in this div with remove file button --}}
                     </div>
 
-                    <h3 class="card-title text-primary mb-2 mt-3 flex items-center text-xl">
-                        <i class="fas fa-user-shield text-primary mr-2"></i>ส่งถึงแผนก IT
-                    </h3>
-                    <select class="select select-bordered w-full" name="document_admin">
-                        <option selected disabled>โปรดระบุ</option>
-                        @foreach ($it_admins as $it_admin)
-                            <option value="{{ $it_admin->userid }}">{{ $it_admin->name }}</option>
-                        @endforeach
-                    </select>
+                    <div id="send_to_it_admin">
+                        <h3 class="card-title text-primary mb-2 mt-3 flex items-center text-xl">
+                            <i class="fas fa-user-shield text-primary mr-2"></i>ส่งถึงแผนก IT
+                        </h3>
+                        <select class="select select-bordered w-full" name="document_admin">
+                            <option selected disabled>โปรดระบุ</option>
+                            @foreach ($it_admins as $it_admin)
+                                <option value="{{ $it_admin->userid }}">{{ $it_admin->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <h3 class="card-title text-primary mb-2 mt-6 flex items-center text-xl">
                         <i class="fas fa-phone-alt text-primary mr-2"></i>เบอร์โทรศัพท์ภายในติดต่อกลับ
@@ -224,6 +226,8 @@
     <script>
         function selectDocType(document_type) {
             if (document_type === 'user') {
+                $('#send_to_it_admin').addClass('hidden');
+
                 $('#type-user').prop('checked', true);
                 $('#user-section').removeClass('hidden');
                 $('#support-section').addClass('hidden');
@@ -238,6 +242,8 @@
                 $('input[name="createRegister"]').val('false');
                 $('input[name="createBorrow"]').val('false');
             } else if (document_type === 'support') {
+                $('#send_to_it_admin').removeClass('hidden');
+
                 $('#type-support').prop('checked', true);
                 $('#user-section').addClass('hidden');
                 $('#support-section').removeClass('hidden');
@@ -252,6 +258,8 @@
                 $('input[name="createBorrow"]').val('false');
 
             } else if (document_type === 'borrow') {
+                $('#send_to_it_admin').removeClass('hidden');
+
                 $('#type-borrow').prop('checked', true);
                 $('#user-section').addClass('hidden');
                 $('#support-section').addClass('hidden');

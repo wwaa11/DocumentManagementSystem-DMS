@@ -3,9 +3,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DocumentHeartstream extends Model
+class DocumentItUser extends Model
 {
-    protected $table = 'document_heartstreams';
+    protected $table = 'document_itusers';
 
     private $documentStatuses = [
         'wait_approval', // Wait for Approval
@@ -30,7 +30,7 @@ class DocumentHeartstream extends Model
     public function getDocumentTagAttribute()
     {
         return [
-            'document_tag' => 'Heartstream',
+            'document_tag' => 'IT',
             'colour'       => 'warning',
         ];
     }
@@ -49,4 +49,5 @@ class DocumentHeartstream extends Model
     {
         return $this->morphMany(Log::class, 'loggable');
     }
+
 }

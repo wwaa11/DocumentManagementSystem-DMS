@@ -70,6 +70,17 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('document_itusers', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('document_user_id');
+            $table->foreign('document_user_id')->references('id')->on('document_users');
+            $table->index(['document_user_id']);
+            $table->string('document_number')->unique();
+            $table->string('status')->default('wait_approval');
+            $table->string('assigned_user_id')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('document_hcs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('document_user_id');
@@ -193,6 +204,7 @@ return new class extends Migration
         Schema::dropIfExists('document_list_approvers');
         Schema::dropIfExists('document_list_tasks');
         Schema::dropIfExists('document_its');
+        Schema::dropIfExists('document_itusers');
         Schema::dropIfExists('document_users');
         Schema::dropIfExists('document_hcs');
         Schema::dropIfExists('document_pacs');
