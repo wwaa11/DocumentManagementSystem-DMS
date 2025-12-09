@@ -13,7 +13,6 @@
 </head>
 
 <body class="">
-
     <div class="bg-base-200 flex min-h-screen items-center justify-center">
         <div class="card bg-base-100 w-96 shadow-xl">
             <div class="card-body">

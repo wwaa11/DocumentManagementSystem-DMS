@@ -78,6 +78,13 @@
             // Hide all fieldsets first
             $('#borrow_other_text').prop('disabled', true);
 
+            if (type == 'Projector' || type == 'Ipad/Tablet') {
+                $('input[name="isHardware"]').val(false);
+            } else {
+                $('input[name="isHardware"]').val(true);
+            }
+
+
             if (type === 'OTHER') {
                 $('#other_request_fieldset').removeClass('hidden');
                 $('#borrow_other_text').prop('disabled', false);

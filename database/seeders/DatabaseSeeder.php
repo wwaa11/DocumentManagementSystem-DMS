@@ -33,11 +33,11 @@ class DatabaseSeeder extends Seeder
             Document::create($type);
         }
 
+        // Create Document Approve List
         $documentApproveList = [
             ['document_type' => 'it', 'userid' => 'head_of_department', 'step' => 1],
+            ['document_type' => 'user', 'userid' => 'head_of_department', 'step' => 1],
             ['document_type' => 'media', 'userid' => 'head_of_department', 'step' => 1],
-            ['document_type' => 'pac', 'userid' => 'head_of_department', 'step' => 1],
-            ['document_type' => 'hc', 'userid' => 'head_of_department', 'step' => 1],
             ['document_type' => 'purchase', 'userid' => 'head_of_department', 'step' => 1],
         ];
         foreach ($documentApproveList as $approve) {
@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
 
         // Create Document Task List
         $documentTaskList = [
+            // IT
             [
                 'document_type' => 'it',
                 'step'          => 1,
@@ -67,6 +68,7 @@ class DatabaseSeeder extends Seeder
                 'task_position' => 'รองผู้จัดการฝ่าย',
                 'task_name'     => 'รออนุมัติจากฝ่ายเทคโนโลยีสารสนเทศ',
             ],
+            // IT Hardware
             [
                 'document_type' => 'it-hardware',
                 'step'          => 1,
@@ -95,6 +97,86 @@ class DatabaseSeeder extends Seeder
                 'task_position' => 'รองผู้จัดการฝ่าย',
                 'task_name'     => 'รออนุมัติจากฝ่ายเทคโนโลยีสารสนเทศ',
             ],
+            // Borrow Hardware
+            [
+                'document_type' => 'it-borrow-hardware',
+                'step'          => 1,
+                'task_user'     => 'head_of_department',
+                'task_position' => '-',
+                'task_name'     => 'รออนุมัติจากแผนก',
+            ],
+            [
+                'document_type' => 'it-borrow-hardware',
+                'step'          => 2,
+                'task_user'     => 'IT Unit Support',
+                'task_position' => 'IT Unit Support',
+                'task_name'     => 'รออนุมัติจากฝ่ายเทคโนโลยีสารสนเทศ',
+            ],
+            [
+                'document_type' => 'it-borrow-hardware',
+                'step'          => 3,
+                'task_user'     => 'IT Department',
+                'task_position' => 'IT Department',
+                'task_name'     => 'รอบันทึกรายละเอียดการยืม จากฝ่ายเทคโนโลยีสารสนเทศ',
+            ],
+            [
+                'document_type' => 'it-borrow-hardware',
+                'step'          => 4,
+                'task_user'     => '480054',
+                'task_position' => 'รองผู้จัดการฝ่าย',
+                'task_name'     => 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ',
+            ],
+            [
+                'document_type' => 'it-borrow-hardware',
+                'step'          => 5,
+                'task_user'     => 'IT Department',
+                'task_position' => 'IT Department',
+                'task_name'     => 'ระหว่างการอนุมัติ',
+            ],
+            [
+                'document_type' => 'it-borrow-hardware',
+                'step'          => 6,
+                'task_user'     => '480054',
+                'task_position' => 'รองผู้จัดการฝ่าย',
+                'task_name'     => 'คืนอุปกรณ์เรียบร้อย',
+            ],
+            // Borrow regular
+            [
+                'document_type' => 'it-borrow',
+                'step'          => 1,
+                'task_user'     => 'head_of_department',
+                'task_position' => '-',
+                'task_name'     => 'รออนุมัติจากแผนก',
+            ],
+            [
+                'document_type' => 'it-borrow',
+                'step'          => 2,
+                'task_user'     => 'IT Department',
+                'task_position' => 'IT Department',
+                'task_name'     => 'รอบันทึกรายละเอียดการยืม จากฝ่ายเทคโนโลยีสารสนเทศ',
+            ],
+            [
+                'document_type' => 'it-borrow',
+                'step'          => 3,
+                'task_user'     => '480054',
+                'task_position' => 'รองผู้จัดการฝ่าย',
+                'task_name'     => 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ',
+            ],
+            [
+                'document_type' => 'it-borrow',
+                'step'          => 4,
+                'task_user'     => 'IT Department',
+                'task_position' => 'IT Department',
+                'task_name'     => 'ระหว่างการอนุมัติ',
+            ],
+            [
+                'document_type' => 'it-borrow',
+                'step'          => 5,
+                'task_user'     => '480054',
+                'task_position' => 'รองผู้จัดการฝ่าย',
+                'task_name'     => 'คืนอุปกรณ์เรียบร้อย',
+            ],
+            // HC
             [
                 'document_type' => 'hc',
                 'step'          => 1,
@@ -116,6 +198,7 @@ class DatabaseSeeder extends Seeder
                 'task_position' => 'รักษาการหัวหน้าแผนก',
                 'task_name'     => 'รออนุมัติจากฝ่ายการบริการทางการแพทย์',
             ],
+            // PAC
             [
                 'document_type' => 'pac',
                 'step'          => 1,
@@ -137,6 +220,51 @@ class DatabaseSeeder extends Seeder
                 'task_position' => 'หัวหน้าแผนก',
                 'task_name'     => 'รออนุมัติจากฝ่ายการบริการทางการแพทย์',
             ],
+            // HeartSteam
+            [
+                'document_type' => 'heart-steam',
+                'step'          => 1,
+                'task_user'     => 'head_of_department',
+                'task_position' => '-',
+                'task_name'     => 'รออนุมัติจากแผนก',
+            ],
+            [
+                'document_type' => 'heart-steam',
+                'step'          => 2,
+                'task_user'     => 'HeartSteam',
+                'task_position' => 'Cardiovascular Institute',
+                'task_name'     => 'รออนุมัติจากแผนกสถาบันหัวใจและหลอดเลือด',
+            ],
+            [
+                'document_type' => 'heart-steam',
+                'step'          => 3,
+                'task_user'     => '670081',
+                'task_position' => 'หัวหน้าแผนก',
+                'task_name'     => 'รออนุมัติจากแผนกสถาบันหัวใจและหลอดเลือด',
+            ],
+            // Registration
+            [
+                'document_type' => 'register',
+                'step'          => 1,
+                'task_user'     => 'head_of_department',
+                'task_position' => '-',
+                'task_name'     => 'รออนุมัติจากแผนก',
+            ],
+            [
+                'document_type' => 'register',
+                'step'          => 2,
+                'task_user'     => 'Registration',
+                'task_position' => 'Registration Department',
+                'task_name'     => 'รออนุมัติจากแผนก Registration',
+            ],
+            [
+                'document_type' => 'register',
+                'step'          => 3,
+                'task_user'     => '420024',
+                'task_position' => 'หัวหน้าแผนก',
+                'task_name'     => 'รออนุมัติจากแผนก Registration',
+            ],
+            // Media
             [
                 'document_type' => 'media',
                 'step'          => 1,
@@ -158,6 +286,7 @@ class DatabaseSeeder extends Seeder
                 'task_position' => 'หัวหน้าแผนก',
                 'task_name'     => 'รอดำเนินการจากฝ่ายพัฒนาธุรกิจ',
             ],
+            // Purchase
             [
                 'document_type' => 'purchase',
                 'step'          => 1,
@@ -179,6 +308,7 @@ class DatabaseSeeder extends Seeder
                 'task_position' => 'หัวหน้าแผนก',
                 'task_name'     => 'รอดำเนินการจากฝ่ายจัดซื้อ',
             ],
+            // Purchase Edit
             [
                 'document_type' => 'purchase-edit',
                 'step'          => 1,

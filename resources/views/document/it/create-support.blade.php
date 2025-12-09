@@ -65,7 +65,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_1">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_1" onclick="setDataApprove('hardware', false, 'ITJ')" value="ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_1" onclick="setDataApprove('support', false, 'ITJ', true)" value="ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ" name="request_type_detail" type="radio" />
                         <div>
                             <span class="label-text">ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ</span>
                             <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
@@ -76,7 +76,7 @@
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_hardware_2">
                 <div class="card-body p-4">
                     <div class="flex items-center">
-                        <input class="radio radio-primary mr-3" id="request_hardware_2" onclick="setDataApprove('hardware', false, 'ITJ')" value="ขอย้ายจุดติดตั้งคอมพิวเตอร์ / Printer" name="request_type_detail" type="radio" />
+                        <input class="radio radio-primary mr-3" id="request_hardware_2" onclick="setDataApprove('support', false, 'ITJ', true)" value="ขอย้ายจุดติดตั้งคอมพิวเตอร์ / Printer" name="request_type_detail" type="radio" />
                         <div>
                             <span class="label-text">ขอย้ายจุดติดตั้งคอมพิวเตอร์ / Printer</span>
                             <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
@@ -267,6 +267,7 @@
             $('#reset_password_request_fieldset').addClass('hidden');
             $('#other_request_fieldset').addClass('hidden');
             $('#title_other_text').prop('disabled', true);
+            $('input[name="main_document_type"]').val('support');
 
             // Show the selected fieldset
             if (type === 'HARDWARE') {

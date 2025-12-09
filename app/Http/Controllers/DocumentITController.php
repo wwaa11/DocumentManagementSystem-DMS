@@ -6,6 +6,7 @@ use App\Models\DocumentHC;
 use App\Models\DocumentIT;
 use App\Models\DocumentNumber;
 use App\Models\DocumentPAC;
+use App\Models\DocumentUser;
 use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -23,7 +24,7 @@ class DocumentITController extends Controller
     // Create Document
     public function createDocument(Request $request)
     {
-        dd($request);
+        // dd($request);
         // dump($request->all());
         // Dev bybass validation
         // $request->validate([
@@ -33,15 +34,20 @@ class DocumentITController extends Controller
         //     'description' => 'required|string',
         // ]);
 
-        if ($request->createIT == 'true') {
-            $this->createDocumentIT($request);
+        switch ($request->main_document_type) {
+            case 'user':
+                $this->createDocumentUser($request);
+                break;
+            case 'support':
+                $this->createDocumentIT($request);
+                break;
+            case 'borrow':
+                $this->createDocumentBorrow($request);
+                break;
+            default:
+                break;
         }
-        if ($request->createPAC == 'true') {
-            $this->createDocumentPAC($request);
-        }
-        if ($request->createHC == 'true') {
-            $this->createDocumentHC($request);
-        }
+        // die();
 
         return redirect()->route('document.index')->with('success', 'สร้างเอกสารสำเร็จ!');
     }
@@ -72,7 +78,7 @@ class DocumentITController extends Controller
         return $userField;
     }
 
-    private function createDocumentIT(Request $request)
+    private function createDocumentIT($request)
     {
         $dataField = $request->all();
         $taskData  = [
@@ -135,6 +141,33 @@ class DocumentITController extends Controller
                 'details' => 'มอบหมายงานไปยัง ' . $request->document_admin,
             ]);
         }
+    }
+
+    private function createDocumentUser($request)
+    {
+        dump($request);
+        $title = $request->title;
+
+        $document                 = new DocumentUser();
+        $document->requester      = auth()->user()->userid;
+        $document->document_phone = $request->document_phone;
+        $document->title          = $title;
+        switch ($title) {
+            case 'ขอแก้ไขสิทธิการใช้งาน':
+                $detail = $this->setUserFieldData($request->users, $title);
+                break;
+            case 'เลขาแพทย์':
+                $detail = $request->user_detail;
+                break;
+            case 'ฝ่ายบุคคล':
+                $detail = $request->user_detail;
+                break;
+        }
+        $document->detail = $detail;
+        // $document->save();
+
+        dump($document);
+        die();
     }
 
     private function createDocumentPAC($request)
@@ -205,6 +238,11 @@ class DocumentITController extends Controller
             'action'  => 'create',
             'details' => 'สร้างเอกสาร HCLAB',
         ]);
+    }
+
+    private function createDocumentBorrow($request)
+    {
+
     }
 
     // Count Document

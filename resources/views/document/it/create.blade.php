@@ -268,10 +268,11 @@
             }
         }
 
-        function setDataApprove(type, isSelfApprove, code) {
+        function setDataApprove(type, isSelfApprove, code, isHardware = false) {
             $('input[name="main_document_type"]').val(type);
             $('#selfApprove').val(isSelfApprove);
             $('#documentCode').val(code);
+            $('input[name="isHardware"]').val(isHardware);
         }
 
         function submitForm() {

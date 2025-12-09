@@ -5,7 +5,6 @@ use App\Models\Approver;
 use App\Models\DocumentListApprover;
 use App\Models\DocumentListTask;
 use App\Models\File;
-use Illuminate\Http\Request;
 
 class HelperController extends Controller
 {
@@ -97,7 +96,7 @@ class HelperController extends Controller
         }
     }
 
-    public function createFile(Request $request, $fileable)
+    public function createFile($request, $fileable)
     {
 
         $uploadedFiles = $request->file('document_files');

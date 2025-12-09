@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // AppData for document
         Schema::create('document_numbers', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('document_type');
@@ -41,13 +42,27 @@ return new class extends Migration
             $table->unique(['document_type', 'step']);
         });
 
+        // Document List
+        Schema::create('document_users', function (Blueprint $table) {
+            $table->id();
+            $table->string('requester');
+            $table->foreign('requester')->references('userid')->on('users');
+            $table->string('document_phone');
+            $table->string('title');
+            $table->text('detail');
+            $table->timestamps();
+        });
+
         Schema::create('document_its', function (Blueprint $table) {
             $table->id();
             $table->string('requester');
             $table->foreign('requester')->references('userid')->on('users');
             $table->string('document_phone');
             $table->string('document_number')->unique();
-            $table->string('type');
+            $table->string('type'); // user, support
+            $table->unsignedBigInteger('document_user_id')->nullable();
+            $table->foreign('document_user_id')->references('id')->on('document_users');
+            $table->index(['document_user_id']);
             $table->string('title');
             $table->text('detail');
             $table->string('status')->default('wait_approval');
@@ -57,12 +72,10 @@ return new class extends Migration
 
         Schema::create('document_hcs', function (Blueprint $table) {
             $table->id();
-            $table->string('requester');
-            $table->foreign('requester')->references('userid')->on('users');
-            $table->string('document_phone');
+            $table->unsignedBigInteger('document_user_id');
+            $table->foreign('document_user_id')->references('id')->on('document_users');
+            $table->index(['document_user_id']);
             $table->string('document_number')->unique();
-            $table->string('title');
-            $table->text('detail');
             $table->string('status')->default('wait_approval');
             $table->string('assigned_user_id')->nullable();
             $table->timestamps();
@@ -70,17 +83,50 @@ return new class extends Migration
 
         Schema::create('document_pacs', function (Blueprint $table) {
             $table->id();
-            $table->string('requester');
-            $table->foreign('requester')->references('userid')->on('users');
-            $table->string('document_phone');
+            $table->unsignedBigInteger('document_user_id');
+            $table->foreign('document_user_id')->references('id')->on('document_users');
+            $table->index(['document_user_id']);
             $table->string('document_number')->unique();
-            $table->string('title');
-            $table->text('detail');
             $table->string('status')->default('wait_approval');
             $table->string('assigned_user_id')->nullable();
             $table->timestamps();
         });
 
+        Schema::create('document_registers', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('document_user_id');
+            $table->foreign('document_user_id')->references('id')->on('document_users');
+            $table->index(['document_user_id']);
+            $table->string('document_number')->unique();
+            $table->string('status')->default('wait_approval');
+            $table->string('assigned_user_id')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('document_heartstreams', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('document_user_id');
+            $table->foreign('document_user_id')->references('id')->on('document_users');
+            $table->index(['document_user_id']);
+            $table->string('document_number')->unique();
+            $table->string('status')->default('wait_approval');
+            $table->string('assigned_user_id')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('document_borrows', function (Blueprint $table) {
+            $table->id();
+            $table->string('requester');
+            $table->foreign('requester')->references('userid')->on('users');
+            $table->string('document_phone');
+            $table->string('document_number')->unique();
+            $table->string('type');
+            $table->text('detail');
+            $table->string('status')->default('wait_approval');
+            $table->timestamps();
+        });
+
+        // Detail for document
         Schema::create('approvers', function (Blueprint $table) {
             $table->id();
             // Polymorphic columns: 'approvable_id' and 'approvable_type'
@@ -147,8 +193,12 @@ return new class extends Migration
         Schema::dropIfExists('document_list_approvers');
         Schema::dropIfExists('document_list_tasks');
         Schema::dropIfExists('document_its');
+        Schema::dropIfExists('document_users');
         Schema::dropIfExists('document_hcs');
         Schema::dropIfExists('document_pacs');
+        Schema::dropIfExists('document_borrows');
+        Schema::dropIfExists('document_registers');
+        Schema::dropIfExists('document_heartstreams');
         Schema::dropIfExists('approvers');
         Schema::dropIfExists('tasks');
         Schema::dropIfExists('files');

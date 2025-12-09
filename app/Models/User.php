@@ -1,9 +1,8 @@
 <?php
 namespace App\Models;
 
-use App\Models\DocumentHc;
 use App\Models\DocumentIT;
-use App\Models\DocumentPac;
+use App\Models\DocumentUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -153,7 +152,17 @@ class User extends Authenticatable
     {
         $userId = auth()->user()->userid;
 
+        $users = DocumentUser::where('requester', $userId)
+            ->select(
+                'id',
+                'requester',
+                'title',
+                'detail',
+                'created_at',
+            );
+
         $its = DocumentIT::where('requester', $userId)
+            ->where('type', 'support')
             ->select(
                 'id',
                 'requester',
@@ -162,39 +171,13 @@ class User extends Authenticatable
                 'detail',
                 'document_its.status as status',
                 'created_at',
-
-            );
-
-        $hcs = DocumentHc::where('requester', $userId)
-            ->select(
-                'id',
-                'requester',
-                'document_number',
-                'title',
-                'detail',
-                'document_hcs.status as status',
-                'created_at',
-            );
-
-        $pacs = DocumentPac::where('requester', $userId)
-            ->select(
-                'id',
-                'requester',
-                'document_number',
-                'title',
-                'detail',
-                'document_pacs.status as status',
-                'created_at',
             );
 
         $document = [];
         foreach ($its->get() as $item) {
             $document[] = $item;
         }
-        foreach ($hcs->get() as $item) {
-            $document[] = $item;
-        }
-        foreach ($pacs->get() as $item) {
+        foreach ($users->get() as $item) {
             $document[] = $item;
         }
 
