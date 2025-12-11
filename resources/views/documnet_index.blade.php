@@ -83,18 +83,22 @@
                 <tbody>
                     @foreach ($documents as $document)
                         <tr class="hover:bg-base-300">
-                            <td class="">
+                            <td class="flex flex-col gap-1">
                                 <div class="join">
-                                    <div class="join-item badge badge-{{ $document["document_tag"]["colour"] }}">{{ $document["document_tag"]["document_tag"] }}</div>
+                                    <div class="join-item badge badge-soft badge-{{ $document["document_tag"]["colour"] }}">{{ $document["document_tag"]["document_tag"] }}</div>
                                     @if ($document["flag"] == "approve")
-                                        <div class="join-item badge badge-outline badge-accent">เอกสารที่ต้องอนุมัติ</div>
+                                        <div class="join-item badge badge-soft badge-{{ $document["document_tag"]["colour"] }}">เอกสารที่ต้องอนุมัติ</div>
                                     @elseif($document["flag"] == "my")
-                                        <div class="join-item badge badge-outline badge-primary">เอกสารของฉัน</div>
+                                        <div class="join-item badge badge-soft badge-{{ $document["document_tag"]["colour"] }}">เอกสารของฉัน</div>
+                                    @elseif($document["flag"] == "dept")
+                                        <div class="join-item badge badge-soft badge-{{ $document["document_tag"]["colour"] }}">เอกสารที่จากแผนก</div>
                                     @endif
                                 </div>
-                                <div>
-                                    {{ $document["document_number"] }}
-                                </div>
+                                @if ($document["document_number"])
+                                    <div class="badge badge-soft badge-{{ $document["document_tag"]["colour"] }}">
+                                        {{ $document["document_number"] }}
+                                    </div>
+                                @endif
                             </td>
                             <td class="w-64">
                                 <div class="text-sm">{{ $document["document_type_name"] }}</div>

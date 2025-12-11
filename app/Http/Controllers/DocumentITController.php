@@ -91,29 +91,16 @@ class DocumentITController extends Controller
         ];
 
         $title = $request->title;
-        if ($request->document_type == 'support') {
-            if ($request->title == 'OTHER') {
-                $title = $request->title_other_text;
-            }
-            // set Detail Title
-            if (str_contains($request->request_type_detail, 'อื่นๆ')) {
-                $title .= '|' . $request->request_type_detail . ' ' . $request->request_type_detail_other;
-            } else {
-                $isEmpty = empty($request->request_type_detail);
-                if (! $isEmpty) {
-                    $title .= '|' . $request->request_type_detail;
-                }
-            }
+        if ($request->title == 'OTHER') {
+            $title = $request->title_other_text;
         }
-
-        $detail = '';
-        if ($request->document_type == 'support') {
-            $detail = $request->support_detail;
-        } else if ($request->document_type == 'user') {
-            if ($request->title == 'ฝ่ายบุคคล' || $request->title == 'เลขาแพทย์') {
-                $detail = $request->user_detail;
-            } else {
-                $detail = $this->setUserFieldData($request->users, $title);
+        // set Detail Title
+        if (str_contains($request->request_type_detail, 'อื่นๆ')) {
+            $title .= '|' . $request->request_type_detail . ' ' . $request->request_type_detail_other;
+        } else {
+            $isEmpty = empty($request->request_type_detail);
+            if (! $isEmpty) {
+                $title .= '|' . $request->request_type_detail;
             }
         }
 
@@ -123,7 +110,7 @@ class DocumentITController extends Controller
         $document->document_number  = DocumentNumber::getNextNumber($dataField['documentCode']);
         $document->type             = $request->document_type;
         $document->title            = $title;
-        $document->detail           = $detail;
+        $document->detail           = $request->support_detail;
         $document->assigned_user_id = ($request->document_admin) ? $request->document_admin : null;
         $document->save();
 
@@ -226,6 +213,7 @@ class DocumentITController extends Controller
         }
 
         $document->document_user_id = $documentUser->id;
+        $document->status           = $approver['userid'] == auth()->user()->userid ? 'pending' : 'wait_approval';
         $document->document_number  = DocumentNumber::getNextNumber($NumberType);
         $document->save();
 

@@ -22,7 +22,7 @@ class DocumentUser extends Model
         'document_type_name',
         'document_tag',
         'list_detail',
-        'document_status',
+        'status',
     ];
 
     public function getDocumentTypeNameAttribute()
@@ -44,9 +44,87 @@ class DocumentUser extends Model
         return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
     }
 
-    public function getDocumentStatusAttribute()
+    public function getStatusAttribute()
     {
-        return 'test';
+        $documentStatus = null;
+        $documents      = $this->getAllDocuments();
+        $statusArray    = [];
+        foreach ($documents as $document) {
+            switch ($document->status) {
+                case ("wait_approval"):
+                    $statusArray[] = 'wait_approval';
+                    break;
+                case ("cancel"):
+                    $statusArray[] = 'cancel';
+                    break;
+                case ("not_approval"):
+                    $statusArray[] = 'not_approval';
+                    break;
+                case ("pending"):
+                    $statusArray[] = 'pending';
+                    break;
+                case ("reject"):
+                    $statusArray[] = 'reject';
+                    break;
+                case ("process"):
+                    $statusArray[] = 'process';
+                    break;
+                case ("done"):
+                    $statusArray[] = 'done';
+                    break;
+                case ("complete"):
+                    $statusArray[] = 'complete';
+                    break;
+            }
+        }
+        $isWaitApproval = collect($statusArray)->every(function ($value) {
+            return $value === 'wait_approval';
+        });
+        $isCancel = collect($statusArray)->every(function ($value) {
+            return $value === 'cancel';
+        });
+        $isNotApproval = collect($statusArray)->every(function ($value) {
+            return $value === 'not_approval';
+        });
+        $isPending = collect($statusArray)->every(function ($value) {
+            return $value === 'pending';
+        });
+        $isReject = collect($statusArray)->every(function ($value) {
+            return $value === 'reject';
+        });
+        $isProcess = collect($statusArray)->every(function ($value) {
+            return $value === 'process';
+        });
+        $isDone = collect($statusArray)->every(function ($value) {
+            return $value === 'done';
+        });
+        $isComplete = collect($statusArray)->every(function ($value) {
+            return $value === 'complete';
+        });
+
+        if ($isWaitApproval) {
+            $documentStatus = 'wait_approval';
+        } elseif ($isCancel) {
+            $documentStatus = 'cancel';
+        } elseif ($isNotApproval) {
+            $documentStatus = 'not_approval';
+        } elseif ($isPending) {
+            $documentStatus = 'pending';
+        } elseif ($isReject) {
+            $documentStatus = 'reject';
+        } elseif ($isProcess) {
+            $documentStatus = 'process';
+        } elseif ($isDone) {
+            $documentStatus = 'done';
+        } elseif ($isComplete) {
+            $documentStatus = 'complete';
+        } elseif (in_array('pending', $statusArray)) {
+            $documentStatus = 'pending';
+        } elseif (in_array('process', $statusArray)) {
+            $documentStatus = 'process';
+        }
+
+        return $documentStatus;
     }
 
     public function creator()

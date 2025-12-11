@@ -35,8 +35,6 @@ class DocumentIT extends Model
             return $this->type . 'ขอแจ้งงาน/สนับสนุนการทำงาน';
         } elseif ($this->type == 'borrow') {
             return $this->type . 'ขอยืม/คืนอุปกรณ์';
-        } else {
-            return $this->type . '1234';
         }
 
     }

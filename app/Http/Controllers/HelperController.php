@@ -22,7 +22,7 @@ class HelperController extends Controller
                         'status'      => 'approve',
                         'approved_at' => date('Y-m-d H:i:s'),
                     ]);
-                    if ($islastStep) {
+                    if ($islastStep && $type !== 'user') {
                         $approveable->status = 'pending';
                         $approveable->save();
                     }
@@ -34,7 +34,7 @@ class HelperController extends Controller
                             'status'      => 'approve',
                             'approved_at' => date('Y-m-d H:i:s'),
                         ]);
-                        if ($islastStep) {
+                        if ($islastStep && $type !== 'user') {
                             $approveable->status = 'pending';
                             $approveable->save();
                         }
@@ -69,7 +69,6 @@ class HelperController extends Controller
                 'task_user'     => $task->task_user,
                 'task_position' => $task->task_position,
             ];
-
             if (
                 ($task->step == 1 && $task->task_user == 'head_of_department' && $taskData['selfApprove']) ||
                 ($task->step == 1 && $taskData['approver']['userid'] == auth()->user()->userid)
@@ -80,8 +79,12 @@ class HelperController extends Controller
                 $taskAttributes['task_position'] = auth()->user()->position;
                 $taskAttributes['date']          = date('Y-m-d H:i:s');
 
-                $findOtherApprove = $taskable->approvers()->where('status', 'wait')->first();
-                if (! $findOtherApprove && $taskable->assigned_user_id !== null) {
+                $findOtherApprove = null;
+                if ($taskable->approvers) {
+                    $findOtherApprove = $taskable->approvers()->where('status', 'wait')->first();
+                }
+
+                if ($findOtherApprove !== null && $taskable->assigned_user_id !== null) {
                     $taskable->status = 'process';
                     $taskable->save();
                 }

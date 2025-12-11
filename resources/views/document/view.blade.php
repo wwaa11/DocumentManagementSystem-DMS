@@ -8,21 +8,23 @@
                 @include("document.user.detail")
             @endif
         </div>
-        @if ($document_type == "IT")
-            <div class="card bg-base-100 mb-4 shadow-xl">
-                <div class="card-body">
-                    <div class="flex flex-col gap-3">
-                        @if ($document->status == "wait_approval")
-                            <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>
-                        @elseif($document->status == "pending")
-                            {{-- <button class="btn btn-neutral w-full">ไม่สามาถยกเลิกใบงานได้</button> --}}
-                        @endif
-                    </div>
-                    <div class="divider"></div>
-                    @include("document.logs", ["logs" => $document->logs])
+        <div class="card bg-base-100 mb-4 shadow-xl">
+            <div class="card-body">
+                <div class="flex flex-col gap-3">
+                    @if ($document->status == "wait_approval")
+                        <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>
+                    @elseif($document->status == "pending")
+                        {{-- <button class="btn btn-neutral w-full">ไม่สามาถยกเลิกใบงานได้</button> --}}
+                    @endif
                 </div>
+                <div class="divider"></div>
+                @if ($document_type == "IT")
+                    @include("document.logs", ["logs" => $document->logs])
+                @elseif ($document_type == "USER")
+                    @include("document.user.logs", ["logs" => $document->getAllDocuments()])
+                @endif
             </div>
-        @endif
+        </div>
     </div>
 @endsection
 @push("scripts")

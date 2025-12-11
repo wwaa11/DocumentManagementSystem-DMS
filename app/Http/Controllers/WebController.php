@@ -72,7 +72,7 @@ class WebController extends Controller
             $document_id             = $documentData->document_tag["document_tag"] . $documentData->id;
             $detail                  = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100) . '...' : $documentData->detail;
             $documents[$document_id] = [
-                'flag'               => ($item->status == 'wait' ? 'approve' : 'my'),
+                'flag'               => ($item->status == 'wait' ? 'approve' : 'dept'),
                 'id'                 => $documentData->id,
                 'document_tag'       => $documentData->document_tag,
                 'document_number'    => $documentData->document_number,
@@ -253,47 +253,70 @@ class WebController extends Controller
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
-        $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
-        if ($request->status == 'approve') {
-            $approveList->status = 'approve';
-            $document->tasks()->where('step', $approveList->step)->update([
-                'status'        => 'approve',
-                'task_name'     => 'อนุมัติ',
-                'task_user'     => auth()->user()->userid,
-                'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
-            ]);
-            $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'approve',
-                'details' => 'อนุมัติเอกสาร',
-            ]);
-            $checkNextStep = $document->approvers()->where('step', $approveList->step + 1)->first();
-            if (! $checkNextStep) {
-                if ($document->assigned_user_id == null) {
-                    $document->status = 'pending';
-                } else {
-                    $document->status = 'process';
-                }
+        if ($document_type == 'USER') {
+            $approveList         = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
+            $approveList->status = $request->status;
+            $approveList->save();
+
+            foreach ($document->getAllDocuments() as $document) {
+                $document->status = $request->status == 'approve' ? 'pending' : 'not_approval';
+                $document->save();
+                $document->tasks()->where('step', $approveList->step)->update([
+                    'status'        => $request->status,
+                    'task_name'     => $request->status == 'approve' ? 'อนุมัติ' : 'ไม่อนุมัติ',
+                    'task_user'     => auth()->user()->userid,
+                    'task_position' => auth()->user()->position,
+                    'date'          => date('Y-m-d H:i:s'),
+                ]);
+                $document->logs()->create([
+                    'userid'  => auth()->user()->userid,
+                    'action'  => $request->status,
+                    'details' => $request->status == 'approve' ? 'อนุมัติเอกสาร' : $request->reason,
+                ]);
             }
         } else {
-            $document->status    = 'not_approval';
-            $approveList->status = 'reject';
-            $document->tasks()->where('step', $approveList->step)->update([
-                'status'        => 'reject',
-                'task_name'     => 'ไม่อนุมัติ',
-                'task_user'     => auth()->user()->userid,
-                'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
-            ]);
-            $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'reject',
-                'details' => $request->reason,
-            ]);
+            $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
+            if ($request->status == 'approve') {
+                $approveList->status = 'approve';
+                $document->tasks()->where('step', $approveList->step)->update([
+                    'status'        => 'approve',
+                    'task_name'     => 'อนุมัติ',
+                    'task_user'     => auth()->user()->userid,
+                    'task_position' => auth()->user()->position,
+                    'date'          => date('Y-m-d H:i:s'),
+                ]);
+                $document->logs()->create([
+                    'userid'  => auth()->user()->userid,
+                    'action'  => 'approve',
+                    'details' => 'อนุมัติเอกสาร',
+                ]);
+                $checkNextStep = $document->approvers()->where('step', $approveList->step + 1)->first();
+                if (! $checkNextStep) {
+                    if ($document->assigned_user_id == null) {
+                        $document->status = 'pending';
+                    } else {
+                        $document->status = 'process';
+                    }
+                }
+            } else {
+                $document->status    = 'not_approval';
+                $approveList->status = 'reject';
+                $document->tasks()->where('step', $approveList->step)->update([
+                    'status'        => 'reject',
+                    'task_name'     => 'ไม่อนุมัติ',
+                    'task_user'     => auth()->user()->userid,
+                    'task_position' => auth()->user()->position,
+                    'date'          => date('Y-m-d H:i:s'),
+                ]);
+                $document->logs()->create([
+                    'userid'  => auth()->user()->userid,
+                    'action'  => 'reject',
+                    'details' => $request->reason,
+                ]);
+            }
+            $approveList->save();
+            $document->save();
         }
-        $approveList->save();
-        $document->save();
 
         return response()->json([
             'status' => 'success',
