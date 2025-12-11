@@ -3,9 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\HelperController;
 use App\Models\Document;
-use App\Models\DocumentHc;
 use App\Models\DocumentIT;
-use App\Models\DocumentPac;
 use App\Models\DocumentUser;
 use App\Models\File;
 use App\Models\User;
@@ -29,12 +27,6 @@ class WebController extends Controller
         switch ($document_type) {
             case 'IT':
                 $document = DocumentIT::find($document_id);
-                break;
-            case 'HCLAB':
-                $document = DocumentHc::find($document_id);
-                break;
-            case 'PAC':
-                $document = DocumentPac::find($document_id);
                 break;
             case 'USER':
                 $document = DocumentUser::find($document_id);
@@ -237,12 +229,15 @@ class WebController extends Controller
 
         $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
         if (! $approveList) {
+
             return redirect()->route('document.index')->with('error', 'ไม่มีสิทธิ์อนุมัติเอกสารนี้');
         }
+
         // Check if the previous step is approved
         if ($approveList->step > 1) {
             $previousStep = $document->approvers()->where('step', $approveList->step - 1)->first();
             if (! $previousStep || $previousStep->status !== 'approve') {
+
                 return redirect()->route('document.index')->with('error', 'ผู้อนุมัติขั้นก่อนหน้า สำหรับเอกสารนี้ยังไม่ถูกอนุมัติ');
             }
         }

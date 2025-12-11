@@ -62,6 +62,5 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/accept', [DocumentPacController::class, 'acceptDocument'])->name('admin.pac.accept');
         Route::post('/admin/cancel', [DocumentPacController::class, 'cancelDocument'])->name('admin.pac.cancel');
         Route::post('/admin/canceljob', [DocumentPacController::class, 'cancelJob'])->name('admin.it.canceljob');
-
     });
 });

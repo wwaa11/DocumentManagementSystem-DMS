@@ -1,0 +1,87 @@
+<div class="card-body">
+    <button class="text-accent w-24 cursor-pointer" onclick="window.history.back()"> <i class="fas fa-arrow-left"></i> ย้อนกลับ</button>
+    <div class="flex items-center">
+        <img class="mr-4 h-auto w-36" src="{{ asset("images/Side Logo.png") }}" alt="Side Logo">
+        <div class="flex-1 text-end">
+            <h2 class="text-2xl font-bold">QF-ITD-09/Rev.3 (15-06-66)</h2>
+            <p class="text-sm text-gray-500">ประเภทเอกสาร: {{ $document->document_type_name }}</p>
+        </div>
+    </div>
+    <div class="divider"></div>
+    <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div>
+            <p><strong>เรื่อง:</strong>
+                @if (is_array($document->title))
+                    @foreach ($document->title as $title)
+                        {{ $title }} <br>
+                    @endforeach
+                @else
+                    {{ $document->title }}
+                @endif
+            </p>
+            <p><strong>วันที่:</strong> {{ $document->created_at->format("d/m/Y") }}</p>
+        </div>
+        <div>
+            <p><strong>ผู้ขอ:</strong> {{ $document->creator->name }}</p>
+            <p><strong>แผนก:</strong> {{ $document->creator->department }}</p>
+            <p><strong>เบอร์โทร:</strong> {{ $document->document_phone }}</p>
+        </div>
+    </div>
+    @if ($document->files->count() > 0)
+        @include("document.files", ["files" => $document->files])
+        <div class="divider"></div>
+    @endif
+    <strong>รายละเอียด</strong>
+    <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail !!}</p>
+    <div class="divider"></div>
+    <strong>ผู้อนุมัติ</strong>
+    @foreach ($document->getAllDocuments() as $key => $doc)
+        <div class="card bg-base-100 mb-4 min-w-[450px] shadow-xl">
+            <div class="bg-accent card-title flex cursor-pointer rounded-t-md p-3 text-white" onclick="toggleBody('body-{{ $key }}')">
+                <div class="flex-1">
+                    {{ $doc->document_number }}
+                </div>
+                <div>
+                    {{ $doc->document_tag["document_tag"] }}
+                </div>
+                <div>
+                    <i class="fas fa-caret-down" id="caret-{{ $key }}"></i>
+                </div>
+            </div>
+            <div class="card-body hidden" id="body-{{ $key }}">
+                <ul class="steps steps-vertical">
+                    @foreach ($doc->tasks as $task)
+                        @php
+                            $stepClass = "";
+                            $icon = "fa-question";
+                            if ($task->status == "approve") {
+                                $stepClass = "step-success";
+                                $icon = "fa-check";
+                            } elseif ($task->status == "cancel" || $task->status == "reject") {
+                                $stepClass = "step-error";
+                                $icon = "fa-times";
+                            }
+                        @endphp
+                        <li class="step {{ $stepClass }}">
+                            <span class="step-icon"><i class="fas {{ $icon }}"></i></span>
+                            <div class="flex flex-col text-start">
+                                <span class="fw-bold text-lg">{{ $task->task_name }}</span>
+                                <span class="text-xs">{{ $task->task_user }} {{ $task->user->name ?? null }} ({{ $task->task_position }})</span>
+                                <span class="text-xs">{{ $task->date ? date("d/m/Y H:i", strtotime($task->date)) : null }}</span>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endforeach
+</div>
+@push("scripts")
+    <script>
+        function toggleBody(id) {
+            document.getElementById(id).classList.toggle("hidden");
+            document.getElementById("caret-" + id.split("-")[1]).classList.toggle("fa-caret-down");
+            document.getElementById("caret-" + id.split("-")[1]).classList.toggle("fa-caret-up");
+        }
+    </script>
+@endpush

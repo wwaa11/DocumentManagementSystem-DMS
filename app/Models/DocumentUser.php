@@ -11,17 +11,18 @@ class DocumentUser extends Model
 {
     protected $table = 'document_users';
 
-    protected $appends = [
-        'document_type_name',
-        'document_tag',
-        'list_detail',
-    ];
-
     protected $fillable = [
         'requester',
         'document_phone',
         'title',
         'detail',
+    ];
+
+    protected $appends = [
+        'document_type_name',
+        'document_tag',
+        'list_detail',
+        'document_status',
     ];
 
     public function getDocumentTypeNameAttribute()
@@ -43,6 +44,11 @@ class DocumentUser extends Model
         return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
     }
 
+    public function getDocumentStatusAttribute()
+    {
+        return 'test';
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'requester', 'userid');
@@ -60,30 +66,31 @@ class DocumentUser extends Model
 
     public function getAllDocuments()
     {
-        $documnet_user_id = $this->id;
-        $documnet         = [];
+        $document_user_id = $this->id;
+        $document         = [];
 
-        $it = DocumentIT::where('document_user_id', $documnet_user_id)->first();
+        $it = DocumentIT::where('document_user_id', $document_user_id)->first();
         if ($it) {
-            $documnet[] = $it;
+            $document[] = $it;
         }
-        $pac = DocumentPac::where('document_user_id', $documnet_user_id)->first();
+        $pac = DocumentPac::where('document_user_id', $document_user_id)->first();
         if ($pac) {
-            $documnet[] = $pac;
+            $document[] = $pac;
         }
-        $hc = DocumentHc::where('document_user_id', $documnet_user_id)->first();
+        $hc = DocumentHc::where('document_user_id', $document_user_id)->first();
         if ($hc) {
-            $documnet[] = $hc;
+            $document[] = $hc;
         }
-        $heartstream = DocumentHeartstream::where('document_user_id', $documnet_user_id)->first();
+        $heartstream = DocumentHeartstream::where('document_user_id', $document_user_id)->first();
         if ($heartstream) {
-            $documnet[] = $heartstream;
+            $document[] = $heartstream;
         }
-        $registration = DocumentRegister::where('document_user_id', $documnet_user_id)->first();
+        $registration = DocumentRegister::where('document_user_id', $document_user_id)->first();
         if ($registration) {
-            $documnet[] = $registration;
+            $document[] = $registration;
         }
 
         return $document;
     }
+
 }
