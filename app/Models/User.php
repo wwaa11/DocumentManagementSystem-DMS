@@ -39,6 +39,11 @@ class User extends Authenticatable
                     'lists' => [
                         // IT
                         [
+                            'title' => 'IT',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
                             'title' => 'Hardware Jobs',
                             'link'  => 'admin.it.hardwarelist',
                             'count' => true,
@@ -65,22 +70,27 @@ class User extends Authenticatable
                         ],
                         // PAC
                         [
-                            'title' => 'Pac Approve Jobs',
+                            'title' => 'PAC',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
                             'link'  => 'admin.pac.approvelist',
                             'count' => true,
                         ],
                         [
-                            'title' => 'Pac New Jobs',
+                            'title' => 'New Jobs',
                             'link'  => 'admin.pac.newlist',
                             'count' => true,
                         ],
                         [
-                            'title' => 'Pac My Jobs',
+                            'title' => 'My Jobs',
                             'link'  => 'admin.pac.mylist',
                             'count' => true,
                         ],
                         [
-                            'title' => 'Pac All Jobs',
+                            'title' => 'All Jobs',
                             'link'  => 'admin.pac.alllist',
                             'count' => false,
                         ],

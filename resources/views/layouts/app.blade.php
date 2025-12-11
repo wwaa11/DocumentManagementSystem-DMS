@@ -43,14 +43,20 @@
                             <a>Admin</a>
                             <ul>
                                 @foreach (auth()->user()->menu["lists"] as $key => $link)
-                                    <li class="mb-1">
-                                        <a class="nav-link" data-route="{{ $link["link"] }}" href="{{ route($link["link"]) }}">
-                                            {{ $link["title"] }}
-                                            @if ($link["count"])
-                                                <span class="badge badge-sm badge-primary float-right" id="{{ $link["link"] }}">-</span>
-                                            @endif
-                                        </a>
-                                    </li>
+                                    @if ($link["link"] == null)
+                                        <li>
+                                            <div class="divider">{{ $link["title"] }}</div>
+                                        </li>
+                                    @else
+                                        <li class="mb-1">
+                                            <a class="nav-link" data-route="{{ $link["link"] }}" href="{{ route($link["link"]) }}">
+                                                {{ $link["title"] }}
+                                                @if ($link["count"])
+                                                    <span class="badge badge-sm badge-primary float-right" id="{{ $link["link"] }}">-</span>
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @endif
                                 @endforeach
                             </ul>
                         </li>

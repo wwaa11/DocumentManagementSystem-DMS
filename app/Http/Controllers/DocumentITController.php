@@ -249,7 +249,7 @@ class DocumentITController extends Controller
     }
 
     // Count Document
-    public function listDocumentCount()
+    public function adminDocumentCount()
     {
         $documentListAll         = DocumentIT::whereIn('status', ['pending', 'process', 'done'])->get();
         $documentListNewHardware = $documentListAll->where('status', 'pending')->filter(function ($item) {
@@ -270,8 +270,8 @@ class DocumentITController extends Controller
             'admin.it.mylist'       => $documentListMy,
         ]);
     }
-    // Page List Document
-    public function listHardwareDocuments()
+    // Admin Page List Document
+    public function adminHardwareDocuments()
     {
         $documentListAll = DocumentIT::where('status', 'pending')->get();
         $documents       = $documentListAll->filter(function ($item) {
@@ -283,7 +283,7 @@ class DocumentITController extends Controller
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function listApproveDocuments()
+    public function adminApproveDocuments()
     {
         $documents = DocumentIT::where('status', 'done')->get();
         $action    = 'approve';
@@ -291,7 +291,7 @@ class DocumentITController extends Controller
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function listNewDocuments()
+    public function adminNewDocuments()
     {
         $documentListAll = DocumentIT::where('status', 'pending')->get();
         $documents       = $documentListAll->filter(function ($item) {
@@ -303,7 +303,7 @@ class DocumentITController extends Controller
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function listMyDocuments()
+    public function adminMyDocuments()
     {
         $documents = DocumentIT::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
         $action    = 'my';
@@ -311,7 +311,7 @@ class DocumentITController extends Controller
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function listAllDocuments()
+    public function adminAllDocuments()
     {
         $documents = DocumentIT::orderByDesc('id')->get();
         $action    = 'all';
@@ -319,7 +319,7 @@ class DocumentITController extends Controller
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function viewDocument($document_id, $action)
+    public function adminviewDocument($document_id, $action)
     {
         $document = DocumentIT::find($document_id);
         $userList = [];

@@ -26,7 +26,7 @@ class DocumentUser extends Model
 
     public function getDocumentTypeNameAttribute()
     {
-        return 'ขอสิทธิใช้งานโปรแกรม';
+        return 'ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม';
     }
 
     public function getDocumentTagAttribute()

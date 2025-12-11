@@ -59,10 +59,7 @@ return new class extends Migration
             $table->foreign('requester')->references('userid')->on('users');
             $table->string('document_phone');
             $table->string('document_number')->unique();
-            $table->string('type'); // user, support
-            $table->unsignedBigInteger('document_user_id')->nullable();
-            $table->foreign('document_user_id')->references('id')->on('document_users');
-            $table->index(['document_user_id']);
+            $table->string('type'); // support
             $table->string('title');
             $table->text('detail');
             $table->string('status')->default('wait_approval');
@@ -133,6 +130,9 @@ return new class extends Migration
             $table->string('document_number')->unique();
             $table->string('type');
             $table->text('detail');
+            $table->date('estimate_return_date');
+            $table->date('borrow_date')->nullable();
+            $table->date('return_date')->nullable();
             $table->string('status')->default('wait_approval');
             $table->timestamps();
         });

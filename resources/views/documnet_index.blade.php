@@ -28,8 +28,7 @@
                 <select class="select select-bordered w-full" name="document_tag">
                     <option value="">ประเภทเอกสาร</option>
                     <option value="IT" {{ request("document_tag") == "IT" ? "selected" : "" }}>IT</option>
-                    <option value="HCLAB" {{ request("document_tag") == "HCLAB" ? "selected" : "" }}>HCLAB</option>
-                    <option value="PAC" {{ request("document_tag") == "PAC" ? "selected" : "" }}>PAC</option>
+                    <option value="USER" {{ request("document_tag") == "USER" ? "selected" : "" }}>USER</option>
                 </select>
                 <select class="select select-bordered w-full" name="status">
                     <option value="">สถานะเอกสาร</option>

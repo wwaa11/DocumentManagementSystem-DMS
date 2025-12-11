@@ -31,12 +31,12 @@ Route::group(['middleware' => 'auth'], function () {
     // IT Document
     Route::prefix('it')->group(function () {
         // Page Documents
-        Route::get('/admin/hardwaredocument', [DocumentITController::class, 'listHardwareDocuments'])->name('admin.it.hardwarelist');
-        Route::get('/admin/approvelist', [DocumentITController::class, 'listApproveDocuments'])->name('admin.it.approvelist');
-        Route::get('/admin/newdocument', [DocumentITController::class, 'listNewDocuments'])->name('admin.it.newlist');
-        Route::get('/admin/mydocument', [DocumentITController::class, 'listMyDocuments'])->name('admin.it.mylist');
-        Route::get('/admin/alldocument', [DocumentITController::class, 'listAllDocuments'])->name('admin.it.alllist');
-        Route::get('/admin/view/{document_id}/{action}', [DocumentITController::class, 'viewDocument'])->name('admin.it.view');
+        Route::get('/admin/hardwaredocument', [DocumentITController::class, 'adminHardwareDocuments'])->name('admin.it.hardwarelist');
+        Route::get('/admin/approvelist', [DocumentITController::class, 'adminApproveDocuments'])->name('admin.it.approvelist');
+        Route::get('/admin/newdocument', [DocumentITController::class, 'adminNewDocuments'])->name('admin.it.newlist');
+        Route::get('/admin/mydocument', [DocumentITController::class, 'adminMyDocuments'])->name('admin.it.mylist');
+        Route::get('/admin/alldocument', [DocumentITController::class, 'adminAllDocuments'])->name('admin.it.alllist');
+        Route::get('/admin/view/{document_id}/{action}', [DocumentITController::class, 'adminviewDocument'])->name('admin.it.view');
         // Count IT Documents
         Route::get('/admin/count', [DocumentITController::class, 'listDocumentCount'])->name('admin.it.count');
         // Action Documents

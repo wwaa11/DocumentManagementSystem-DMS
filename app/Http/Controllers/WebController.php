@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Models\DocumentHc;
 use App\Models\DocumentIT;
 use App\Models\DocumentPac;
+use App\Models\DocumentUser;
 use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -34,6 +35,9 @@ class WebController extends Controller
                 break;
             case 'PAC':
                 $document = DocumentPac::find($document_id);
+                break;
+            case 'USER':
+                $document = DocumentUser::find($document_id);
                 break;
             default:
                 $document = null;

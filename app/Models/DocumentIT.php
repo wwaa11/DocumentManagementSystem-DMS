@@ -31,13 +31,14 @@ class DocumentIT extends Model
 
     public function getDocumentTypeNameAttribute()
     {
-        if ($this->type == 'user') {
-
-            return 'ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม';
+        if ($this->type == 'support') {
+            return $this->type . 'ขอแจ้งงาน/สนับสนุนการทำงาน';
+        } elseif ($this->type == 'borrow') {
+            return $this->type . 'ขอยืม/คืนอุปกรณ์';
         } else {
-
-            return 'ขอแจ้งงาน/สนับสนุนการทำงาน';
+            return $this->type . '1234';
         }
+
     }
 
     public function getDocumentTagAttribute()
