@@ -430,7 +430,7 @@ class DocumentITController extends Controller
         $document->status = 'reject';
         $document->save();
 
-        $document->tasks()->where('task_position', 'IT Department')->update([
+        $document->tasks()->where('task_user', 'IT Department')->update([
             'status'        => 'reject',
             'task_name'     => 'ปฏิเสธ',
             'task_user'     => auth()->user()->userid,

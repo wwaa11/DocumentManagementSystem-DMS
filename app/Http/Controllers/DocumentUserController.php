@@ -121,15 +121,22 @@ class DocumentUserController extends Controller
     public function cancelDocument(Request $request)
     {
         $request->validate([
-            'id'     => 'required|exists:document_pacs,id',
+            'id'     => 'required',
+            'type'   => 'required',
             'reason' => 'required',
         ]);
 
-        $document         = DocumentPac::find($request->id);
+        switch ($request->type) {
+            case 'pac':
+                $document  = DocumentPac::find($request->id);
+                $task_user = 'Xray';
+                break;
+        }
+
         $document->status = 'reject';
         $document->save();
 
-        $document->tasks()->where('task_position', 'Xray Department')->update([
+        $document->tasks()->where('task_user', $task_user)->update([
             'status'        => 'reject',
             'task_name'     => 'ปฏิเสธ',
             'task_user'     => auth()->user()->userid,
@@ -151,19 +158,27 @@ class DocumentUserController extends Controller
     public function cancelJob(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:document_pacs,id',
+            'id'   => 'required',
+            'type' => 'required',
         ]);
 
-        $document = DocumentPac::find($request->id);
+        switch ($request->type) {
+            case 'pac':
+                $document = DocumentPac::find($request->id);
+                break;
+        }
+
         if ($document->status !== 'process' || $document->assigned_user_id !== auth()->user()->userid) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'เอกสารนี้ไม่สามารถยกเลิกงานได้!',
             ]);
         }
+
         $document->status           = 'pending';
         $document->assigned_user_id = null;
         $document->save();
+
         $document->logs()->create([
             'userid'  => auth()->user()->userid,
             'action'  => 'transfer',
@@ -178,53 +193,64 @@ class DocumentUserController extends Controller
 
     public function processDocument(Request $request)
     {
-        $document = DocumentPac::find($request->id);
+        $request->validate([
+            'id'     => 'required',
+            'type'   => 'required',
+            'detail' => 'required',
+        ]);
 
-        dd($request);
-
-        if ($request->detail !== null) {
-            $uploadedFiles = $request->file('document_files');
-            if ($uploadedFiles) {
-                foreach ($uploadedFiles as $file) {
-                    $originalFilename = 'PAC_' . $file->getClientOriginalName();
-                    $mimeType         = $file->getMimeType();
-                    $size             = $file->getSize();
-                    $storedPath       = $file->store('uploads', 'public');
-
-                    $document->files()->create([
-                        'original_filename' => $originalFilename,
-                        'stored_path'       => $storedPath,
-                        'mime_type'         => $mimeType,
-                        'size'              => $size,
-                    ]);
-                }
-            }
-
-            $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'process',
-                'details' => $request->detail,
-            ]);
+        switch ($request->type) {
+            case 'pac':
+                $document  = DocumentPac::find($request->id);
+                $task_user = 'Xray';
+                break;
         }
 
-        if ($request->transfer_userid == null) {
-            if ($request->detail === null) {
-                return redirect()->route('admin.pac.mylist')->with('error', 'กรุณากรอกรายละเอียดการดำเนินการ!');
+        $uploadedFiles = $request->file('document_files');
+        if ($uploadedFiles) {
+            foreach ($uploadedFiles as $file) {
+                $originalFilename = $request->type . '_' . $file->getClientOriginalName();
+                $mimeType         = $file->getMimeType();
+                $size             = $file->getSize();
+                $storedPath       = $file->store('uploads', 'public');
+
+                $document->documentUser->files()->create([
+                    'original_filename' => $originalFilename,
+                    'stored_path'       => $storedPath,
+                    'mime_type'         => $mimeType,
+                    'size'              => $size,
+                ]);
             }
-            $document->status           = 'done';
-            $document->assigned_user_id = null;
-            $document->save();
-            $document->tasks()->where('task_user', 'Xray Department')->update([
+        }
+
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'process',
+            'details' => $request->detail,
+        ]);
+
+        $assigned_user_id = null;
+        $status           = null;
+
+        if ($request->transfer_userid == null) {
+            $status = 'done';
+            $document->tasks()->where('task_user', $task_user)->update([
                 'status'        => 'approve',
                 'task_name'     => 'ดำเนินการเสร็จสิ้น',
                 'task_user'     => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
                 'date'          => date('Y-m-d H:i:s'),
             ]);
+        } elseif ($request->transfer_userid === 'new') {
+            $status = 'pending';
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'work',
+                'details' => 'ดำเนินการเสร็จสิ้น ส่งใบงานไปยังใบงานใหม่',
+            ]);
         } else {
-            $document->status           = 'process';
-            $document->assigned_user_id = $request->transfer_userid;
-            $document->save();
+            $status           = 'process';
+            $assigned_user_id = $request->transfer_userid;
             $document->logs()->create([
                 'userid'  => auth()->user()->userid,
                 'action'  => 'transfer',
@@ -232,7 +258,11 @@ class DocumentUserController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.pac.mylist')->with('success', 'ดำเนินการสำเร็จ!');
+        $document->status           = $status;
+        $document->assigned_user_id = $assigned_user_id;
+        $document->save();
+
+        return redirect()->route('admin.user.mylist', ['type' => $request->type])->with('success', 'ดำเนินการสำเร็จ!');
     }
 
 }
