@@ -8,7 +8,6 @@ use App\Models\DocumentUser;
 use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -132,12 +131,7 @@ class WebController extends Controller
             return true;
         })->sortByDesc('flag')->sortByDesc('created_at')->toArray();
 
-        $perPage            = 15;
-        $currentPage        = LengthAwarePaginator::resolveCurrentPage();
-        $currentItems       = array_slice($documents, ($currentPage - 1) * $perPage, $perPage);
-        $paginatedDocuments = new LengthAwarePaginator($currentItems, count($documents), $perPage, $currentPage, [
-            'path' => LengthAwarePaginator::resolveCurrentPath(),
-        ]);
+        $paginatedDocuments = $this->helper->paginateCollection($documents, 10, $request);
 
         return view('documnet_index', ['documents' => $paginatedDocuments]);
     }

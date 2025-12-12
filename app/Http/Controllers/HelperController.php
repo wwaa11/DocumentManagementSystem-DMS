@@ -5,9 +5,37 @@ use App\Models\Approver;
 use App\Models\DocumentListApprover;
 use App\Models\DocumentListTask;
 use App\Models\File;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class HelperController extends Controller
 {
+    public function paginateCollection($items, $perPage = 15, $queryInput = [])
+    {
+        if (is_array($items)) {
+            $items = new Collection($items);
+        }
+
+        $queryParameters = [];
+        if ($queryInput instanceof Request) {
+            $queryParameters = $queryInput->query();
+        } else {
+            $queryParameters = $queryInput;
+
+        }
+
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $total       = $items->count();
+
+        $currentItems = $items->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+        return new LengthAwarePaginator($currentItems, $total, $perPage, $currentPage, [
+            'path'  => LengthAwarePaginator::resolveCurrentPath(),
+            'query' => $queryParameters,
+        ]);
+    }
+
     public function createApprover($type, $dataField, $approveable)
     {
         $approverGetList = DocumentListApprover::where('document_type', $type)->orderBy('step', 'asc')->get();

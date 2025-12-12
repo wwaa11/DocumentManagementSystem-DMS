@@ -280,7 +280,7 @@ class DocumentITController extends Controller
     {
         $documents       = DocumentIT::where('status', 'done')->get();
         $documentsITUser = DocumentItUser::where('status', 'done')->get();
-        $documents       = $documents->merge($documentsITUser)->sortBy('created_at');
+        $documents       = $documents->concat($documentsITUser)->sortBy('created_at');
         $action          = 'approve';
 
         return view('admin.it.list', compact('documents', 'action'));
@@ -298,7 +298,7 @@ class DocumentITController extends Controller
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
             return ! $task;
         });
-        $documents = $documents->merge($documentsITUser)->sortBy('created_at');
+        $documents = $documents->concat($documentsITUser)->sortBy('created_at');
         $action    = 'new';
 
         return view('admin.it.list', compact('documents', 'action'));
@@ -308,19 +308,20 @@ class DocumentITController extends Controller
     {
         $documents       = DocumentIT::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
         $documentsITUser = DocumentItUser::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
-        $documents       = $documents->merge($documentsITUser)->sortBy('created_at');
+        $documents       = $documents->concat($documentsITUser)->sortBy('created_at');
         $action          = 'my';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function adminAllDocuments()
+    public function adminAllDocuments(Request $request)
     {
         $documents       = DocumentIT::all();
         $documentsITUser = DocumentItUser::all();
-        $documents       = $documents->merge($documentsITUser)->sortBy('created_at');
+        $documents       = $documents->concat($documentsITUser)->sortByDESC('created_at');
 
-        $action = 'all';
+        $action    = 'all';
+        $documents = $this->helper->paginateCollection($documents, 10, $request);
 
         return view('admin.it.list', compact('documents', 'action'));
     }

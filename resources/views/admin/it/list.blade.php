@@ -8,6 +8,10 @@
             <div class="mb-3 text-end">
                 <button class="btn btn-primary" type="button" onclick="approveAllDocuments()">อนุมัติเอกสารทั้งหมด</button>
             </div>
+        @elseif($action == "all")
+            <div>
+                {{ $documents->links() }}
+            </div>
         @endif
         <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
             <table class="table">
