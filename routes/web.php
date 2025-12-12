@@ -2,13 +2,14 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DocumentITController;
-use App\Http\Controllers\DocumentPacController;
+use App\Http\Controllers\DocumentUserController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'Login'])->name('login');
 Route::post('/login', [AuthController::class, 'LoginRequest'])->name('post.login');
 Route::post('/logout', [AuthController::class, 'LogoutRequest'])->name('logout');
+
 Route::group(['middleware' => 'auth'], function () {
     // Base Document
     Route::get('/', [WebController::class, 'myDocument'])->name('document.index');
@@ -25,7 +26,7 @@ Route::group(['middleware' => 'auth'], function () {
     // User Search
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
 
-    // Create Document Inlucde PAC and HCLAB
+    // Create Document IT and User for PAC HC Heartstream Register
     Route::post('/it/create', [DocumentITController::class, 'createDocument'])->name('document.it.create');
 
     // IT Document
@@ -36,9 +37,9 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/newdocument', [DocumentITController::class, 'adminNewDocuments'])->name('admin.it.newlist');
         Route::get('/admin/mydocument', [DocumentITController::class, 'adminMyDocuments'])->name('admin.it.mylist');
         Route::get('/admin/alldocument', [DocumentITController::class, 'adminAllDocuments'])->name('admin.it.alllist');
-        Route::get('/admin/view/{document_id}/{type}/{action}', [DocumentITController::class, 'adminviewDocument'])->name('admin.it.view');
+        Route::get('/admin/view/{type}/{document_id}/{action}', [DocumentITController::class, 'adminviewDocument'])->name('admin.it.view');
         // Count IT Documents
-        Route::get('/admin/count', [DocumentITController::class, 'adminDocumentCount'])->name('admin.it.count');
+        Route::get('/admin/count/{type}', [DocumentITController::class, 'adminDocumentCount'])->name('admin.it.count');
         // Action Documents
         Route::post('/admin/hardware/approve', [DocumentITController::class, 'approveHardwareDocument'])->name('admin.it.hardware.approve');
         Route::post('/admin/accept', [DocumentITController::class, 'acceptDocument'])->name('admin.it.accept');
@@ -49,18 +50,21 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/completeall', [DocumentITController::class, 'completeAllDocument'])->name('admin.it.completeall');
     });
 
-    Route::prefix('pac')->group(function () {
+    Route::prefix('user')->group(function () {
         // Page Documents
-        Route::get('/admin/approvelist', [DocumentPacController::class, 'listApproveDocuments'])->name('admin.pac.approvelist');
-        Route::get('/admin/newdocument', [DocumentPacController::class, 'listNewDocuments'])->name('admin.pac.newlist');
-        Route::get('/admin/mydocument', [DocumentPacController::class, 'listMyDocuments'])->name('admin.pac.mylist');
-        Route::get('/admin/alldocument', [DocumentPacController::class, 'listAllDocuments'])->name('admin.pac.alllist');
-        Route::get('/admin/view/{document_id}/{action}', [DocumentPacController::class, 'viewDocument'])->name('admin.pac.view');
-        // Count IT Documents
-        Route::get('/admin/count', [DocumentPacController::class, 'listDocumentCount'])->name('admin.it.count');
+        Route::get('/admin/{type}/approvelist/', [DocumentUserController::class, 'adminApproveDocuments'])->name('admin.user.approvelist');
+        Route::get('/admin/{type}/newdocument', [DocumentUserController::class, 'adminNewDocuments'])->name('admin.user.newlist');
+        Route::get('/admin/{type}/mydocument', [DocumentUserController::class, 'adminMyDocuments'])->name('admin.user.mylist');
+        Route::get('/admin/{type}/alldocument', [DocumentUserController::class, 'adminAllDocuments'])->name('admin.user.alllist');
+        Route::get('/admin/{type}/view/{document_id}/{action}', [DocumentUserController::class, 'viewDocument'])->name('admin.user.view');
+        // Count User Documents
+        Route::get('/admin/count/{type}', [DocumentUserController::class, 'adminDocumentCount'])->name('admin.user.count');
         // Action Documents
-        Route::post('/admin/accept', [DocumentPacController::class, 'acceptDocument'])->name('admin.pac.accept');
-        Route::post('/admin/cancel', [DocumentPacController::class, 'cancelDocument'])->name('admin.pac.cancel');
-        Route::post('/admin/canceljob', [DocumentPacController::class, 'cancelJob'])->name('admin.it.canceljob');
+        Route::post('/admin/accept', [DocumentUserController::class, 'acceptDocument'])->name('admin.user.accept');
+        Route::post('/admin/cancel', [DocumentUserController::class, 'cancelDocument'])->name('admin.user.cancel');
+        Route::post('/admin/canceljob', [DocumentUserController::class, 'cancelJob'])->name('admin.user.canceljob');
+        Route::post('/admin/process', [DocumentUserController::class, 'processDocument'])->name('admin.user.process');
+        Route::post('/admin/complete', [DocumentUserController::class, 'completeDocument'])->name('admin.user.complete');
+        Route::post('/admin/completeall', [DocumentUserController::class, 'completeAllDocument'])->name('admin.user.completeall');
     });
 });

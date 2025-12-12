@@ -19,7 +19,7 @@
                         </div>
                     @endforeach
                 @endif
-                @include("admin.it.view_actions.$action")
+                @include("admin.it.actions.$action")
                 <div class="divider"></div>
                 @include("document.logs", ["logs" => $document->logs])
             </div>

@@ -257,10 +257,10 @@ class DocumentITController extends Controller
         $documentITUserListMy      = $documentITUserList->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
 
         return response()->json([
-            'admin.it.hardwarelist' => $documentListNewHardware,
-            'admin.it.approvelist'  => $documentListApprove + $documentITUserListApprove,
-            'admin.it.newlist'      => $documentListNew + $documentITUserListNew,
-            'admin.it.mylist'       => $documentListMy + $documentITUserListMy,
+            'it.hardware' => $documentListNewHardware,
+            'it.approve'  => $documentListApprove + $documentITUserListApprove,
+            'it.new'      => $documentListNew + $documentITUserListNew,
+            'it.my'       => $documentListMy + $documentITUserListMy,
         ]);
     }
     // Admin Page List Document

@@ -35,63 +35,94 @@ class User extends Authenticatable
         switch ($this->role) {
             case 'admin':
                 return [
-                    'count' => ['admin.it.count'],
+                    'count' => [
+                        [
+                            'type'  => 'it',
+                            'route' => 'admin.it.count',
+                        ],
+                        [
+                            'type'  => 'pac',
+                            'route' => 'admin.user.count',
+                        ],
+                    ],
                     'lists' => [
                         // IT
                         [
                             'title' => 'IT',
+                            'type'  => 'it',
+                            'id'    => 'title',
                             'link'  => null,
                             'count' => false,
                         ],
                         [
                             'title' => 'Hardware Jobs',
+                            'type'  => 'it',
+                            'id'    => 'hardware',
                             'link'  => 'admin.it.hardwarelist',
                             'count' => true,
                         ],
                         [
                             'title' => 'Approve Jobs',
+                            'type'  => 'it',
+                            'id'    => 'approve',
                             'link'  => 'admin.it.approvelist',
                             'count' => true,
                         ],
                         [
                             'title' => 'New Jobs',
+                            'type'  => 'it',
+                            'id'    => 'new',
                             'link'  => 'admin.it.newlist',
                             'count' => true,
                         ],
                         [
                             'title' => 'My Jobs',
+                            'type'  => 'it',
+                            'id'    => 'my',
                             'link'  => 'admin.it.mylist',
                             'count' => true,
                         ],
                         [
                             'title' => 'All Jobs',
+                            'type'  => 'it',
+                            'id'    => 'all',
                             'link'  => 'admin.it.alllist',
                             'count' => false,
                         ],
                         // PAC
                         [
                             'title' => 'PAC',
+                            'type'  => 'pac',
+                            'id'    => 'title',
                             'link'  => null,
                             'count' => false,
                         ],
                         [
                             'title' => 'Approve Jobs',
-                            'link'  => 'admin.pac.approvelist',
+                            'type'  => 'pac',
+                            'id'    => 'approve',
+                            'link'  => 'admin.user.approvelist',
                             'count' => true,
                         ],
                         [
                             'title' => 'New Jobs',
-                            'link'  => 'admin.pac.newlist',
+                            'type'  => 'pac',
+                            'id'    => 'new',
+                            'link'  => 'admin.user.newlist',
                             'count' => true,
                         ],
                         [
                             'title' => 'My Jobs',
-                            'link'  => 'admin.pac.mylist',
+                            'type'  => 'pac',
+                            'id'    => 'my',
+                            'link'  => 'admin.user.mylist',
                             'count' => true,
                         ],
                         [
                             'title' => 'All Jobs',
-                            'link'  => 'admin.pac.alllist',
+                            'type'  => 'pac',
+                            'id'    => 'all',
+                            'link'  => 'admin.user.alllist',
                             'count' => false,
                         ],
                     ],

@@ -2,63 +2,100 @@
 namespace App\Http\Controllers;
 
 use App\Models\DocumentPac;
+use App\Models\User;
+use Illuminate\Http\Request;
 
-class DocumentPacController extends Controller
+class DocumentUserController extends Controller
 {
-    public function listApproveDocuments()
+    public function adminDocumentCount($type)
     {
-        $documents = DocumentPac::where('status', 'done')->get();
-        $action    = 'approve';
+        switch ($type) {
+            case 'pac':
+                $documentAlls = DocumentPac::whereIn('status', ['pending', 'process', 'done'])->get();
+                $task_user    = 'Xray';
+                break;
+        }
 
-        return view('admin.pac.list', compact('documents', 'action'));
+        $documentNew = $documentAlls->where('status', 'pending')->filter(function ($item) use ($task_user) {
+            return $item->tasks()->where('step', 2)->where('task_user', 'Xray')->first();
+        })->count();
+        $documentApprove = $documentAlls->where('status', 'done')->count();
+        $documentMy      = $documentAlls->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
+
+        return response()->json([
+            $type . '.approve' => $documentApprove,
+            $type . '.new'     => $documentNew,
+            $type . '.my'      => $documentMy,
+        ]);
     }
 
-    public function listNewDocuments()
+    public function adminApproveDocuments($type)
+    {
+        $documents = DocumentPac::where('status', 'done')->get();
+
+        $action = 'approve';
+
+        return view('admin.user.list', compact('documents', 'action', 'type'));
+    }
+
+    public function adminNewDocuments($type)
     {
         $documentListAll = DocumentPac::where('status', 'pending')->get();
-        $documents       = $documentListAll->filter(function ($item) {
-            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
-            return ! $task;
+
+        $documents = $documentListAll->filter(function ($item) {
+            return $item->tasks()->where('step', 2)->where('task_user', 'Xray')->first();
         });
         $action = 'new';
 
-        return view('admin.pac.list', compact('documents', 'action'));
+        return view('admin.user.list', compact('documents', 'action', 'type'));
     }
 
-    public function listMyDocuments()
+    public function adminMyDocuments($type)
     {
-        $documents = DocumentPac::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
-        $action    = 'my';
+        switch ($type) {
+            case 'pac':
+                $documents = DocumentPac::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
+                break;
+        }
+        $action = 'my';
 
-        return view('admin.pac.list', compact('documents', 'action'));
+        return view('admin.user.list', compact('documents', 'action', 'type'));
     }
 
-    public function listAllDocuments()
+    public function adminAllDocuments($type)
     {
-        $documents = DocumentPac::orderByDesc('id')->get();
-        $action    = 'all';
+        $documents = DocumentPac::orderByDesc('id')->paginate(10);
 
-        return view('admin.pac.list', compact('documents', 'action'));
+        $action = 'all';
+
+        return view('admin.user.list', compact('documents', 'action', 'type'));
     }
 
-    public function viewDocument($document_id, $action)
+    public function viewDocument($type, $document_id, $action)
     {
         $document = DocumentPac::find($document_id);
+
         $userList = [];
         if ($action == 'my') {
-            $userList = User::whereIn('role', ['admin', 'pac'])->get();
+            $userList = User::whereIn('role', ['admin', $type])->get();
         }
 
-        return view('admin.pac.view', compact('document', 'action', 'userList'));
+        return view('admin.user.view', compact('document', 'action', 'userList', 'type'));
     }
 
     public function acceptDocument(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:document_pacs,id',
+            'id'   => 'required',
+            'type' => 'required',
         ]);
 
-        $document = DocumentPac::find($request->id);
+        switch ($request->type) {
+            case 'pac':
+                $document = DocumentPac::find($request->id);
+                break;
+        }
+
         if ($document->assigned_user_id !== null) {
             return response()->json([
                 'status'  => 'error',
@@ -69,7 +106,6 @@ class DocumentPacController extends Controller
         $document->assigned_user_id = auth()->user()->userid;
         $document->save();
 
-        // Log
         $document->logs()->create([
             'userid'  => auth()->user()->userid,
             'action'  => 'accept',
@@ -143,6 +179,9 @@ class DocumentPacController extends Controller
     public function processDocument(Request $request)
     {
         $document = DocumentPac::find($request->id);
+
+        dd($request);
+
         if ($request->detail !== null) {
             $uploadedFiles = $request->file('document_files');
             if ($uploadedFiles) {
@@ -167,6 +206,7 @@ class DocumentPacController extends Controller
                 'details' => $request->detail,
             ]);
         }
+
         if ($request->transfer_userid == null) {
             if ($request->detail === null) {
                 return redirect()->route('admin.pac.mylist')->with('error', 'กรุณากรอกรายละเอียดการดำเนินการ!');

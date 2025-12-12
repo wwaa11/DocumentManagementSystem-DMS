@@ -49,10 +49,10 @@
                                         </li>
                                     @else
                                         <li class="mb-1">
-                                            <a class="nav-link" data-route="{{ $link["link"] }}" href="{{ route($link["link"]) }}">
+                                            <a class="nav-link" data-route="{{ $link["link"] }}" href="{{ route($link["link"], ["type" => $link["type"]]) }}">
                                                 {{ $link["title"] }}
                                                 @if ($link["count"])
-                                                    <span class="badge badge-sm badge-primary float-right" id="{{ $link["link"] }}">-</span>
+                                                    <span class="badge badge-sm badge-primary float-right" id="{{ $link["type"] }}.{{ $link["id"] }}">-</span>
                                                 @endif
                                             </a>
                                         </li>
@@ -112,7 +112,7 @@
                 getCount{{ $index }}();
 
                 function getCount{{ $index }}() {
-                    axios.get("{{ route($link) }}")
+                    axios.get(`{{ route($link["route"], ["type" => $link["type"]]) }}`)
                         .then(function(response) {
                             Object.keys(response.data).forEach(key => {
                                 updateCount(key, response.data[key]);

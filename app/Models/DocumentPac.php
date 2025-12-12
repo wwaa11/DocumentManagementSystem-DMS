@@ -25,7 +25,6 @@ class DocumentPac extends Model
 
     protected $appends = [
         'document_tag',
-        'document_type_name',
         'list_detail',
     ];
 
@@ -37,29 +36,9 @@ class DocumentPac extends Model
         ];
     }
 
-    public function getDocumentTypeNameAttribute()
-    {
-        return 'ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม';
-    }
-
-    public function getListDetailAttribute()
-    {
-        return strlen($this->documentUser->detail) > 100 ? mb_substr($this->documentUser->detail, 0, 100) . '...' : $this->documentUser->detail;
-    }
-
     public function documentUser()
     {
         return $this->belongsTo(DocumentUser::class, 'document_user_id', 'id');
-    }
-
-    public function creator()
-    {
-        return $this->documentUser->creator();
-    }
-
-    public function approvers()
-    {
-        return $this->documentUser->approvers();
     }
 
     public function tasks()

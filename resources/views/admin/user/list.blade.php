@@ -22,22 +22,15 @@
                         <tr class="hover:bg-base-300">
                             <td class="text-center">{{ $document->document_number }}</td>
                             <td class="text-xs">
-                                {{ $document->document_type_name }} <br>
-                                @if (is_array($document->title))
-                                    @foreach ($document->title as $title)
-                                        {{ $title }}<br>
-                                    @endforeach
-                                @else
-                                    {{ $document->title }}
-                                @endif
+                                {{ $document->documentUser->document_type_name }}
                             </td>
-                            <td class="text-xs">{!! $document->ListDetail !!}</td>
+                            <td class="text-xs">{!! $document->documentUser->ListDetail !!}</td>
                             <td>
-                                {{ $document->creator->name }}<br>
+                                {{ $document->documentUser->creator->name }}<br>
                                 {{ $document->created_at->format("d/m/Y H:i:s") }}
                             </td>
                             <td class="text-xs">
-                                @foreach ($document->approvers as $approver)
+                                @foreach ($document->documentUser->approvers as $approver)
                                     @if ($approver->status == "approve")
                                         <i class="fas fa-check text-primary"></i>
                                     @elseif($approver->status == "reject" || $approver->status == "cancel")
@@ -55,7 +48,7 @@
                                 @if ($action == "new")
                                     <button class="btn btn-accent" type="button" onclick="acceptDocument({{ $document->id }})">รับงาน</button>
                                 @else
-                                    <a href="{{ route("admin.it.view", ["document_id" => $document->id, "action" => $action]) }}">
+                                    <a href="{{ route("admin.user.view", ["document_id" => $document->id, "action" => $action, "type" => $type]) }}">
                                         <button class="btn btn-accent">ดูเอกสาร</button>
                                     </a>
                                 @endif
@@ -85,8 +78,9 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        axios.post("{{ route("admin.pac.accept") }}", {
-                            id: documentId
+                        axios.post("{{ route("admin.user.accept") }}", {
+                            id: documentId,
+                            type: "{{ $type }}"
                         }).then((response) => {
                             if (response.data.status == "success") {
                                 Swal.fire({
