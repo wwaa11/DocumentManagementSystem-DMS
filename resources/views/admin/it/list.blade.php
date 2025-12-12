@@ -94,9 +94,9 @@
                             </td>
                             <td class="text-center">
                                 @if ($action == "new")
-                                    <button class="btn btn-accent" type="button" onclick="acceptDocument({{ $document->id }})">รับงาน</button>
+                                    <button class="btn btn-accent" type="button" onclick="acceptDocument('{{ $document->id }}','{{ $document->document_tag["document_tag"] }}')">รับงาน</button>
                                 @else
-                                    <a href="{{ route("admin.it.view", ["document_id" => $document->id, "action" => $action]) }}">
+                                    <a href="{{ route("admin.it.view", ["document_id" => $document->id, "action" => $action, "type" => $document->document_tag["document_tag"]]) }}">
                                         <button class="btn btn-accent">ดูเอกสาร</button>
                                     </a>
                                 @endif
@@ -111,7 +111,7 @@
 @push("scripts")
     @if ($action == "new")
         <script>
-            function acceptDocument(documentId) {
+            function acceptDocument(documentId, type) {
                 Swal.fire({
                     title: 'ยืนยันการรับงาน?',
                     text: "ต้องการรับงานเอกสารนี้หรือไม่?",
@@ -127,7 +127,8 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         axios.post("{{ route("admin.it.accept") }}", {
-                            id: documentId
+                            id: documentId,
+                            type: type
                         }).then((response) => {
                             if (response.data.status == "success") {
                                 Swal.fire({

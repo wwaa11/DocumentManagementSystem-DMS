@@ -3,7 +3,6 @@ namespace App\Models;
 
 use App\Models\DocumentHc;
 use App\Models\DocumentHeartstream;
-use App\Models\DocumentIT;
 use App\Models\DocumentPac;
 use Illuminate\Database\Eloquent\Model;
 
@@ -147,7 +146,7 @@ class DocumentUser extends Model
         $document_user_id = $this->id;
         $document         = [];
 
-        $it = DocumentIT::where('document_user_id', $document_user_id)->first();
+        $it = DocumentitUser::where('document_user_id', $document_user_id)->first();
         if ($it) {
             $document[] = $it;
         }

@@ -55,6 +55,7 @@
             }
             if (result.isConfirmed && result.value) {
                 axios.post("{{ route("document.type.cancel", [$document_type, $document->id]) }}", {
+                    type: '{{ $document->document_tag["document_tag"] }}',
                     reason: result.value
                 }).then((response) => {
                     if (response.data.status == "success") {

@@ -36,7 +36,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/newdocument', [DocumentITController::class, 'adminNewDocuments'])->name('admin.it.newlist');
         Route::get('/admin/mydocument', [DocumentITController::class, 'adminMyDocuments'])->name('admin.it.mylist');
         Route::get('/admin/alldocument', [DocumentITController::class, 'adminAllDocuments'])->name('admin.it.alllist');
-        Route::get('/admin/view/{document_id}/{action}', [DocumentITController::class, 'adminviewDocument'])->name('admin.it.view');
+        Route::get('/admin/view/{document_id}/{type}/{action}', [DocumentITController::class, 'adminviewDocument'])->name('admin.it.view');
         // Count IT Documents
         Route::get('/admin/count', [DocumentITController::class, 'adminDocumentCount'])->name('admin.it.count');
         // Action Documents

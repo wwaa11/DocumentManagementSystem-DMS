@@ -1,6 +1,7 @@
 <form id="process-form" action="{{ route("admin.it.process") }}" method="post" enctype="multipart/form-data">
     @csrf
     <input type="hidden" name="id" value="{{ $document->id }}">
+    <input type="hidden" name="type" value="{{ $document->document_tag["document_tag"] }}">
     <fieldset class="fieldset">
         <legend class="fieldset-legend">รายละเอียดการดำเนินงาน</legend>
         <textarea class="textarea textarea-primary w-full" id="detail" name="detail" rows="8" placeholder="รายละเอียดการทำงาน...."></textarea>
@@ -192,6 +193,7 @@
             if (swal.isConfirmed) {
                 axios.post("{{ route("admin.it.canceljob") }}", {
                     id: {{ $document->id }},
+                    type: '{{ $document->document_tag["document_tag"] }}',
                 }).then(function(response) {
                     if (response.data.status == "success") {
                         Swal.fire({
@@ -244,6 +246,7 @@
             if (swal.isConfirmed && swal.value) {
                 axios.post("{{ route("admin.it.cancel") }}", {
                     id: {{ $document->id }},
+                    type: '{{ $document->document_tag["document_tag"] }}',
                     reason: swal.value,
                 }).then(function(response) {
                     if (response.data.status == "success") {

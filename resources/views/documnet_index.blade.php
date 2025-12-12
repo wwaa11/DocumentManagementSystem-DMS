@@ -23,14 +23,14 @@
         <span class="countdown font-mono text-sm">Refesh in <span class="bg-base-300 mx-2 rounded-md px-2" id="countdown" style="--value:30;"></span> seconds</span>
         <div class="divider"></div>
         <form class="mb-4" action="{{ route("document.index") }}" method="GET">
-            <div class="bg-base-200 rounded-box grid grid-cols-1 gap-4 p-4 lg:grid-cols-4">
-                <input class="input input-bordered w-full" type="text" name="document_number" placeholder="Search Document Number" value="{{ request("document_number") }}">
-                <select class="select select-bordered w-full" name="document_tag">
+            <div class="bg-base-200 rounded-box flex flex-row flex-wrap gap-4 p-4">
+                <input class="input input-bordered" type="text" name="document_number" placeholder="Search Document Number" value="{{ request("document_number") }}">
+                <select class="select select-bordered" name="document_tag">
                     <option value="">ประเภทเอกสาร</option>
                     <option value="IT" {{ request("document_tag") == "IT" ? "selected" : "" }}>IT</option>
                     <option value="USER" {{ request("document_tag") == "USER" ? "selected" : "" }}>USER</option>
                 </select>
-                <select class="select select-bordered w-full" name="status">
+                <select class="select select-bordered" name="status">
                     <option value="">สถานะเอกสาร</option>
                     <option value="wait_approval" {{ request("status") == "wait_approval" ? "selected" : "" }}>รออนุมัติจากหัวหน้าแผนก</option>
                     <option value="not_approval" {{ request("status") == "not_approval" ? "selected" : "" }}>เอกสารที่ไม่อนุมัติ</option>
@@ -39,13 +39,13 @@
                     <option value="reject" {{ request("status") == "reject" ? "selected" : "" }}>เอกสารที่ถูกปฏิเสธจากหน่วยงาน</option>
                     <option value="process" {{ request("status") == "process" ? "selected" : "" }}>เอกสารที่กำลังดำเนินการ</option>
                     <option value="done" {{ request("status") == "done" ? "selected" : "" }}>เอกสารที่รออนุมัติ</option>
-                    <option value="finish" {{ request("status") == "finish" ? "selected" : "" }}>เอกสารที่เสร็จสมบูรณ์</option>
+                    <option value="complete" {{ request("status") == "complete" ? "selected" : "" }}>เอกสารที่เสร็จสมบูรณ์</option>
                 </select>
-                <div class="join w-xs">
+                <div class="join flex-1">
                     <input class="join-item input input-bordered w-full max-w-xs" type="date" name="created_at_start" value="{{ request("created_at_start") }}">
                     <input class="join-item input input-bordered w-full max-w-xs" type="date" name="created_at_end" value="{{ request("created_at_end") }}">
                 </div>
-                <div class="my-auto gap-3 lg:col-span-2">
+                <div class="my-auto flex flex-row gap-3">
                     <label class="inline-flex items-center">
                         <input class="radio radio-xs radio-primary" onchange="this.form.submit()" type="radio" name="flag" value="" {{ request("flag") == "" ? "checked" : "" }}>
                         <span class="ml-2">เอกสารทั้งหมด</span>
@@ -55,11 +55,15 @@
                         <span class="ml-2">เอกสารของฉัน</span>
                     </label>
                     <label class="inline-flex items-center">
+                        <input class="radio radio-xs radio-primary" onchange="this.form.submit()" type="radio" name="flag" value="dept" {{ request("flag") == "dept" ? "checked" : "" }}>
+                        <span class="ml-2">เอกสารที่จากแผนก</span>
+                    </label>
+                    <label class="inline-flex items-center">
                         <input class="radio radio-xs radio-primary" onchange="this.form.submit()" type="radio" name="flag" value="approve" {{ request("flag") == "approve" ? "checked" : "" }}>
                         <span class="ml-2">เอกสารที่ต้องอนุมัติ</span>
                     </label>
                 </div>
-                <div class="my-auto gap-3 text-end lg:col-span-2">
+                <div class="my-auto flex flex-1 flex-row justify-end gap-3">
                     <a class="btn btn-ghost" href="{{ route("document.index") }}">Clear Filters</a>
                     <button class="btn btn-primary" type="submit">Apply Filters</button>
                 </div>

@@ -206,15 +206,32 @@ class WebController extends Controller
 
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
-        $document->status = 'cancel';
-        $document->save();
-        $document->approvers()->update(['status' => 'cancel']);
-        $document->tasks()->update(['status' => 'cancel', 'task_name' => 'ยกเลิกเอกสาร']);
-        $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'cancel',
-            'details' => 'ยกเลิกเอกสาร ' . $request->input('reason'),
-        ]);
+
+        if ($request->type == 'USER') {
+            $document->approvers()->update(['status' => 'cancel']);
+
+            foreach ($document->getAllDocuments() as $document) {
+                $document->status = 'cancel';
+                $document->save();
+                $document->tasks()->update(['status' => 'cancel', 'task_name' => 'ยกเลิกเอกสาร']);
+                $document->logs()->create([
+                    'userid'  => auth()->user()->userid,
+                    'action'  => 'cancel',
+                    'details' => 'ยกเลิกเอกสาร ' . $request->input('reason'),
+                ]);
+            }
+        } else {
+            $document->status = 'cancel';
+            $document->save();
+            $document->approvers()->update(['status' => 'cancel']);
+
+            $document->tasks()->update(['status' => 'cancel', 'task_name' => 'ยกเลิกเอกสาร']);
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'cancel',
+                'details' => 'ยกเลิกเอกสาร ' . $request->input('reason'),
+            ]);
+        }
 
         return response()->json(['status' => 'success']);
     }

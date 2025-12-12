@@ -19,6 +19,7 @@
                 if (result.isConfirmed) {
                     axios.post("{{ route("admin.it.complete") }}", {
                         id: '{{ $document->id }}',
+                        type: '{{ $document->document_tag["document_tag"] }}',
                         status: "approve",
                     }).then((response) => {
                         if (response.data.status === "success") {

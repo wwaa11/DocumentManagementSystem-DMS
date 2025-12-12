@@ -164,19 +164,19 @@ class DocumentITController extends Controller
         $this->helper->createApprover('user', $approverField, $document);
         $this->helper->createFile($request, $document);
 
-        if ($request->createIT) {
+        if ($request->createIT == 'true') {
             $this->createSubUserDocument('it', $document, $approver);
         }
-        if ($request->createHC) {
+        if ($request->createHC == 'true') {
             $this->createSubUserDocument('hc', $document, $approver);
         }
-        if ($request->createPAC) {
+        if ($request->createPAC == 'true') {
             $this->createSubUserDocument('pac', $document, $approver);
         }
-        if ($request->createHeartStream) {
+        if ($request->createHeartStream == 'true') {
             $this->createSubUserDocument('heart-steam', $document, $approver);
         }
-        if ($request->createRegister) {
+        if ($request->createRegister == 'true') {
             $this->createSubUserDocument('register', $document, $approver);
         }
 
@@ -241,21 +241,26 @@ class DocumentITController extends Controller
     {
         $documentListAll         = DocumentIT::whereIn('status', ['pending', 'process', 'done'])->get();
         $documentListNewHardware = $documentListAll->where('status', 'pending')->filter(function ($item) {
-            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
-            return $task;
+            return $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
         $documentListNew = $documentListAll->where('status', 'pending')->filter(function ($item) {
-            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
-            return ! $task;
+            return ! $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
         $documentListApprove = $documentListAll->where('status', 'done')->count();
         $documentListMy      = $documentListAll->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
 
+        $documentITUserList    = DocumentItUser::whereIn('status', ['pending', 'process', 'done'])->get();
+        $documentITUserListNew = $documentITUserList->where('status', 'pending')->filter(function ($item) {
+            return ! $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+        })->count();
+        $documentITUserListApprove = $documentITUserList->where('status', 'done')->count();
+        $documentITUserListMy      = $documentITUserList->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
+
         return response()->json([
             'admin.it.hardwarelist' => $documentListNewHardware,
-            'admin.it.approvelist'  => $documentListApprove,
-            'admin.it.newlist'      => $documentListNew,
-            'admin.it.mylist'       => $documentListMy,
+            'admin.it.approvelist'  => $documentListApprove + $documentITUserListApprove,
+            'admin.it.newlist'      => $documentListNew + $documentITUserListNew,
+            'admin.it.mylist'       => $documentListMy + $documentITUserListMy,
         ]);
     }
     // Admin Page List Document
@@ -273,8 +278,10 @@ class DocumentITController extends Controller
 
     public function adminApproveDocuments()
     {
-        $documents = DocumentIT::where('status', 'done')->get();
-        $action    = 'approve';
+        $documents       = DocumentIT::where('status', 'done')->get();
+        $documentsITUser = DocumentItUser::where('status', 'done')->get();
+        $documents       = $documents->merge($documentsITUser)->sortBy('created_at');
+        $action          = 'approve';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
@@ -286,30 +293,45 @@ class DocumentITController extends Controller
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
             return ! $task;
         });
-        $action = 'new';
+        $documentITUserListAll = DocumentItUser::where('status', 'pending')->get();
+        $documentsITUser       = $documentITUserListAll->filter(function ($item) {
+            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+            return ! $task;
+        });
+        $documents = $documents->merge($documentsITUser)->sortBy('created_at');
+        $action    = 'new';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
 
     public function adminMyDocuments()
     {
-        $documents = DocumentIT::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
-        $action    = 'my';
+        $documents       = DocumentIT::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
+        $documentsITUser = DocumentItUser::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
+        $documents       = $documents->merge($documentsITUser)->sortBy('created_at');
+        $action          = 'my';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
 
     public function adminAllDocuments()
     {
-        $documents = DocumentIT::orderByDesc('id')->get();
-        $action    = 'all';
+        $documents       = DocumentIT::all();
+        $documentsITUser = DocumentItUser::all();
+        $documents       = $documents->merge($documentsITUser)->sortBy('created_at');
+
+        $action = 'all';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function adminviewDocument($document_id, $action)
+    public function adminviewDocument($document_id, $type, $action)
     {
-        $document = DocumentIT::find($document_id);
+        if ($type == 'IT') {
+            $document = DocumentIT::find($document_id);
+        } else {
+            $document = DocumentItUser::find($document_id);
+        }
         $userList = [];
         if ($action == 'my') {
             $userList = User::whereIn('role', ['admin', 'it', 'it-hardware', 'it-approver'])->get();
@@ -357,10 +379,16 @@ class DocumentITController extends Controller
     public function acceptDocument(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:document_its,id',
+            'id'   => 'required',
+            'type' => 'required|in:IT,USER',
         ]);
 
-        $document = DocumentIT::find($request->id);
+        if ($request->type == 'IT') {
+            $document = DocumentIT::find($request->id);
+        } else {
+            $document = DocumentItUser::find($request->id);
+        }
+
         if ($document->assigned_user_id !== null) {
             return response()->json([
                 'status'  => 'error',
@@ -387,11 +415,17 @@ class DocumentITController extends Controller
     public function cancelDocument(Request $request)
     {
         $request->validate([
-            'id'     => 'required|exists:document_its,id',
+            'id'     => 'required',
+            'type'   => 'required',
             'reason' => 'required',
         ]);
 
-        $document         = DocumentIT::find($request->id);
+        if ($request->type == 'IT') {
+            $document = DocumentIT::find($request->id);
+        } else {
+            $document = DocumentItUser::find($request->id);
+        }
+
         $document->status = 'reject';
         $document->save();
 
@@ -417,10 +451,16 @@ class DocumentITController extends Controller
     public function cancelJob(Request $request)
     {
         $request->validate([
-            'id' => 'required|exists:document_its,id',
+            'id'   => 'required',
+            'type' => 'required',
         ]);
 
-        $document = DocumentIT::find($request->id);
+        if ($request->type == 'IT') {
+            $document = DocumentIT::find($request->id);
+        } else {
+            $document = DocumentItUser::find($request->id);
+        }
+
         if ($document->status !== 'process' || $document->assigned_user_id !== auth()->user()->userid) {
             return response()->json([
                 'status'  => 'error',
@@ -444,7 +484,12 @@ class DocumentITController extends Controller
 
     public function processDocument(Request $request)
     {
-        $document = DocumentIT::find($request->id);
+        if ($request->type == 'IT') {
+            $document = DocumentIT::find($request->id);
+        } else {
+            $document = DocumentItUser::find($request->id);
+        }
+
         if ($request->detail !== null) {
             $uploadedFiles = $request->file('document_files');
             if ($uploadedFiles) {
@@ -469,6 +514,7 @@ class DocumentITController extends Controller
                 'details' => $request->detail,
             ]);
         }
+
         if ($request->transfer_userid == null) {
             if ($request->detail === null) {
                 return redirect()->route('admin.it.mylist')->with('error', 'กรุณากรอกรายละเอียดการดำเนินการ!');
@@ -513,11 +559,17 @@ class DocumentITController extends Controller
     public function completeDocument(Request $request)
     {
         $request->validate([
-            'id'     => 'required|exists:document_its,id',
+            'id'     => 'required',
+            'type'   => 'required',
             'status' => 'required|in:approve,reject',
         ]);
 
-        $document = DocumentIT::find($request->id);
+        if ($request->type == 'IT') {
+            $document = DocumentIT::find($request->id);
+        } else {
+            $document = DocumentItUser::find($request->id);
+        }
+
         if ($document->status !== 'done') {
             return response()->json([
                 'status'  => 'error',
@@ -528,6 +580,12 @@ class DocumentITController extends Controller
         if ($request->status === 'approve') {
             $document->status = 'complete';
             $document->save();
+
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'complete',
+                'details' => 'อนุมัติเอกสารเสร็จสิ้น',
+            ]);
 
             $document->tasks()->orderBy('step', 'desc')->first()->update([
                 'status'        => 'approve',
@@ -559,6 +617,31 @@ class DocumentITController extends Controller
         foreach ($documents as $document) {
             $document->status = 'complete';
             $document->save();
+
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'complete',
+                'details' => 'อนุมัติเอกสารเสร็จสิ้น',
+            ]);
+
+            $document->tasks()->orderBy('step', 'desc')->first()->update([
+                'status'        => 'approve',
+                'task_name'     => 'อนุมัติเอกสารเสร็จสิ้น',
+                'task_user'     => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date'          => date('Y-m-d H:i:s'),
+            ]);
+        }
+        $documentUser = DocumentItUser::where('status', 'done')->get();
+        foreach ($documentUser as $document) {
+            $document->status = 'complete';
+            $document->save();
+
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'complete',
+                'details' => 'อนุมัติเอกสารเสร็จสิ้น',
+            ]);
 
             $document->tasks()->orderBy('step', 'desc')->first()->update([
                 'status'        => 'approve',

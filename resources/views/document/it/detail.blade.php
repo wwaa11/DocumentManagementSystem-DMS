@@ -17,7 +17,7 @@
                         {{ $title }} <br>
                     @endforeach
                 @else
-                    {{ $document->title }}
+                    {{ $document->title ?? $document->document_type_name }}
                 @endif
             </p>
             <p><strong>วันที่:</strong> {{ $document->created_at->format("d/m/Y") }}</p>
@@ -25,7 +25,7 @@
         <div>
             <p><strong>ผู้ขอ:</strong> {{ $document->creator->name }}</p>
             <p><strong>แผนก:</strong> {{ $document->creator->department }}</p>
-            <p><strong>เบอร์โทร:</strong> {{ $document->document_phone }}</p>
+            <p><strong>เบอร์โทร:</strong> {{ $document->document_phone ?? $document->documentUser->document_phone }}</p>
         </div>
     </div>
     @if ($document->files->count() > 0)
@@ -33,6 +33,6 @@
         <div class="divider"></div>
     @endif
     <strong>รายละเอียด</strong>
-    <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail !!}</p>
+    <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail ?? $document->documentUser->detail !!}</p>
     @include("document.tasks", ["tasks" => $document->tasks])
 </div>
