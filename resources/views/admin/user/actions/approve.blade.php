@@ -17,9 +17,9 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    axios.post("{{ route("admin.it.complete") }}", {
+                    axios.post("{{ route("admin.user.complete") }}", {
                         id: '{{ $document->id }}',
-                        type: '{{ $document->document_tag["document_tag"] }}',
+                        type: '{{ $type }}',
                         status: "approve",
                     }).then((response) => {
                         if (response.data.status === "success") {
@@ -56,8 +56,9 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed && result.value) {
-                    axios.post("{{ route("admin.it.complete") }}", {
+                    axios.post("{{ route("admin.user.complete") }}", {
                         id: '{{ $document->id }}',
+                        type: '{{ $type }}',
                         status: "reject",
                         reason: result.value
                     }).then((response) => {

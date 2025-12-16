@@ -40,7 +40,6 @@
                 @if (auth()->user()->role !== "user" && auth()->user()->menu)
                     <ul>
                         <li>
-                            <a>Admin</a>
                             <ul>
                                 @foreach (auth()->user()->menu["lists"] as $key => $link)
                                     @if ($link["link"] == null)
@@ -49,7 +48,7 @@
                                         </li>
                                     @else
                                         <li class="mb-1">
-                                            <a class="nav-link" data-route="{{ $link["link"] }}" href="{{ route($link["link"], ["type" => $link["type"]]) }}">
+                                            <a class="nav-link" data-route="{{ $link["type"] }}.{{ $link["link"] }}" href="{{ route($link["link"], ["type" => $link["type"]]) }}">
                                                 {{ $link["title"] }}
                                                 @if ($link["count"])
                                                     <span class="badge badge-sm badge-primary float-right" id="{{ $link["type"] }}.{{ $link["id"] }}">-</span>

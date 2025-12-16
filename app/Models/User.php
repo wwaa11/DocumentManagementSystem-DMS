@@ -44,6 +44,18 @@ class User extends Authenticatable
                             'type'  => 'pac',
                             'route' => 'admin.user.count',
                         ],
+                        [
+                            'type'  => 'lab',
+                            'route' => 'admin.user.count',
+                        ],
+                        [
+                            'type'  => 'heartstream',
+                            'route' => 'admin.user.count',
+                        ],
+                        [
+                            'type'  => 'register',
+                            'route' => 'admin.user.count',
+                        ],
                     ],
                     'lists' => [
                         // IT
@@ -121,6 +133,114 @@ class User extends Authenticatable
                         [
                             'title' => 'All Jobs',
                             'type'  => 'pac',
+                            'id'    => 'all',
+                            'link'  => 'admin.user.alllist',
+                            'count' => false,
+                        ],
+                        // LAB
+                        [
+                            'title' => 'LAB',
+                            'type'  => 'lab',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'lab',
+                            'id'    => 'approve',
+                            'link'  => 'admin.user.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'lab',
+                            'id'    => 'new',
+                            'link'  => 'admin.user.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'lab',
+                            'id'    => 'my',
+                            'link'  => 'admin.user.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'lab',
+                            'id'    => 'all',
+                            'link'  => 'admin.user.alllist',
+                            'count' => false,
+                        ],
+                        // HEARTSTREAM
+                        [
+                            'title' => 'HEARTSTREAM',
+                            'type'  => 'heartstream',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'heartstream',
+                            'id'    => 'approve',
+                            'link'  => 'admin.user.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'heartstream',
+                            'id'    => 'new',
+                            'link'  => 'admin.user.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'heartstream',
+                            'id'    => 'my',
+                            'link'  => 'admin.user.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'heartstream',
+                            'id'    => 'all',
+                            'link'  => 'admin.user.alllist',
+                            'count' => false,
+                        ],
+                        // REGISTRATION
+                        [
+                            'title' => 'REGISTRATION',
+                            'type'  => 'register',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'register',
+                            'id'    => 'approve',
+                            'link'  => 'admin.user.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'register',
+                            'id'    => 'new',
+                            'link'  => 'admin.user.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'register',
+                            'id'    => 'my',
+                            'link'  => 'admin.user.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'register',
                             'id'    => 'all',
                             'link'  => 'admin.user.alllist',
                             'count' => false,

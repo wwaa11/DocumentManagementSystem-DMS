@@ -150,6 +150,10 @@
                                     @case("complete")
                                         <div class="badge badge-soft badge-success">เอกสารที่เสร็จสมบูรณ์</div>
                                     @break
+
+                                    @case("complete-partial")
+                                        <div class="badge badge-soft badge-success">เอกสารที่เสร็จสมบูรณ์บางส่วน</div>
+                                    @break
                                 @endswitch
                             </td>
                             <td>

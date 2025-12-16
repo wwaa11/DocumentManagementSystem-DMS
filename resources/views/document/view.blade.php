@@ -10,14 +10,17 @@
         </div>
         <div class="card bg-base-100 mb-4 shadow-xl">
             <div class="card-body">
-                <div class="flex flex-col gap-3">
-                    @if ($document->status == "wait_approval")
+                @if ($document->status == "wait_approval")
+                    <div class="flex flex-col gap-3">
                         <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>
-                    @elseif($document->status == "pending")
-                        {{-- <button class="btn btn-neutral w-full">ไม่สามาถยกเลิกใบงานได้</button> --}}
-                    @endif
-                </div>
-                <div class="divider"></div>
+                        <div class="divider"></div>
+                    </div>
+                @elseif($document->status == "pending")
+                    <div class="flex flex-col gap-3">
+                        <button class="btn-soft btn-neutral w-full">ใบงานอยู่ระหว่างดำเนินการ<br>ไม่สามาถยกเลิกใบงานได้</button>
+                        <div class="divider"></div>
+                    </div>
+                @endif
                 @if ($document_type == "IT")
                     @include("document.logs", ["logs" => $document->logs])
                 @elseif ($document_type == "USER")

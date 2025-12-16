@@ -121,6 +121,8 @@ class DocumentUser extends Model
             $documentStatus = 'pending';
         } elseif (in_array('process', $statusArray)) {
             $documentStatus = 'process';
+        } elseif (in_array('complete', $statusArray)) {
+            $documentStatus = 'complete-partial';
         }
 
         return $documentStatus;

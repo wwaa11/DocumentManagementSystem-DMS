@@ -1,7 +1,10 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\DocumentHc;
+use App\Models\DocumentHeartstream;
 use App\Models\DocumentPac;
+use App\Models\DocumentRegister;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -14,10 +17,22 @@ class DocumentUserController extends Controller
                 $documentAlls = DocumentPac::whereIn('status', ['pending', 'process', 'done'])->get();
                 $task_user    = 'Xray';
                 break;
+            case 'lab':
+                $documentAlls = DocumentHc::whereIn('status', ['pending', 'process', 'done'])->get();
+                $task_user    = 'LAB';
+                break;
+            case 'heartstream':
+                $documentAlls = DocumentHeartstream::whereIn('status', ['pending', 'process', 'done'])->get();
+                $task_user    = 'HeartSteam';
+                break;
+            case 'register':
+                $documentAlls = DocumentRegister::whereIn('status', ['pending', 'process', 'done'])->get();
+                $task_user    = 'Registration';
+                break;
         }
 
         $documentNew = $documentAlls->where('status', 'pending')->filter(function ($item) use ($task_user) {
-            return $item->tasks()->where('step', 2)->where('task_user', 'Xray')->first();
+            return $item->tasks()->where('step', 2)->where('task_user', $task_user)->first();
         })->count();
         $documentApprove = $documentAlls->where('status', 'done')->count();
         $documentMy      = $documentAlls->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
@@ -31,7 +46,20 @@ class DocumentUserController extends Controller
 
     public function adminApproveDocuments($type)
     {
-        $documents = DocumentPac::where('status', 'done')->get();
+        switch ($type) {
+            case 'pac':
+                $documents = DocumentPac::where('status', 'done')->get();
+                break;
+            case 'lab':
+                $documents = DocumentHc::where('status', 'done')->get();
+                break;
+            case 'heartstream':
+                $documents = DocumentHeartstream::where('status', 'done')->get();
+                break;
+            case 'register':
+                $documents = DocumentRegister::where('status', 'done')->get();
+                break;
+        }
 
         $action = 'approve';
 
@@ -40,10 +68,28 @@ class DocumentUserController extends Controller
 
     public function adminNewDocuments($type)
     {
-        $documentListAll = DocumentPac::where('status', 'pending')->get();
 
-        $documents = $documentListAll->filter(function ($item) {
-            return $item->tasks()->where('step', 2)->where('task_user', 'Xray')->first();
+        switch ($type) {
+            case 'pac':
+                $documentListAll = DocumentPac::where('status', 'pending')->get();
+                $task_user       = 'Xray';
+                break;
+            case 'lab':
+                $documentListAll = DocumentHc::where('status', 'pending')->get();
+                $task_user       = 'LAB';
+                break;
+            case 'heartstream':
+                $documentListAll = DocumentHeartstream::where('status', 'pending')->get();
+                $task_user       = 'HeartSteam';
+                break;
+            case 'register':
+                $documentListAll = DocumentRegister::where('status', 'pending')->get();
+                $task_user       = 'Registration';
+                break;
+        }
+
+        $documents = $documentListAll->filter(function ($item) use ($task_user) {
+            return $item->tasks()->where('step', 2)->where('task_user', $task_user)->first();
         });
         $action = 'new';
 
@@ -56,6 +102,15 @@ class DocumentUserController extends Controller
             case 'pac':
                 $documents = DocumentPac::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
                 break;
+            case 'lab':
+                $documents = DocumentHc::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
+                break;
+            case 'heartstream':
+                $documents = DocumentHeartstream::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
+                break;
+            case 'register':
+                $documents = DocumentRegister::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
+                break;
         }
         $action = 'my';
 
@@ -64,8 +119,20 @@ class DocumentUserController extends Controller
 
     public function adminAllDocuments($type)
     {
-        $documents = DocumentPac::orderByDesc('id')->paginate(10);
-
+        switch ($type) {
+            case 'pac':
+                $documents = DocumentPac::orderByDesc('id')->paginate(10);
+                break;
+            case 'lab':
+                $documents = DocumentHc::orderByDesc('id')->paginate(10);
+                break;
+            case 'heartstream':
+                $documents = DocumentHeartstream::orderByDesc('id')->paginate(10);
+                break;
+            case 'register':
+                $documents = DocumentRegister::orderByDesc('id')->paginate(10);
+                break;
+        }
         $action = 'all';
 
         return view('admin.user.list', compact('documents', 'action', 'type'));
@@ -73,7 +140,20 @@ class DocumentUserController extends Controller
 
     public function viewDocument($type, $document_id, $action)
     {
-        $document = DocumentPac::find($document_id);
+        switch ($type) {
+            case 'pac':
+                $document = DocumentPac::find($document_id);
+                break;
+            case 'lab':
+                $document = DocumentHc::find($document_id);
+                break;
+            case 'heartstream':
+                $document = DocumentHeartstream::find($document_id);
+                break;
+            case 'register':
+                $document = DocumentRegister::find($document_id);
+                break;
+        }
 
         $userList = [];
         if ($action == 'my') {
@@ -93,6 +173,15 @@ class DocumentUserController extends Controller
         switch ($request->type) {
             case 'pac':
                 $document = DocumentPac::find($request->id);
+                break;
+            case 'lab':
+                $document = DocumentHc::find($request->id);
+                break;
+            case 'heartstream':
+                $document = DocumentHeartstream::find($request->id);
+                break;
+            case 'register':
+                $document = DocumentRegister::find($request->id);
                 break;
         }
 
@@ -131,6 +220,18 @@ class DocumentUserController extends Controller
                 $document  = DocumentPac::find($request->id);
                 $task_user = 'Xray';
                 break;
+            case 'lab':
+                $document  = DocumentHc::find($request->id);
+                $task_user = 'LAB';
+                break;
+            case 'heartstream':
+                $document  = DocumentHeartstream::find($request->id);
+                $task_user = 'HeartSteam';
+                break;
+            case 'register':
+                $document  = DocumentRegister::find($request->id);
+                $task_user = 'Registration';
+                break;
         }
 
         $document->status = 'reject';
@@ -165,6 +266,15 @@ class DocumentUserController extends Controller
         switch ($request->type) {
             case 'pac':
                 $document = DocumentPac::find($request->id);
+                break;
+            case 'lab':
+                $document = DocumentHc::find($request->id);
+                break;
+            case 'heartstream':
+                $document = DocumentHeartstream::find($request->id);
+                break;
+            case 'register':
+                $document = DocumentRegister::find($request->id);
                 break;
         }
 
@@ -203,6 +313,18 @@ class DocumentUserController extends Controller
             case 'pac':
                 $document  = DocumentPac::find($request->id);
                 $task_user = 'Xray';
+                break;
+            case 'lab':
+                $document  = DocumentHc::find($request->id);
+                $task_user = 'LAB';
+                break;
+            case 'heartstream':
+                $document  = DocumentHeartstream::find($request->id);
+                $task_user = 'HeartSteam';
+                break;
+            case 'register':
+                $document  = DocumentRegister::find($request->id);
+                $task_user = 'Registration';
                 break;
         }
 
@@ -263,6 +385,113 @@ class DocumentUserController extends Controller
         $document->save();
 
         return redirect()->route('admin.user.mylist', ['type' => $request->type])->with('success', 'ดำเนินการสำเร็จ!');
+    }
+
+    public function completeDocument(Request $request)
+    {
+        $request->validate([
+            'id'     => 'required',
+            'type'   => 'required',
+            'status' => 'required|in:approve,reject',
+        ]);
+
+        switch ($request->type) {
+            case 'pac':
+                $document = DocumentPac::find($request->id);
+                break;
+            case 'lab':
+                $document = DocumentHc::find($request->id);
+                break;
+            case 'heartstream':
+                $document = DocumentHeartstream::find($request->id);
+                break;
+            case 'register':
+                $document = DocumentRegister::find($request->id);
+                break;
+        }
+
+        if ($document->status !== 'done') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'เอกสารนี้ไม่สามารถดำเนินการได้!',
+            ]);
+        }
+
+        if ($request->status === 'approve') {
+            $document->status = 'complete';
+            $document->save();
+
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'complete',
+                'details' => 'อนุมัติเอกสารเสร็จสิ้น',
+            ]);
+
+            $document->tasks()->orderBy('step', 'desc')->first()->update([
+                'status'        => 'approve',
+                'task_name'     => 'อนุมัติเอกสารเสร็จสิ้น',
+                'task_user'     => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date'          => date('Y-m-d H:i:s'),
+            ]);
+        } else {
+            $document->status = 'pending';
+            $document->save();
+
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'reject',
+                'details' => 'ไม่อนุมัติเอกสาร : ' . $request->reason,
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'อนุมัติเอกสารเสร็จสิ้น!',
+        ]);
+    }
+
+    public function completeAllDocument(Request $request)
+    {
+
+        switch ($request->type) {
+            case 'pac':
+                $documents = DocumentPac::where('status', 'done')->get();
+                break;
+            case 'lab':
+                $documents = DocumentHc::where('status', 'done')->get();
+                break;
+            case 'heartstream':
+                $documents = DocumentHeartstream::where('status', 'done')->get();
+                break;
+            case 'register':
+                $documents = DocumentRegister::where('status', 'done')->get();
+                break;
+        }
+
+        foreach ($documents as $document) {
+            $document->status = 'complete';
+            $document->save();
+
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'complete',
+                'details' => 'อนุมัติเอกสารเสร็จสิ้น',
+            ]);
+
+            $document->tasks()->orderBy('step', 'desc')->first()->update([
+                'status'        => 'approve',
+                'task_name'     => 'อนุมัติเอกสารเสร็จสิ้น',
+                'task_user'     => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date'          => date('Y-m-d H:i:s'),
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'อนุมัติเอกสารเสร็จสิ้น!',
+        ]);
     }
 
 }
