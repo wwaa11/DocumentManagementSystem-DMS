@@ -95,6 +95,9 @@
                                     }
                                 @endphp
                                 <div class="badge {{ $class }}">{{ $text }}</div>
+                                @if ($document->status == "process")
+                                    <div class="bg-primary mt-1 rounded">{{ $document->assigned_user_id }} : {{ $document->assigned_user->name }}</div>
+                                @endif
                             </td>
                             <td class="text-center">
                                 @if ($action == "new")

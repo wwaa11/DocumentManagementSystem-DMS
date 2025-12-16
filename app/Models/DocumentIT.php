@@ -29,6 +29,11 @@ class DocumentIT extends Model
         return $this->belongsTo(User::class, 'requester', 'userid');
     }
 
+    public function assigned_user()
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id', 'userid');
+    }
+
     public function getDocumentTypeNameAttribute()
     {
         if ($this->type == 'support') {

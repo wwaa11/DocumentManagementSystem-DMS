@@ -41,6 +41,11 @@ class DocumentPac extends Model
         return $this->belongsTo(DocumentUser::class, 'document_user_id', 'id');
     }
 
+    public function assigned_user()
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id', 'userid');
+    }
+
     public function tasks()
     {
         return $this->morphMany(Task::class, 'taskable');

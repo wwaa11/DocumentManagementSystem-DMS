@@ -10,7 +10,7 @@
         </div>
         <form id="create-form" action="{{ route("document.it.create") }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @include("document.component.create_approver")
+            @include("document.approver_create")
 
             @if ($errors->any())
                 <div class="alert alert-error" role="alert">
