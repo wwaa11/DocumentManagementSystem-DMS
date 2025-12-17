@@ -1,10 +1,10 @@
 <?php
 namespace App\Models;
 
+use App\Models\DocumentBorrow;
 use App\Models\DocumentIT;
 use App\Models\DocumentUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Http;
@@ -279,21 +279,6 @@ class User extends Authenticatable
         return $result;
     }
 
-    public function itsDocuments(): HasMany
-    {
-        return $this->hasMany(DocumentIT::class, 'requester', 'userid');
-    }
-
-    public function hcsDocuments(): HasMany
-    {
-        return $this->hasMany(DocumentHc::class, 'requester', 'userid');
-    }
-
-    public function pacsDocuments(): HasMany
-    {
-        return $this->hasMany(DocumentPac::class, 'requester', 'userid');
-    }
-
     public function getApproveDocument()
     {
         $documentList         = Approver::where('userid', $this->userid)->whereIn('status', ['wait', 'approve'])->orderByDesc('id')->get();
@@ -330,7 +315,18 @@ class User extends Authenticatable
                 'document_number',
                 'title',
                 'detail',
-                'document_its.status as status',
+                'status',
+                'created_at',
+            );
+
+        $borrows = DocumentBorrow::where('requester', $userId)
+            ->select(
+                'id',
+                'requester',
+                'document_number',
+                'type as title',
+                'detail',
+                'status',
                 'created_at',
             );
 
@@ -339,6 +335,9 @@ class User extends Authenticatable
             $document[] = $item;
         }
         foreach ($users->get() as $item) {
+            $document[] = $item;
+        }
+        foreach ($borrows->get() as $item) {
             $document[] = $item;
         }
 

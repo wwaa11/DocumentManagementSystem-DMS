@@ -5,6 +5,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DocumentBorrow extends Model
 {
+    protected $table = 'document_borrows';
+
     private $documentStatuses = [
         'wait_approval', // Wait for Approval
         'not_approval',  // Not-Approval Document
@@ -15,6 +17,25 @@ class DocumentBorrow extends Model
         'return',        // Hardware is returned
         'complete',      // Document is completed
     ];
+
+    protected $appends = [
+        'document_tag',
+        'list_detail',
+    ];
+
+    public function getDocumentTagAttribute()
+    {
+        return [
+            'document_tag' => 'IT',
+            'colour'       => 'secondary',
+        ];
+    }
+
+    public function getListDetailAttribute()
+    {
+
+        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
+    }
 
     public function creator()
     {

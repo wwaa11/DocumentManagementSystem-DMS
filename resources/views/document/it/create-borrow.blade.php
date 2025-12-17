@@ -77,6 +77,7 @@
         function selectBorrowType(type) {
             // Hide all fieldsets first
             $('#borrow_other_text').prop('disabled', true);
+            $('#send_to_it_admin').addClass('hidden');
 
             if (type == 'Projector' || type == 'Ipad/Tablet') {
                 $('input[name="isHardware"]').val(false);

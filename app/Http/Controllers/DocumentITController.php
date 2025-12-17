@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\HelperController;
+use App\Models\DocumentBorrow;
 use App\Models\DocumentHc;
 use App\Models\DocumentHeartstream;
 use App\Models\DocumentIT;
@@ -233,7 +234,31 @@ class DocumentITController extends Controller
 
     private function createDocumentBorrow($request)
     {
+        $dataField = $request->all();
+        $taskData  = [
+            'document_type' => ($request->isHardware == 'true') ? 'it-borrow-hardware' : 'it-borrow',
+            'selfApprove'   => ($request['selfApprove'] == 'true') ? true : false,
+            'approver'      => $request['approver'],
+        ];
 
+        $document                       = new DocumentBorrow;
+        $document->requester            = auth()->user()->userid;
+        $document->document_phone       = $request->document_phone;
+        $document->document_number      = DocumentNumber::getNextNumber($dataField['documentCode']);
+        $document->type                 = $request->borrow_type == 'OTHER' ? $request->borrow_other_text : $request->borrow_type;
+        $document->detail               = $request->borrow_detail;
+        $document->estimate_return_date = $request->return_date;
+        $document->save();
+
+        $this->helper->createApprover('it', $dataField, $document);
+        $this->helper->createTask($taskData, $document);
+        $this->helper->createFile($request, $document);
+
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'create',
+            'details' => 'สร้างเอกสาร IT',
+        ]);
     }
 
     // Count Document
