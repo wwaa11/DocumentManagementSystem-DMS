@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\HelperController;
 use App\Models\Document;
+use App\Models\DocumentBorrow;
 use App\Models\DocumentIT;
 use App\Models\DocumentUser;
 use App\Models\File;
@@ -29,6 +30,9 @@ class WebController extends Controller
                 break;
             case 'USER':
                 $document = DocumentUser::find($document_id);
+                break;
+            case 'BORROW':
+                $document = DocumentBorrow::find($document_id);
                 break;
             default:
                 $document = null;

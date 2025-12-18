@@ -11,7 +11,7 @@ class DocumentBorrow extends Model
         'wait_approval', // Wait for Approval
         'not_approval',  // Not-Approval Document
         'cancel',        // Requester cancel the request
-        'waiting',       // Waiting for admin to process
+        'pending',       // pending for admin to process
         'reject',        // Hardware reject by admin
         'borrow',        // Hardware is borrowed
         'return',        // Hardware is returned
@@ -19,6 +19,7 @@ class DocumentBorrow extends Model
     ];
 
     protected $appends = [
+        'document_type_name',
         'document_tag',
         'list_detail',
     ];
@@ -26,9 +27,23 @@ class DocumentBorrow extends Model
     public function getDocumentTagAttribute()
     {
         return [
-            'document_tag' => 'IT',
+            'document_tag' => 'BORROW',
             'colour'       => 'secondary',
         ];
+    }
+
+    public function getDocumentTypeNameAttribute()
+    {
+        switch ($this->status) {
+            case 'borrow':
+                $text = 'อุปกรณ์ที่ยิม';
+                break;
+            default:
+                $text = 'ขอยืมอุปกรณ์';
+                break;
+        }
+
+        return $text;
     }
 
     public function getListDetailAttribute()
@@ -47,6 +62,13 @@ class DocumentBorrow extends Model
     {
         // 'approvable' must match the prefix used in the approvers table migration
         return $this->morphMany(Approver::class, 'approvable');
+    }
+
+    // Relationship to Hardware
+    public function hardwares()
+    {
+        // 'approvable' must match the prefix used in the approvers table migration
+        return $this->morphMany(Hardware::class, 'hardware_id');
     }
 
     // Relationship to Tasks

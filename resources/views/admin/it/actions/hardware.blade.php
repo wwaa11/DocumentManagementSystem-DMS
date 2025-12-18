@@ -19,7 +19,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     axios.post("{{ route("admin.it.hardware.approve") }}", {
-                        id: '{{ $document->id }}',
+                        id: "{{ $document->id }}",
+                        type: "{{ $type }}",
                         status: "approve",
                     }).then((response) => {
                         if (response.data.status === "success") {
@@ -58,6 +59,7 @@
                 if (result.isConfirmed && result.value) {
                     axios.post("{{ route("admin.it.hardware.approve") }}", {
                         id: '{{ $document->id }}',
+                        type: "{{ $type }}",
                         status: "reject",
                         reason: result.value
                     }).then((response) => {

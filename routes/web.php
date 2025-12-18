@@ -48,6 +48,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/process', [DocumentITController::class, 'processDocument'])->name('admin.it.process');
         Route::post('/admin/complete', [DocumentITController::class, 'completeDocument'])->name('admin.it.complete');
         Route::post('/admin/completeall', [DocumentITController::class, 'completeAllDocument'])->name('admin.it.completeall');
+        // Borrow
+        Route::get('/admin/borrowlist', [DocumentITController::class, 'adminBorrowDocuments'])->name('admin.it.borrowlist');
     });
 
     Route::prefix('user')->group(function () {

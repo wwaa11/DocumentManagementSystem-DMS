@@ -2,7 +2,7 @@
 @section("content")
     <div class="justify-center gap-3 lg:flex">
         <div class="card bg-base-100 mb-4 shadow-xl lg:max-w-[600px]">
-            @if ($document_type == "IT")
+            @if ($document_type == "IT" || $document_type == "BORROW")
                 @include("document.it.detail")
             @elseif ($document_type == "USER")
                 @include("document.user.detail")
@@ -13,7 +13,7 @@
                 <button class="btn btn-primary w-full" type="button" onclick="approveDocument()">Approve</button>
                 <button class="btn btn-error w-full" type="button" onclick="rejectDocument()">Reject</button>
                 <div class="divider"></div>
-                @if ($document_type == "IT")
+                @if ($document_type == "IT" || $document_type == "BORROW")
                     @include("document.logs", ["logs" => $document->logs])
                 @elseif ($document_type == "USER")
                     @include("document.user.logs", ["logs" => $document->getAllDocuments()])

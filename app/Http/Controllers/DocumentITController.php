@@ -296,7 +296,13 @@ class DocumentITController extends Controller
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
             return $task;
         });
-        $action = 'hardware';
+        $documentBorrowList = DocumentBorrow::where('status', 'pending')->get();
+        $documentsborrow    = $documentBorrowList->filter(function ($item) {
+            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+            return $task;
+        });
+        $documents = $documents->concat($documentsborrow)->sortBy('created_at');
+        $action    = 'hardware';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
@@ -351,32 +357,44 @@ class DocumentITController extends Controller
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function adminviewDocument($document_id, $type, $action)
+    public function adminviewDocument($type, $document_id, $action)
     {
         if ($type == 'IT') {
             $document = DocumentIT::find($document_id);
-        } else {
+        } elseif ($type == 'USER') {
             $document = DocumentItUser::find($document_id);
+        } elseif ($type == 'BORROW') {
+            $document = DocumentBorrow::find($document_id);
         }
+
         $userList = [];
         if ($action == 'my') {
             $userList = User::whereIn('role', ['admin', 'it', 'it-hardware', 'it-approver'])->get();
         }
 
-        return view('admin.it.view', compact('document', 'action', 'userList'));
+        return view('admin.it.view', compact('document', 'action', 'userList', 'type'));
     }
 
     // Action Documents
     public function approveHardwareDocument(Request $request)
     {
         $request->validate([
-            'id'     => 'required|exists:document_its,id',
+            'id'     => 'required',
+            'type'   => 'required',
             'status' => 'required|in:approve,reject',
             'reason' => 'required_if:status,reject',
         ]);
         $detail = ($request->status == 'approve') ? 'อนุมัติ' : 'ปฏิเสธ ' . $request->reason;
 
-        $document         = DocumentIT::find($request->id);
+        switch ($request->type) {
+            case 'IT':
+                $document = DocumentIT::find($request->id);
+                break;
+            case 'BORROW':
+                $document = DocumentBorrow::find($request->id);
+                break;
+        }
+
         $status           = ($request->status == 'approve') ? 'อนุมัติ' : 'ปฏิเสธ';
         $document->status = ($request->status == 'approve') ? 'pending' : 'reject';
         $document->save();
@@ -682,5 +700,19 @@ class DocumentITController extends Controller
             'status'  => 'success',
             'message' => 'อนุมัติเอกสารเสร็จสิ้น!',
         ]);
+    }
+
+    // Borrow
+
+    public function adminBorrowDocuments()
+    {
+        $documents = DocumentBorrow::whereIn('status', ['pending'])->get();
+        $documents = $documents->filter(function ($item) {
+            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+            return ! $task;
+        });
+        $action = 'borrow';
+
+        return view('admin.it.list', compact('documents', 'action'));
     }
 }

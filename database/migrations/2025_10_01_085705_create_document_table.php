@@ -128,12 +128,19 @@ return new class extends Migration
             $table->foreign('requester')->references('userid')->on('users');
             $table->string('document_phone');
             $table->string('document_number')->unique();
-            $table->string('type');
+            $table->string('title')->nullable();
             $table->text('detail');
             $table->date('estimate_return_date');
-            $table->date('borrow_date')->nullable();
-            $table->date('return_date')->nullable();
             $table->string('status')->default('wait_approval');
+            $table->timestamps();
+        });
+
+        Schema::create('hardwares', function (Blueprint $table) {
+            $table->id();
+            $table->string('borrow_id');
+            $table->string('serial_number');
+            $table->date('borrow_date');
+            $table->date('return_date')->nullable();
             $table->timestamps();
         });
 

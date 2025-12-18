@@ -74,6 +74,13 @@ class User extends Authenticatable
                             'count' => true,
                         ],
                         [
+                            'title' => 'Borrow',
+                            'type'  => 'it',
+                            'id'    => 'borrow',
+                            'link'  => 'admin.it.borrowlist',
+                            'count' => false,
+                        ],
+                        [
                             'title' => 'Approve Jobs',
                             'type'  => 'it',
                             'id'    => 'approve',
@@ -324,7 +331,7 @@ class User extends Authenticatable
                 'id',
                 'requester',
                 'document_number',
-                'type as title',
+                'title',
                 'detail',
                 'status',
                 'created_at',

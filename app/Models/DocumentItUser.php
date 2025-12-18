@@ -57,6 +57,11 @@ class DocumentItUser extends Model
         return $this->documentUser->creator();
     }
 
+    public function assigned_user()
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id', 'userid');
+    }
+
     public function approvers()
     {
         return $this->documentUser->approvers();

@@ -2,7 +2,7 @@
 @section("content")
     <div class="justify-center gap-3 lg:flex">
         <div class="card bg-base-100 mb-4 shadow-xl">
-            @if ($document_type == "IT")
+            @if ($document_type == "IT" || $document_type == "BORROW")
                 @include("document.it.detail")
             @elseif ($document_type == "USER")
                 @include("document.user.detail")
@@ -21,7 +21,7 @@
                         <div class="divider"></div>
                     </div>
                 @endif
-                @if ($document_type == "IT")
+                @if ($document_type == "IT" || $document_type == "BORROW")
                     @include("document.logs", ["logs" => $document->logs])
                 @elseif ($document_type == "USER")
                     @include("document.user.logs", ["logs" => $document->getAllDocuments()])
