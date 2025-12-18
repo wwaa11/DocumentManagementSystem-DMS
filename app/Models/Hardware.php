@@ -10,11 +10,17 @@ class Hardware extends Model
     protected $fillable = [
         'borrow_id',
         'serial_number',
+        'detail',
         'borrow_date',
+    ];
+
+    protected $casts = [
+        'borrow_date' => 'datetime',
+        'return_date' => 'datetime',
     ];
 
     public function borrow_document()
     {
-        return $this->hasOne(DocumentBorrow::class, 'borrow_id', 'id');
+        return $this->hasOne(DocumentBorrow::class, 'id', 'borrow_id');
     }
 }

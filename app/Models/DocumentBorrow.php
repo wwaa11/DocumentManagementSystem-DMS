@@ -8,20 +8,26 @@ class DocumentBorrow extends Model
     protected $table = 'document_borrows';
 
     private $documentStatuses = [
-        'wait_approval', // Wait for Approval
-        'not_approval',  // Not-Approval Document
-        'cancel',        // Requester cancel the request
-        'pending',       // pending for admin to process
-        'reject',        // Hardware reject by admin
-        'borrow',        // Hardware is borrowed
-        'return',        // Hardware is returned
-        'complete',      // Document is completed
+        'wait_approval',  // Wait for Approval
+        'not_approval',   // Not-Approval Document
+        'cancel',         // Requester cancel the request
+        'reject',         // Hardware reject by admin
+        'pending',        // pending for admin to process
+        'borrow_approve', // waiting for admin to approve hardware
+        'borrow',         // Hardware is borrowed
+        'return_approve', // Hardware is borrowed
+        'return',         // Hardware is returned
+        'complete',       // Document is completed
     ];
 
     protected $appends = [
         'document_type_name',
         'document_tag',
         'list_detail',
+    ];
+
+    protected $casts = [
+        'estimate_return_date' => 'datetime',
     ];
 
     public function getDocumentTagAttribute()
@@ -52,6 +58,14 @@ class DocumentBorrow extends Model
         return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
     }
 
+    public function allHardwareRetrieve()
+    {
+        $total    = $this->hardwares()->count();
+        $retrieve = $this->hardwares()->whereNotNull('return_date')->count();
+
+        return ($total == $retrieve) ? true : false;
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'requester', 'userid');
@@ -67,8 +81,7 @@ class DocumentBorrow extends Model
     // Relationship to Hardware
     public function hardwares()
     {
-        // 'approvable' must match the prefix used in the approvers table migration
-        return $this->morphMany(Hardware::class, 'hardware_id');
+        return $this->hasMany(Hardware::class, 'borrow_id');
     }
 
     // Relationship to Tasks

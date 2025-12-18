@@ -2,9 +2,9 @@
 @section("content")
     <div class="justify-center gap-3 lg:flex">
         <div class="card bg-base-100 mb-4 shadow-xl">
-            @if ($document_type == "IT" || $document_type == "BORROW")
+            @if ($type == "IT" || $type == "BORROW")
                 @include("document.it.detail")
-            @elseif ($document_type == "USER")
+            @elseif ($type == "USER")
                 @include("document.user.detail")
             @endif
         </div>
@@ -21,9 +21,9 @@
                         <div class="divider"></div>
                     </div>
                 @endif
-                @if ($document_type == "IT" || $document_type == "BORROW")
+                @if ($type == "IT" || $type == "BORROW")
                     @include("document.logs", ["logs" => $document->logs])
-                @elseif ($document_type == "USER")
+                @elseif ($type == "USER")
                     @include("document.user.logs", ["logs" => $document->getAllDocuments()])
                 @endif
             </div>
@@ -57,7 +57,7 @@
                 });
             }
             if (result.isConfirmed && result.value) {
-                axios.post("{{ route("document.type.cancel", [$document_type, $document->id]) }}", {
+                axios.post("{{ route("document.type.cancel", [$type, $document->id]) }}", {
                     type: '{{ $document->document_tag["document_tag"] }}',
                     reason: result.value
                 }).then((response) => {

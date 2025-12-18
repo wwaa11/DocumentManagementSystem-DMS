@@ -74,17 +74,17 @@ class User extends Authenticatable
                             'count' => true,
                         ],
                         [
-                            'title' => 'Borrow',
-                            'type'  => 'it',
-                            'id'    => 'borrow',
-                            'link'  => 'admin.it.borrowlist',
-                            'count' => false,
-                        ],
-                        [
                             'title' => 'Approve Jobs',
                             'type'  => 'it',
                             'id'    => 'approve',
                             'link'  => 'admin.it.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Borrow',
+                            'type'  => 'it',
+                            'id'    => 'borrow',
+                            'link'  => 'admin.it.borrowlist',
                             'count' => true,
                         ],
                         [
@@ -294,6 +294,7 @@ class User extends Authenticatable
                 return true;
             } else {
                 $checkBeforeStep = Approver::where('approvable_type', $item->approvable_type)->where('approvable_id', $item->approvable_id)->where('step', $item->step - 1)->first();
+
                 return $checkBeforeStep && $checkBeforeStep->status == 'approve';
             }
         });

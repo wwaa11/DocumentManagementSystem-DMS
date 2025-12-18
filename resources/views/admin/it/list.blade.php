@@ -69,7 +69,7 @@
                                             $class = "badge-soft badge-error";
                                             break;
                                         case "cancel":
-                                            $text = "ผู้ขอ ยกเลิกเอกสาร";
+                                            $text = "ผู้ขอยกเลิกเอกสาร";
                                             $class = "badge-soft badge-error";
                                             break;
                                         case "pending":
@@ -86,12 +86,23 @@
                                             break;
                                         case "done":
                                             $text = "เอกสารรออนุมัติ";
-                                            $class = "badge-soft badge-success";
+                                            $class = "badge-soft badge-secondary";
                                             break;
                                         case "complete":
                                             $text = "เอกสารเสร็จสมบูรณ์";
                                             $class = "badge-soft badge-success";
                                             break;
+                                        case "borrow_approve":
+                                            $text = "รออนุมัติการยืมอุปกรณ์";
+                                            $class = "badge-soft badge-secondary";
+                                            break;
+                                        case "borrow":
+                                            $text = "อุปกรณ์อยู่ระหว่างการยืม";
+                                            $class = "badge-soft badge-neutral";
+                                            break;
+                                        default:
+                                            $text = "";
+                                            $class = "";
                                     }
                                 @endphp
                                 <div class="badge {{ $class }}">{{ $text }}</div>

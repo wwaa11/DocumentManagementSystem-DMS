@@ -2,9 +2,9 @@
 @section("content")
     <div class="justify-center gap-3 lg:flex">
         <div class="card bg-base-100 mb-4 shadow-xl lg:max-w-[600px]">
-            @if ($document_type == "IT" || $document_type == "BORROW")
+            @if ($type == "IT" || $type == "BORROW")
                 @include("document.it.detail")
-            @elseif ($document_type == "USER")
+            @elseif ($type == "USER")
                 @include("document.user.detail")
             @endif
         </div>
@@ -13,9 +13,9 @@
                 <button class="btn btn-primary w-full" type="button" onclick="approveDocument()">Approve</button>
                 <button class="btn btn-error w-full" type="button" onclick="rejectDocument()">Reject</button>
                 <div class="divider"></div>
-                @if ($document_type == "IT" || $document_type == "BORROW")
+                @if ($type == "IT" || $type == "BORROW")
                     @include("document.logs", ["logs" => $document->logs])
-                @elseif ($document_type == "USER")
+                @elseif ($type == "USER")
                     @include("document.user.logs", ["logs" => $document->getAllDocuments()])
                 @endif
             </div>
@@ -40,7 +40,7 @@
                 },
             });
             if (confirm.isConfirmed) {
-                await axios.post("{{ route("document.type.approve.request", [$document_type, $document->id]) }}", {
+                await axios.post("{{ route("document.type.approve.request", [$type, $document->id]) }}", {
                     "status": 'approve'
                 }).then((response) => {
                     if (response.data.status == "success") {
@@ -102,7 +102,7 @@
                 return;
             }
             if (confirm.isConfirmed) {
-                await axios.post("{{ route("document.type.approve.request", [$document_type, $document->id]) }}", {
+                await axios.post("{{ route("document.type.approve.request", [$type, $document->id]) }}", {
                     "status": 'reject',
                     "reason": confirm.value
                 }).then((response) => {

@@ -1,7 +1,9 @@
 @extends("layouts.app")
 @section("content")
     <div class="justify-center gap-3 lg:flex">
-        @include("document.it.detail")
+        <div class="card bg-base-100 mb-4 shadow-xl">
+            @include("document.it.detail")
+        </div>
         <div class="card bg-base-100 mb-4 shadow-xl">
             <div class="card-body">
                 <h5 class="card-title">รายการดำเนินงาน</h5>

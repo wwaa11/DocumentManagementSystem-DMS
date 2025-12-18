@@ -62,7 +62,7 @@
                                             $class = "badge-soft badge-error";
                                             break;
                                         case "cancel":
-                                            $text = "ผู้ขอ ยกเลิกเอกสาร";
+                                            $text = "ผู้ขอยกเลิกเอกสาร";
                                             $class = "badge-soft badge-error";
                                             break;
                                         case "pending":

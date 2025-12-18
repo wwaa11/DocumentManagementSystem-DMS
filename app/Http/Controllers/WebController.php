@@ -75,7 +75,7 @@ class WebController extends Controller
             $document_id             = $documentData->document_tag["document_tag"] . $documentData->id;
             $detail                  = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100) . '...' : $documentData->detail;
             $documents[$document_id] = [
-                'flag'               => ($item->status == 'wait' ? 'approve' : 'dept'),
+                'flag'               => ($item->status == 'wait' ? 'approve' : 'my'),
                 'id'                 => $documentData->id,
                 'document_tag'       => $documentData->document_tag,
                 'document_number'    => $documentData->document_number,
@@ -107,6 +107,7 @@ class WebController extends Controller
         // Apply filters
         $documents = collect($documents)->filter(function ($document) use ($request) {
             $documentNumber = $request->input('document_number');
+            $detail         = $request->input('detail');
             $flag           = $request->input('flag');
             $document_tag   = $request->input('document_tag');
             $status         = $request->input('status');
@@ -114,6 +115,9 @@ class WebController extends Controller
             $createdAtEnd   = $request->input('created_at_end');
 
             if ($documentNumber && ! str_contains(strtolower($document['document_number']), strtolower($documentNumber))) {
+                return false;
+            }
+            if ($detail && ! str_contains(strtolower($document['detail']), strtolower($detail))) {
                 return false;
             }
             if ($flag && $document['flag'] !== $flag) {
@@ -186,15 +190,15 @@ class WebController extends Controller
         return response()->json(['status' => true, 'user' => $response['user']]);
     }
 
-    public function viewDocument($document_type, $document_id)
+    public function viewDocument($type, $document_id)
     {
-        $document = $this->getDocument($document_type, $document_id);
+        $document = $this->getDocument($type, $document_id);
         if (! $document) {
 
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
-        return view('document.view', compact('document', 'document_type'));
+        return view('document.view', compact('document', 'type'));
     }
 
     public function cancelDocument(Request $request, $document_type, $document_id)
@@ -234,9 +238,9 @@ class WebController extends Controller
         return response()->json(['status' => 'success']);
     }
 
-    public function approveDocument($document_type, $document_id)
+    public function approveDocument($type, $document_id)
     {
-        $document = $this->getDocument($document_type, $document_id);
+        $document = $this->getDocument($type, $document_id);
         if (! $document) {
 
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
@@ -257,7 +261,7 @@ class WebController extends Controller
             }
         }
 
-        return view('document.approve', compact('document', 'document_type'));
+        return view('document.approve', compact('document', 'type'));
     }
 
     public function approveDocumentRequest(Request $request, $document_type, $document_id)

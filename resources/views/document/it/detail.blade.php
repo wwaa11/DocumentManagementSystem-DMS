@@ -34,5 +34,54 @@
     @endif
     <strong>รายละเอียด</strong>
     <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail ?? $document->documentUser->detail !!}</p>
+    @if ($type == "BORROW")
+        <strong>วันที่คาดว่าจะคืนอุปกรณ์</strong>
+        <input class="input input-accent text-accent w-full" type="text" readonly value="{{ $document->estimate_return_date->format("d M Y") }}">
+        <strong>รายการอุปกรณ์</strong>
+        <table class="table">
+            <thead>
+                <th>Serial Number</th>
+                <th>รายละเอียด</th>
+                <th>วันที่ยืม</th>
+                <th>วันที่คืน</th>
+                <th class="text-end">#</th>
+            </thead>
+            <tbody>
+                @if (count($document->hardwares) > 0)
+                    @foreach ($document->hardwares as $hardware)
+                        <tr>
+                            <td>
+                                {{ $hardware->serial_number }}
+                            </td>
+                            <td>{{ $hardware->detail }}</td>
+                            <td>{{ $hardware->borrow_date->format("d M Y") }}</td>
+                            <td>{{ $hardware->return_date }}</td>
+                            <td class="text-end">
+                                @if ($document->status == "pending")
+                                    <span class="btn btn-xs btn-error btn-soft" onclick="removeHardware('{{ $hardware->id }}')">ลบ</span>
+                                @elseif($document->status == "borrow" && $hardware->return_date == null)
+                                    <span class="btn btn-xs btn-secondary btn-soft" onclick="returnHardware('{{ $hardware->id }}')">คืน</span>
+                                @elseif($document->status == "return_approve" && $hardware->return_date == null)
+                                    <span class="btn btn-xs btn-secondary btn-soft" onclick="retrieveHardware('{{ $hardware->id }}')">รับคืน</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                @else
+                    <tr>
+                        <td class="text-center" colspan="5">ไม่มีรายการอุปกรณ์</td>
+                    </tr>
+                @endif
+            </tbody>
+        </table>
+
+    @endif
     @include("document.tasks", ["tasks" => $document->tasks])
 </div>
+@push("scripts")
+    <script>
+        function returnHardware(id) {
+
+        }
+    </script>
+@endpush

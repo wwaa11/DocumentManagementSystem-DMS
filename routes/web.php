@@ -50,6 +50,12 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/completeall', [DocumentITController::class, 'completeAllDocument'])->name('admin.it.completeall');
         // Borrow
         Route::get('/admin/borrowlist', [DocumentITController::class, 'adminBorrowDocuments'])->name('admin.it.borrowlist');
+        Route::post('/admin/borrowlist/add', [DocumentITController::class, 'adminBorrowAdd'])->name('admin.it.borrowlist.add');
+        Route::post('/admin/borrowlist/remove', [DocumentITController::class, 'adminBorrowRemove'])->name('admin.it.borrowlist.remove');
+        Route::post('/admin/borrowlist/summary', [DocumentITController::class, 'adminBorrowSummary'])->name('admin.it.borrowlist.summary');
+        Route::post('/admin/borrowlist/approve', [DocumentITController::class, 'adminBorrowApprove'])->name('admin.it.borrowlist.approve');
+        Route::post('/admin/borrowlist/retrieve', [DocumentITController::class, 'adminBorrowRetrieve'])->name('admin.it.borrowlist.retrieve');
+
     });
 
     Route::prefix('user')->group(function () {

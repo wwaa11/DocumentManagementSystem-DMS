@@ -12,6 +12,7 @@ use App\Models\DocumentPAC;
 use App\Models\DocumentRegister;
 use App\Models\DocumentUser;
 use App\Models\File;
+use App\Models\Hardware;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -245,7 +246,7 @@ class DocumentITController extends Controller
         $document->requester            = auth()->user()->userid;
         $document->document_phone       = $request->document_phone;
         $document->document_number      = DocumentNumber::getNextNumber($dataField['documentCode']);
-        $document->type                 = $request->borrow_type == 'OTHER' ? $request->borrow_other_text : $request->borrow_type;
+        $document->title                = $request->borrow_type == 'OTHER' ? $request->borrow_other_text : $request->borrow_type;
         $document->detail               = $request->borrow_detail;
         $document->estimate_return_date = $request->return_date;
         $document->save();
@@ -281,9 +282,17 @@ class DocumentITController extends Controller
         $documentITUserListApprove = $documentITUserList->where('status', 'done')->count();
         $documentITUserListMy      = $documentITUserList->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
 
+        $documentBorrowList         = DocumentBorrow::whereIn('status', ['pending', 'borrow_approve', 'return'])->get();
+        $documentListBorrowHardware = $documentBorrowList->where('status', 'pending')->filter(function ($item) {
+            return $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+        })->count();
+        $documentListBorrowNew     = $documentBorrowList->whereIn('status', ['pending', 'return_approve'])->count();
+        $documentListBorrowApprove = $documentBorrowList->whereIn('status', ['borrow_approve', 'return'])->count();
+
         return response()->json([
-            'it.hardware' => $documentListNewHardware,
-            'it.approve'  => $documentListApprove + $documentITUserListApprove,
+            'it.hardware' => $documentListNewHardware + $documentListBorrowHardware,
+            'it.approve'  => $documentListApprove + $documentITUserListApprove + $documentListBorrowApprove,
+            'it.borrow'   => $documentListBorrowNew,
             'it.new'      => $documentListNew + $documentITUserListNew,
             'it.my'       => $documentListMy + $documentITUserListMy,
         ]);
@@ -311,7 +320,8 @@ class DocumentITController extends Controller
     {
         $documents       = DocumentIT::where('status', 'done')->get();
         $documentsITUser = DocumentItUser::where('status', 'done')->get();
-        $documents       = $documents->concat($documentsITUser)->sortBy('created_at');
+        $documentsBorrow = DocumentBorrow::whereIn('status', ['borrow_approve', 'return'])->get();
+        $documents       = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortBy('created_at');
         $action          = 'approve';
 
         return view('admin.it.list', compact('documents', 'action'));
@@ -349,7 +359,8 @@ class DocumentITController extends Controller
     {
         $documents       = DocumentIT::all();
         $documentsITUser = DocumentItUser::all();
-        $documents       = $documents->concat($documentsITUser)->sortByDESC('created_at');
+        $documentsBorrow = DocumentBorrow::all();
+        $documents       = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortByDESC('created_at');
 
         $action    = 'all';
         $documents = $this->helper->paginateCollection($documents, 10, $request);
@@ -610,8 +621,13 @@ class DocumentITController extends Controller
 
         if ($request->type == 'IT') {
             $document = DocumentIT::find($request->id);
-        } else {
+        } elseif ($request->type == 'USER') {
             $document = DocumentItUser::find($request->id);
+        } else {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'ไม่พบเอกสาร!',
+            ]);
         }
 
         if ($document->status !== 'done') {
@@ -706,7 +722,7 @@ class DocumentITController extends Controller
 
     public function adminBorrowDocuments()
     {
-        $documents = DocumentBorrow::whereIn('status', ['pending'])->get();
+        $documents = DocumentBorrow::whereIn('status', ['pending', 'borrow'])->get();
         $documents = $documents->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
             return ! $task;
@@ -714,5 +730,132 @@ class DocumentITController extends Controller
         $action = 'borrow';
 
         return view('admin.it.list', compact('documents', 'action'));
+    }
+
+    public function adminBorrowAdd(Request $request)
+    {
+        $request->validate([
+            'id'     => 'required',
+            'date'   => 'required',
+            'serial' => 'required',
+        ]);
+
+        $document = DocumentBorrow::find($request->id);
+        $document->hardwares()->create([
+            'serial_number' => $request->serial,
+            'detail'        => $request->detail,
+            'borrow_date'   => $request->date,
+        ]);
+
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'add',
+            'details' => 'ระบุอุปกรณ์ที่ให้ยืม : ' . $request->serial,
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'เพิ่มอุปกรณ์สำเร็จ!',
+        ]);
+    }
+
+    public function adminBorrowRemove(Request $request)
+    {
+        $request->validate([
+            'id' => 'required',
+        ]);
+
+        $document = Hardware::find($request->id);
+        $document->borrow_document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'remove',
+            'details' => 'ลบอุปกรณ์ที่ให้ยืม : ' . $document->serial_number,
+        ]);
+        $document->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'ลบอุปกรณ์สำเร็จ!',
+        ]);
+    }
+
+    public function adminBorrowSummary(Request $request)
+    {
+        $request->validate([
+            'id' => 'required',
+        ]);
+
+        $document         = DocumentBorrow::find($request->id);
+        $document->status = 'borrow_approve';
+        $document->save();
+
+        $document->tasks()->where('task_name', 'รอบันทึกรายละเอียดการยืม จากฝ่ายเทคโนโลยีสารสนเทศ')->update([
+            'status'        => 'approve',
+            'task_user'     => auth()->user()->userid,
+            'task_position' => auth()->user()->position,
+            'date'          => date('Y-m-d H:i:s'),
+        ]);
+
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'process',
+            'details' => 'ขออนุมัติการให้ยึมอุปกรณ์',
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'ขออนุมัติอุปกรณ์สำเร็จ!',
+        ]);
+    }
+
+    public function adminBorrowApprove(Request $request)
+    {
+        $request->validate([
+            'id' => 'required',
+        ]);
+
+        $document         = DocumentBorrow::find($request->id);
+        $document->status = 'borrow';
+        $document->save();
+
+        $document->tasks()->where('task_name', 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ')->update([
+            'status'        => 'approve',
+            'task_user'     => auth()->user()->userid,
+            'task_position' => auth()->user()->position,
+            'date'          => date('Y-m-d H:i:s'),
+        ]);
+
+        $document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'approve',
+            'details' => 'อนุมัติการให้ยึมอุปกรณ์',
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'อนุมัติสำเร็จ!',
+        ]);
+    }
+
+    public function adminBorrowRetrieve(Request $request)
+    {
+        $request->validate([
+            'id' => 'required',
+        ]);
+
+        $document              = Hardware::find($request->id);
+        $document->return_date = date('Y-m-d H:i');
+        $document->save();
+
+        $document->borrow_document->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'retrun',
+            'details' => 'รับอุปกรณ์คืน : ' . $document->serial_number,
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'รับอุปกรณ์สำเร็จ!',
+        ]);
     }
 }
