@@ -32,7 +32,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/it/return', [DocumentITController::class, 'borrowReturn'])->name('document.it.borrowlist.return');
 
     // IT Document
-    Route::prefix('it')->group(function () {
+    Route::prefix('it')->middleware(['auth', 'admin'])->group(function () {
         // Page Documents
         Route::get('/admin/hardwaredocument', [DocumentITController::class, 'adminHardwareDocuments'])->name('admin.it.hardwarelist');
         Route::get('/admin/approvelist', [DocumentITController::class, 'adminApproveDocuments'])->name('admin.it.approvelist');
@@ -60,7 +60,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     });
 
-    Route::prefix('user')->group(function () {
+    Route::prefix('user')->middleware(['auth', 'admin'])->group(function () {
         // Page Documents
         Route::get('/admin/{type}/approvelist/', [DocumentUserController::class, 'adminApproveDocuments'])->name('admin.user.approvelist');
         Route::get('/admin/{type}/newdocument', [DocumentUserController::class, 'adminNewDocuments'])->name('admin.user.newlist');
