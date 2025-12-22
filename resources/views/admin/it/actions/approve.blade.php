@@ -1,8 +1,8 @@
 @if ($type == "BORROW")
-    <button class="btn btn-success" onclick="approveDocument()">อนุมัติ</button>
+    <button class="btn btn-success" onclick="approveDocument('{{ $document->status == "borrow_approve" ? "borrow" : "return" }}')">อนุมัติ</button>
     @push("scripts")
         <script>
-            function approveDocument() {
+            function approveDocument(type) {
                 Swal.fire({
                     title: "ยืนยันการอนุมัติ?",
                     text: "คุณไม่สามารถกลับไปยังสถานะเดิมได้!",
@@ -19,6 +19,7 @@
                     if (result.isConfirmed) {
                         axios.post("{{ route("admin.it.borrowlist.approve") }}", {
                             id: '{{ $document->id }}',
+                            type: type
                         }).then((response) => {
                             if (response.data.status === "success") {
                                 Swal.fire({

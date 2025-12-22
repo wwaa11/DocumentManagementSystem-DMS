@@ -750,10 +750,9 @@ class DocumentITController extends Controller
     }
 
     // Borrow
-
     public function adminBorrowDocuments()
     {
-        $documents = DocumentBorrow::whereIn('status', ['pending', 'return_approve'])->get();
+        $documents = DocumentBorrow::whereIn('status', ['pending', 'borrow', 'return_approve'])->get();
         $documents = $documents->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
             return ! $task;
@@ -852,14 +851,28 @@ class DocumentITController extends Controller
     public function adminBorrowApprove(Request $request)
     {
         $request->validate([
-            'id' => 'required',
+            'id'   => 'required',
+            'type' => 'required|in:borrow,return',
         ]);
 
+        switch ($request->type) {
+            case 'borrow':
+                $status = 'borrow';
+                $task   = 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ';
+                $detail = 'อนุมัติการให้ยึมอุปกรณ์';
+                break;
+            case 'return':
+                $status = 'complete';
+                $task   = 'คืนอุปกรณ์เรียบร้อย';
+                $detail = 'อนุมัติการคืนอุปกรณ์';
+                break;
+        }
+
         $document         = DocumentBorrow::find($request->id);
-        $document->status = 'borrow';
+        $document->status = $status;
         $document->save();
 
-        $document->tasks()->where('task_name', 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ')->update([
+        $document->tasks()->where('task_name', $task)->update([
             'status'        => 'approve',
             'task_user'     => auth()->user()->userid,
             'task_position' => auth()->user()->position,
@@ -869,7 +882,7 @@ class DocumentITController extends Controller
         $document->logs()->create([
             'userid'  => auth()->user()->userid,
             'action'  => 'approve',
-            'details' => 'อนุมัติการให้ยึมอุปกรณ์',
+            'details' => $detail,
         ]);
 
         return response()->json([
@@ -893,7 +906,7 @@ class DocumentITController extends Controller
         $document->logs()->create([
             'userid'  => auth()->user()->userid,
             'action'  => 'retrun',
-            'details' => 'ขอคืนอุปกรณ์ : ' . $document->serial_number,
+            'details' => 'ขอคืนอุปกรณ์ : ' . $hardware->serial_number,
         ]);
 
         if ($document->hardwares()->whereNull('return_date')->count() == 0) {
@@ -926,16 +939,35 @@ class DocumentITController extends Controller
             'id' => 'required',
         ]);
 
-        $document                = Hardware::find($request->id);
-        $document                = $hardware->borrow_document;
-        $document->retrieve_date = date('Y-m-d H:i');
-        $document->save();
+        $hardware = Hardware::find($request->id);
+        $document = $hardware->borrow_document;
 
-        $document->borrow_document->logs()->create([
+        $hardware->retrieve_date = date('Y-m-d H:i');
+        $hardware->save();
+
+        $document->logs()->create([
             'userid'  => auth()->user()->userid,
             'action'  => 'retrun',
             'details' => 'รับอุปกรณ์คืน : ' . $document->serial_number,
         ]);
+
+        if ($document->hardwares()->whereNull('retrieve_date')->count() == 0) {
+            $document->status = 'return';
+            $document->save();
+
+            $document->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'retreive',
+                'details' => 'รับคืนอุปกรณ์ครบแล้ว',
+            ]);
+
+            $document->tasks()->where('task_name', 'รอบันทึกรายละเอียดการคืน จากฝ่ายเทคโนโลยีสารสนเทศ')->update([
+                'status'        => 'approve',
+                'task_user'     => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date'          => date('Y-m-d H:i:s'),
+            ]);
+        }
 
         return response()->json([
             'status'  => 'success',

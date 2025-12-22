@@ -104,6 +104,10 @@
                                             $text = "รอรับอุปกรณ์คืน";
                                             $class = "badge-soft badge-primary";
                                             break;
+                                        case "return":
+                                            $text = "รออนุมัติการคืนอุปกรณ์";
+                                            $class = "badge-soft badge-secondary";
+                                            break;
                                         default:
                                             $text = "";
                                             $class = "";

@@ -56,9 +56,11 @@
                             <td>{{ $hardware->detail }}</td>
                             <td>{{ $hardware->borrow_date->format("d M Y") }}</td>
                             <td>
-                                <div>{{ $hardware->return_date->format("d M Y") }}</div>
+                                @if ($hardware->return_date)
+                                    <div>{{ $hardware->return_date->format("d M Y") }}</div>
+                                @endif
                                 @if ($hardware->retrieve_date)
-                                    <div class="text-accent">{{ $hardware->retrieve_date->format("d M Y") }}</div>
+                                    <div class="text-primary">{{ $hardware->retrieve_date->format("d M Y") }}</div>
                                 @endif
                             </td>
                             <td class="text-end">
@@ -66,7 +68,7 @@
                                     <span class="btn btn-xs btn-error btn-soft" onclick="removeHardware('{{ $hardware->id }}')">ลบ</span>
                                 @elseif($document->status == "borrow" && $hardware->return_date == null && $hardware->approver == auth()->user()->userid)
                                     <span class="btn btn-xs btn-secondary btn-soft" onclick="returnHardware('{{ $hardware->id }}')">คืน</span>
-                                @elseif($document->status == "return_approve" && $hardware->return_date == null)
+                                @elseif($document->status == "return_approve" && $hardware->return_date != null && in_array(auth()->user()->role, ["admin", "it"]))
                                     <span class="btn btn-xs btn-secondary btn-soft" onclick="retrieveHardware('{{ $hardware->id }}')">รับคืน</span>
                                 @endif
                             </td>
