@@ -77,6 +77,12 @@
                     icon: 'error',
                     title: 'Login Failed',
                     text: error.message,
+                    timer: 1000,
+                    timerProgressBar: true,
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                }).then(() => {
+                    window.location.reload()
                 });
             });
     });

@@ -100,6 +100,10 @@
                                             $text = "อุปกรณ์อยู่ระหว่างการยืม";
                                             $class = "badge-soft badge-neutral";
                                             break;
+                                        case "return_approve":
+                                            $text = "รอรับอุปกรณ์คืน";
+                                            $class = "badge-soft badge-primary";
+                                            break;
                                         default:
                                             $text = "";
                                             $class = "";

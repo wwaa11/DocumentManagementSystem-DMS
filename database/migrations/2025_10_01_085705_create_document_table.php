@@ -139,6 +139,7 @@ return new class extends Migration
             $table->id();
             $table->string('borrow_id');
             $table->string('serial_number');
+            $table->string('approver');
             $table->text('detail')->nullable();
             $table->datetime('borrow_date');
             $table->datetime('return_date')->nullable();

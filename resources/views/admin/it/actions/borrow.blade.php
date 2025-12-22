@@ -140,6 +140,15 @@
                             }).then(() => {
                                 window.location.href = "{{ route("admin.it.borrowlist") }}";
                             });
+                        } else {
+                            Swal.fire({
+                                icon: "error",
+                                text: response.data.message,
+                                timer: 1000,
+                                timerProgressBar: true,
+                                allowOutsideClick: false,
+                                showConfirmButton: false,
+                            })
                         }
                     });
                 }

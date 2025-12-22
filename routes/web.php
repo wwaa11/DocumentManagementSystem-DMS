@@ -20,6 +20,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocument'])->name('document.type.approve');
     Route::post('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocumentRequest'])->name('document.type.approve.request');
     // Document Cancel
+
     // Document Files
     Route::get('/document/files/{file}', [WebController::class, 'fileShow'])->name('document.files.show');
     Route::get('/document/files/download/{file}', [WebController::class, 'fileDownload'])->name('document.files.download');
@@ -28,6 +29,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Create Document IT and User for PAC HC Heartstream Register
     Route::post('/it/create', [DocumentITController::class, 'createDocument'])->name('document.it.create');
+    Route::post('/it/return', [DocumentITController::class, 'borrowReturn'])->name('document.it.borrowlist.return');
 
     // IT Document
     Route::prefix('it')->group(function () {

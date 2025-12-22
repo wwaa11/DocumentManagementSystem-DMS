@@ -10,13 +10,15 @@ class Hardware extends Model
     protected $fillable = [
         'borrow_id',
         'serial_number',
+        'approver',
         'detail',
         'borrow_date',
     ];
 
     protected $casts = [
-        'borrow_date' => 'datetime',
-        'return_date' => 'datetime',
+        'borrow_date'   => 'datetime',
+        'return_date'   => 'datetime',
+        'retrieve_date' => 'datetime',
     ];
 
     public function borrow_document()
