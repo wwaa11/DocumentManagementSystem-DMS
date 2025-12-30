@@ -172,4 +172,14 @@ class DocumentUser extends Model
         return $document;
     }
 
+    public function gettAlllogs()
+    {
+        $it = DocumentitUser::where('document_user_id', $this->id)->first();
+        if ($it == null) {
+            return null;
+        } else {
+            return $it->logs->where('action', 'process');
+        }
+    }
+
 }

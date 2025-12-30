@@ -50,6 +50,16 @@
                         </div>
                     @endforeach
                 @endif
+                @foreach ($document->documentUser->gettAlllogs() as $item)
+                    <div class="rounded-box border-accent text-accent w-full border p-2">
+                        <div>การดำเนินการจากแผนก IT</div>
+                        <div class="py-3">{{ $item->details }}</div>
+                        <div class="flex justify-between text-xs">
+                            <div>{{ $item->user->name }}</div>
+                            <div>{{ $item->created_at->format("d/m/Y H:i:s") }}</div>
+                        </div>
+                    </div>
+                @endforeach
                 @include("admin.user.actions.$action")
                 <div class="divider"></div>
                 @include("document.logs", ["logs" => $document->logs])

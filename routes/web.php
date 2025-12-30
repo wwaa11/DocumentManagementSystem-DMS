@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DocumentITController;
 use App\Http\Controllers\DocumentUserController;
@@ -11,7 +12,13 @@ Route::post('/login', [AuthController::class, 'LoginRequest'])->name('post.login
 Route::post('/logout', [AuthController::class, 'LogoutRequest'])->name('logout');
 
 Route::group(['middleware' => 'auth'], function () {
-    // Base Document
+
+    Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
+        Route::get('/approver/list', [AdminController::class, 'ApproverList'])->name('approvers.list');
+        Route::get('/approver/update', [AdminController::class, 'ApproverList'])->name('approvers.update');
+    });
+
+    // Base Create Document
     Route::get('/', [WebController::class, 'myDocument'])->name('document.index');
     Route::get('/document/create', [WebController::class, 'createDocument'])->name('document.create');
     Route::get('/document/{document_type}/create', [WebController::class, 'createDocumentByType'])->name('document.create.type');
@@ -19,11 +26,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/document/{document_type}/cancel/{document_id}', [WebController::class, 'cancelDocument'])->name('document.type.cancel');
     Route::get('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocument'])->name('document.type.approve');
     Route::post('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocumentRequest'])->name('document.type.approve.request');
-    // Document Cancel
 
-    // Document Files
+    // Document Download Files
     Route::get('/document/files/{file}', [WebController::class, 'fileShow'])->name('document.files.show');
     Route::get('/document/files/download/{file}', [WebController::class, 'fileDownload'])->name('document.files.download');
+
     // User Search
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
 
@@ -60,6 +67,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     });
 
+    // HC , Heart Stream, PAC, Register
     Route::prefix('user')->middleware(['auth', 'admin'])->group(function () {
         // Page Documents
         Route::get('/admin/{type}/approvelist/', [DocumentUserController::class, 'adminApproveDocuments'])->name('admin.user.approvelist');
