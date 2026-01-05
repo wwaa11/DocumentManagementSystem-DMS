@@ -19,15 +19,25 @@
                 @endforeach
             </datalist>
             <div class="flex">
-                <form class="flex flex-wrap items-end gap-2" action="{{ route("approvers.update") }}" method="POST">
+                <form class="bg-base-300 m-auto mt-3 flex flex-wrap items-end gap-2 rounded-2xl p-6" action="{{ route("approvers.update") }}" method="POST">
                     @csrf
-                    <div class="form-control">
+                    @if ($errors->any())
+                        @foreach ($errors->all() as $error)
+                            <div class="alert alert-warning">
+                                <div>{{ $error }}</div>
+                            </div>
+                        @endforeach
+                    @endif
+                    <div class="form-control w-full">
                         <span class="label-text text-xs">Department</span>
-                        <input class="input input-bordered input-sm" id="form_dept" type="text" name="department" readonly>
+                        <input class="input input-bordered input-sm text-error w-full" id="form_dept" type="text" name="department" placeholder="Please search department first..." readonly>
                     </div>
                     <div class="form-control">
                         <span class="label-text text-xs">User ID</span>
-                        <input class="input input-bordered input-sm" id="form_userid" type="text" name="userid">
+                        <div class="flex gap-1">
+                            <input class="input input-bordered input-sm flex-1" id="form_userid" type="text" name="userid">
+                            <button class="btn btn-accent btn-sm" type="button" onclick="getUserData()">Search</button>
+                        </div>
                     </div>
                     <div class="form-control">
                         <span class="label-text text-xs">Name</span>
@@ -76,7 +86,6 @@
                 @endforeach
             </tbody>
         </table>
-
     </div>
 @endsection
 @push("scripts")
@@ -120,6 +129,53 @@
                 document.getElementById(id).classList.add('input-primary');
                 setTimeout(() => document.getElementById(id).classList.remove('input-primary'), 1000);
             });
+        }
+
+        function getUserData() {
+            const userid = document.getElementById('form_userid').value.trim();
+            if (!userid) {
+                Swal.fire({
+                    title: "Error",
+                    text: "Please enter a user ID.",
+                    icon: "error",
+                    timer: 1500,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            axios.post('{{ route("approvers.getuser") }}', {
+                    userid
+                })
+                .then(response => {
+                    if (response.data.success) {
+                        // Populate form fields with server response
+                        document.getElementById('form_name').value = response.data.user.name;
+                        document.getElementById('form_position').value = response.data.user.position;
+                        document.getElementById('form_email').value = response.data.user.email;
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: response.data.message || "User not found.",
+                            icon: "error",
+                            timer: 1500,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: "Error",
+                        text: "An error occurred while fetching user data.",
+                        icon: "error",
+                        timer: 1500,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    });
+                });
         }
     </script>
 @endpush

@@ -15,7 +15,11 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         Route::get('/approver/list', [AdminController::class, 'ApproverList'])->name('approvers.list');
-        Route::get('/approver/update', [AdminController::class, 'ApproverList'])->name('approvers.update');
+        Route::post('/approver/getuser', [AdminController::class, 'ApproverGetUser'])->name('approvers.getuser');
+        Route::post('/approver/update', [AdminController::class, 'ApproverUpdate'])->name('approvers.update');
+
+        Route::get('/role/list', [AdminController::class, 'RoleList'])->name('roles.list');
+        Route::post('/role/update', [AdminController::class, 'RoleUpdate'])->name('roles.update');
     });
 
     // Base Create Document
@@ -39,7 +43,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/it/return', [DocumentITController::class, 'borrowReturn'])->name('document.it.borrowlist.return');
 
     // IT Document
-    Route::prefix('it')->middleware(['auth', 'admin'])->group(function () {
+    Route::prefix('it')->middleware(['auth', 'it'])->group(function () {
         // Page Documents
         Route::get('/admin/hardwaredocument', [DocumentITController::class, 'adminHardwareDocuments'])->name('admin.it.hardwarelist');
         Route::get('/admin/approvelist', [DocumentITController::class, 'adminApproveDocuments'])->name('admin.it.approvelist');
@@ -68,7 +72,7 @@ Route::group(['middleware' => 'auth'], function () {
     });
 
     // HC , Heart Stream, PAC, Register
-    Route::prefix('user')->middleware(['auth', 'admin'])->group(function () {
+    Route::prefix('user')->middleware(['auth', 'user'])->group(function () {
         // Page Documents
         Route::get('/admin/{type}/approvelist/', [DocumentUserController::class, 'adminApproveDocuments'])->name('admin.user.approvelist');
         Route::get('/admin/{type}/newdocument', [DocumentUserController::class, 'adminNewDocuments'])->name('admin.user.newlist');

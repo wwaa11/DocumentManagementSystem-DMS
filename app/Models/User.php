@@ -33,7 +33,7 @@ class User extends Authenticatable
     public function getMenuAttribute()
     {
         switch ($this->role) {
-            case 'admin':
+            case 'dev':
                 return [
                     'count' => [
                         [
@@ -58,6 +58,28 @@ class User extends Authenticatable
                         ],
                     ],
                     'lists' => [
+                        // Admin
+                        [
+                            'title' => 'Admin',
+                            'type'  => 'admin',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approvers',
+                            'type'  => 'approver',
+                            'id'    => 'approver',
+                            'link'  => 'approvers.list',
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Roles',
+                            'type'  => 'role',
+                            'id'    => 'role',
+                            'link'  => 'roles.list',
+                            'count' => false,
+                        ],
                         // IT
                         [
                             'title' => 'IT',
@@ -217,6 +239,315 @@ class User extends Authenticatable
                             'count' => false,
                         ],
                         // REGISTRATION
+                        [
+                            'title' => 'REGISTRATION',
+                            'type'  => 'register',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'register',
+                            'id'    => 'approve',
+                            'link'  => 'admin.user.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'register',
+                            'id'    => 'new',
+                            'link'  => 'admin.user.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'register',
+                            'id'    => 'my',
+                            'link'  => 'admin.user.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'register',
+                            'id'    => 'all',
+                            'link'  => 'admin.user.alllist',
+                            'count' => false,
+                        ],
+                    ],
+                ];
+                break;
+            case 'admin':
+                return [
+                    'count' => [
+                        [
+                            'type'  => 'it',
+                            'route' => 'admin.it.count',
+                        ],
+                    ],
+                    'lists' => [
+                        [
+                            'title' => 'IT',
+                            'type'  => 'it',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Hardware Jobs',
+                            'type'  => 'it',
+                            'id'    => 'hardware',
+                            'link'  => 'admin.it.hardwarelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'it',
+                            'id'    => 'approve',
+                            'link'  => 'admin.it.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Borrow',
+                            'type'  => 'it',
+                            'id'    => 'borrow',
+                            'link'  => 'admin.it.borrowlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'it',
+                            'id'    => 'new',
+                            'link'  => 'admin.it.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'it',
+                            'id'    => 'my',
+                            'link'  => 'admin.it.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'it',
+                            'id'    => 'all',
+                            'link'  => 'admin.it.alllist',
+                            'count' => false,
+                        ],
+                    ],
+                ];
+                break;
+            case 'it':
+                return [
+                    'count' => [
+                        [
+                            'type'  => 'it',
+                            'route' => 'admin.it.count',
+                        ],
+                    ],
+                    'lists' => [
+                        [
+                            'title' => 'IT',
+                            'type'  => 'it',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Hardware Jobs',
+                            'type'  => 'it',
+                            'id'    => 'hardware',
+                            'link'  => 'admin.it.hardwarelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'it',
+                            'id'    => 'approve',
+                            'link'  => 'admin.it.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'Borrow',
+                            'type'  => 'it',
+                            'id'    => 'borrow',
+                            'link'  => 'admin.it.borrowlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'it',
+                            'id'    => 'new',
+                            'link'  => 'admin.it.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'it',
+                            'id'    => 'my',
+                            'link'  => 'admin.it.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'it',
+                            'id'    => 'all',
+                            'link'  => 'admin.it.alllist',
+                            'count' => false,
+                        ],
+                    ],
+                ];
+                break;
+            case 'pac':
+                return [
+                    'count' => [
+                        [
+                            'type'  => 'pac',
+                            'route' => 'admin.user.count',
+                        ],
+                    ],
+                    'lists' => [
+                        [
+                            'title' => 'PAC',
+                            'type'  => 'pac',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'pac',
+                            'id'    => 'approve',
+                            'link'  => 'admin.user.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'pac',
+                            'id'    => 'new',
+                            'link'  => 'admin.user.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'pac',
+                            'id'    => 'my',
+                            'link'  => 'admin.user.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'pac',
+                            'id'    => 'all',
+                            'link'  => 'admin.user.alllist',
+                            'count' => false,
+                        ],
+                    ],
+                ];
+                break;
+            case 'lab':
+                return [
+                    'count' => [
+                        [
+                            'type'  => 'lab',
+                            'route' => 'admin.user.count',
+                        ],
+                    ],
+                    'lists' => [
+                        [
+                            'title' => 'LAB',
+                            'type'  => 'lab',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'lab',
+                            'id'    => 'approve',
+                            'link'  => 'admin.user.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'lab',
+                            'id'    => 'new',
+                            'link'  => 'admin.user.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'lab',
+                            'id'    => 'my',
+                            'link'  => 'admin.user.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'lab',
+                            'id'    => 'all',
+                            'link'  => 'admin.user.alllist',
+                            'count' => false,
+                        ],
+                    ],
+                ];
+                break;
+            case 'heartstream':
+                return [
+                    'count' => [
+                        [
+                            'type'  => 'heartstream',
+                            'route' => 'admin.user.count',
+                        ],
+                    ],
+                    'lists' => [
+                        [
+                            'title' => 'HEARTSTREAM',
+                            'type'  => 'heartstream',
+                            'id'    => 'title',
+                            'link'  => null,
+                            'count' => false,
+                        ],
+                        [
+                            'title' => 'Approve Jobs',
+                            'type'  => 'heartstream',
+                            'id'    => 'approve',
+                            'link'  => 'admin.user.approvelist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'New Jobs',
+                            'type'  => 'heartstream',
+                            'id'    => 'new',
+                            'link'  => 'admin.user.newlist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'My Jobs',
+                            'type'  => 'heartstream',
+                            'id'    => 'my',
+                            'link'  => 'admin.user.mylist',
+                            'count' => true,
+                        ],
+                        [
+                            'title' => 'All Jobs',
+                            'type'  => 'heartstream',
+                            'id'    => 'all',
+                            'link'  => 'admin.user.alllist',
+                            'count' => false,
+                        ],
+                    ],
+                ];
+            case 'register':
+                return [
+                    'count' => [
+                        [
+                            'type'  => 'register',
+                            'route' => 'admin.user.count',
+                        ],
+                    ],
+                    'lists' => [
                         [
                             'title' => 'REGISTRATION',
                             'type'  => 'register',

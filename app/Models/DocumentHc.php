@@ -31,7 +31,7 @@ class DocumentHc extends Model
     public function getDocumentTagAttribute()
     {
         return [
-            'document_tag' => 'PAC',
+            'document_tag' => 'HCLAB',
             'colour'       => 'warning',
         ];
     }

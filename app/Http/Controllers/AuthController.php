@@ -45,6 +45,7 @@ class AuthController extends Controller
                         $userData->department = $responseData['user']['department'];
                         $userData->division   = $responseData['user']['division'];
                         $userData->email      = $responseData['user']['email'];
+                        $userData->role       = $this->setRoles($userid, $responseData['user']['department']);
                         $userData->save();
                     }
                 }
@@ -92,6 +93,7 @@ class AuthController extends Controller
             $userData->department = $responseData['user']['department'];
             $userData->division   = $responseData['user']['division'];
             $userData->email      = $responseData['user']['email'];
+            $userData->role       = $this->setRoles($userid, $responseData['user']['department']);
             $userData->save();
 
             Auth::login($userData);
@@ -101,6 +103,25 @@ class AuthController extends Controller
         }
 
         return response()->json($data, 200);
+    }
+
+    private function setRoles($department, $division)
+    {
+        $role = 'user';
+
+        if ($division == 'ฝ่ายเทคโนโลยีสารสนเทศ') {
+            $role = 'it';
+        } elseif ($department == 'แผนกห้องปฏิบัติการ') {
+            $role = 'lab';
+        } elseif ($department == 'แผนกเอกซเรย์') {
+            $role = 'pac';
+        } elseif ($department == 'แผนก Contact Center') {
+            $role = 'heartstream';
+        } elseif ($department == 'แผนกRegistration') {
+            $role = 'register';
+        }
+
+        return $role;
     }
 
     public function LogoutRequest(Request $request)

@@ -31,7 +31,7 @@ class DocumentHeartstream extends Model
     public function getDocumentTagAttribute()
     {
         return [
-            'document_tag' => 'PAC',
+            'document_tag' => 'Heartstream',
             'colour'       => 'warning',
         ];
     }

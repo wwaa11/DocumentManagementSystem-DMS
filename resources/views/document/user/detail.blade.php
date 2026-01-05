@@ -33,6 +33,13 @@
     @endif
     <strong>รายละเอียด</strong>
     <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail !!}</p>
+    @foreach ($document->getAllDocuments() as $doc)
+        @foreach ($doc->logs->where("action", "process") as $key => $log)
+            <p class="border-accent rounded-md border p-4">{{ $log->details }}
+            <div class="text-end text-xs text-gray-500">{{ $log->user->name }} {{ $log->created_at->format("d/m/Y H:i:s") }}</div>
+            </p>
+        @endforeach
+    @endforeach
     <div class="divider"></div>
     <strong>ผู้อนุมัติ</strong>
     @foreach ($document->getAllDocuments() as $key => $doc)
