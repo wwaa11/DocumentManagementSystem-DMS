@@ -146,7 +146,8 @@ class WebController extends Controller
 
     public function createDocument()
     {
-        $document = Document::active()->get();
+        // $document = Document::active()->get();
+        $document = Document::get();
 
         return view('document_create', compact('document'));
     }

@@ -119,6 +119,10 @@ class AuthController extends Controller
             $role = 'heartstream';
         } elseif ($department == 'แผนกRegistration') {
             $role = 'register';
+        } elseif ($department == 'แผนกสื่อสารแบรนด์และสื่อสารการตลาด') {
+            $role = 'media';
+        } elseif ($division == 'ฝ่ายจัดซื้อ') {
+            $role = 'purchase';
         }
 
         return $role;
