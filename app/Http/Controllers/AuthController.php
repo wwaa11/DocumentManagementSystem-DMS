@@ -45,7 +45,7 @@ class AuthController extends Controller
                         $userData->department = $responseData['user']['department'];
                         $userData->division   = $responseData['user']['division'];
                         $userData->email      = $responseData['user']['email'];
-                        $userData->role       = $this->setRoles($userid, $responseData['user']['department']);
+                        $userData->role       = $this->setRoles($responseData['user']['department'], $responseData['user']['division']);
                         $userData->save();
                     }
                 }
@@ -93,7 +93,7 @@ class AuthController extends Controller
             $userData->department = $responseData['user']['department'];
             $userData->division   = $responseData['user']['division'];
             $userData->email      = $responseData['user']['email'];
-            $userData->role       = $this->setRoles($userid, $responseData['user']['department']);
+            $userData->role       = $this->setRoles($responseData['user']['department'], $responseData['user']['division']);
             $userData->save();
 
             Auth::login($userData);
