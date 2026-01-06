@@ -20,14 +20,14 @@ class DatabaseSeeder extends Seeder
             'department' => 'หน่วยพัฒนาระบบสนับสนุนการตัดสินใจ',
             'division'   => 'ฝ่ายเทคโนโลยีสารสนเทศ',
             'email'      => 'pakawak@praram9.com',
-            'role'       => 'admin',
+            'role'       => 'dev',
         ]);
 
         // Create Document Type
         $documentType = [
             ['short_name' => 'it', 'name' => 'แจ้งงาน IT'],
-            ['short_name' => 'media', 'name' => 'เอกสารขออนุมัติผลิตสื่อ'],
-            ['short_name' => 'purchase', 'name' => 'แจ้งงานจัดซื้อ'],
+            ['short_name' => 'media', 'name' => 'เอกสารขออนุมัติผลิตสื่อ', 'active' => false],
+            ['short_name' => 'purchase', 'name' => 'แจ้งงานจัดซื้อ', 'active' => false],
         ];
         foreach ($documentType as $type) {
             Document::create($type);

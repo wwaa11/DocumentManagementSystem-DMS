@@ -5,9 +5,11 @@ use App\Models\Approver;
 use App\Models\DocumentListApprover;
 use App\Models\DocumentListTask;
 use App\Models\File;
+use App\Models\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 
 class HelperController extends Controller
 {
@@ -71,6 +73,8 @@ class HelperController extends Controller
                             'userid' => $dataField['approver']['userid'],
                             'step'   => $approver->step,
                         ]);
+
+                        $this->mail($dataField['approver']['email'], $approveable);
                     }
                 }
             } else {
@@ -80,9 +84,6 @@ class HelperController extends Controller
                 ]);
             }
         }
-
-        // To implement send EMAIL
-        // $dataField['approver']['email']
 
         $approveable->approvers()->saveMany($approverList);
     }
@@ -151,4 +152,52 @@ class HelperController extends Controller
         }
     }
 
+    public function mail($email, $document)
+    {
+        $detail = $document->detail;
+        $detail .= '<br><br><a href="' . route('document.type.approve', ['document_type' => $document->document_tag['document_tag'], 'document_id' => $document->id]) . '">Click here to approve</a>';
+
+        if ($email == '' || $email == '-' || env('APP_ENV') == 'local') {
+            $mail = Mail::create([
+                'email'   => $email,
+                'subject' => $document->title,
+                'body'    => $detail,
+                'status'  => 'test',
+            ]);
+
+            return true;
+        } else {
+            $mail = Mail::create([
+                'email'   => $email,
+                'subject' => $document->title,
+                'body'    => $detail,
+            ]);
+
+            $response = Http::withHeaders([
+                'content-type' => 'application/json',
+                'API_KEY'      => env('API_EMAIL'),
+            ])->post('http://172.20.1.12:8086/api/email/local/send', [
+                "To"          => [$email],
+                "Cc"          => [],
+                "Bcc"         => [],
+                "Username"    => "pr9autosendmail@praram9.com",
+                "Password"    => "P@rnchai289",
+                "DisplayName" => "DMS",
+                "Subject"     => $document->title,
+                "Body"        => $detail,
+                "Attachments" => [],
+            ]);
+
+            $response = $response->json();
+            if ($response['responseCode'] == 1) {
+                $mail->status = 'success';
+                $mail->save();
+            } else {
+                $mail->status = $response['responseMsg'];
+                $mail->save();
+            }
+
+            return true;
+        }
+    }
 }

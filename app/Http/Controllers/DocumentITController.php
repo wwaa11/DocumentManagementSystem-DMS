@@ -29,16 +29,6 @@ class DocumentITController extends Controller
     // Create Document
     public function createDocument(Request $request)
     {
-        // dd($request);
-        // dump($request->all());
-        // Dev bybass validation
-        // $request->validate([
-        //     'type'        => 'required|in:user,support',
-        //     'requester'   => 'required|string',
-        //     'title'       => 'required|string',
-        //     'description' => 'required|string',
-        // ]);
-
         switch ($request->main_document_type) {
             case 'user':
                 $this->createDocumentUser($request);
@@ -52,7 +42,6 @@ class DocumentITController extends Controller
             default:
                 break;
         }
-        // die();
 
         return redirect()->route('document.index')->with('success', 'สร้างเอกสารสำเร็จ!');
     }
