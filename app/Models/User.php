@@ -668,6 +668,15 @@ class User extends Authenticatable
                 'status',
                 'created_at',
             );
+        $trainings = DocumentTraining::where('requester', $userId)
+            ->select(
+                'id',
+                'requester',
+                'title',
+                'detail',
+                'status',
+                'created_at',
+            );
 
         $document = [];
         foreach ($its->get() as $item) {
@@ -677,6 +686,9 @@ class User extends Authenticatable
             $document[] = $item;
         }
         foreach ($borrows->get() as $item) {
+            $document[] = $item;
+        }
+        foreach ($trainings->get() as $item) {
             $document[] = $item;
         }
 

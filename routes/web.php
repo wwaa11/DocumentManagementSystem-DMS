@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DocumentITController;
+use App\Http\Controllers\DocumentTrainingController;
 use App\Http\Controllers\DocumentUserController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
@@ -12,7 +13,7 @@ Route::post('/login', [AuthController::class, 'LoginRequest'])->name('post.login
 Route::post('/logout', [AuthController::class, 'LogoutRequest'])->name('logout');
 
 Route::group(['middleware' => 'auth'], function () {
-
+    // Admin
     Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         Route::get('/approver/list', [AdminController::class, 'ApproverList'])->name('approvers.list');
         Route::post('/approver/getuser', [AdminController::class, 'ApproverGetUser'])->name('approvers.getuser');
@@ -30,18 +31,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/document/{document_type}/cancel/{document_id}', [WebController::class, 'cancelDocument'])->name('document.type.cancel');
     Route::get('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocument'])->name('document.type.approve');
     Route::post('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocumentRequest'])->name('document.type.approve.request');
-
-    // Document Download Files
     Route::get('/document/files/{file}', [WebController::class, 'fileShow'])->name('document.files.show');
     Route::get('/document/files/download/{file}', [WebController::class, 'fileDownload'])->name('document.files.download');
-
-    // User Search
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
 
     // Create Document IT and User for PAC HC Heartstream Register
     Route::post('/it/create', [DocumentITController::class, 'createDocument'])->name('document.it.create');
     Route::post('/it/return', [DocumentITController::class, 'borrowReturn'])->name('document.it.borrowlist.return');
-
     // IT Document
     Route::prefix('it')->middleware(['auth', 'it'])->group(function () {
         // Page Documents
@@ -70,7 +66,6 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/borrowlist/retrieve', [DocumentITController::class, 'adminBorrowRetrieve'])->name('admin.it.borrowlist.retrieve');
 
     });
-
     // HC , Heart Stream, PAC, Register
     Route::prefix('user')->middleware(['auth', 'user'])->group(function () {
         // Page Documents
@@ -89,4 +84,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/complete', [DocumentUserController::class, 'completeDocument'])->name('admin.user.complete');
         Route::post('/admin/completeall', [DocumentUserController::class, 'completeAllDocument'])->name('admin.user.completeall');
     });
+
+    // Training
+    Route::post('/training/create', [DocumentTrainingController::class, 'createDocument'])->name('document.training.create');
 });

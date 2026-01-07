@@ -56,6 +56,7 @@
                                 <option value="">ทั้งหมด</option>
                                 <option value="IT" {{ request("document_tag") == "IT" ? "selected" : "" }}>IT</option>
                                 <option value="USER" {{ request("document_tag") == "USER" ? "selected" : "" }}>USER</option>
+                                <option value="Training" {{ request("document_tag") == "Training" ? "selected" : "" }}>Training</option>
                             </select>
                         </div>
 

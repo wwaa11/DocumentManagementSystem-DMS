@@ -5,6 +5,7 @@ use App\Http\Controllers\HelperController;
 use App\Models\Document;
 use App\Models\DocumentBorrow;
 use App\Models\DocumentIT;
+use App\Models\DocumentTraining;
 use App\Models\DocumentUser;
 use App\Models\File;
 use App\Models\User;
@@ -33,6 +34,9 @@ class WebController extends Controller
                 break;
             case 'BORROW':
                 $document = DocumentBorrow::find($document_id);
+                break;
+            case 'Training':
+                $document = DocumentTraining::find($document_id);
                 break;
             default:
                 $document = null;
@@ -146,7 +150,6 @@ class WebController extends Controller
 
     public function createDocument()
     {
-        // $document = Document::active()->get();
         $document = Document::get();
 
         return view('document_create', compact('document'));
@@ -166,6 +169,12 @@ class WebController extends Controller
                 break;
             case 'purchase':
                 $view = 'document.purchase.create';
+                break;
+            case 'cqi':
+                $view = 'document.cqi.create';
+                break;
+            case 'training':
+                $view = 'document.training.create';
                 break;
             default:
                 return redirect()->route('document.create');

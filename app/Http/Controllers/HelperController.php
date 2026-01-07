@@ -78,6 +78,7 @@ class HelperController extends Controller
                     }
                 }
             } else {
+                // More than 1 step
                 $approverList[] = new Approver([
                     'userid' => $approver->userid,
                     'step'   => $approver->step,

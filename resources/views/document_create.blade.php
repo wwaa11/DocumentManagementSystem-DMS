@@ -20,7 +20,7 @@
                     </div>
                 @else
                     <div class="card bg-base-100 cursor-not-allowed opacity-80 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
-                        <div class="card-body text-error flex h-full flex-col items-center justify-center">
+                        <div class="card-body text-base-content/70 flex h-full flex-col items-center justify-center">
                             <div class="mb-4 text-5xl">
                                 <i class="fas fa-file-alt"></i>
                             </div>

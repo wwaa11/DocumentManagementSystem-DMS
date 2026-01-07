@@ -28,6 +28,8 @@ class DatabaseSeeder extends Seeder
             ['short_name' => 'it', 'name' => 'แจ้งงาน IT'],
             ['short_name' => 'media', 'name' => 'เอกสารขออนุมัติผลิตสื่อ', 'active' => false],
             ['short_name' => 'purchase', 'name' => 'แจ้งงานจัดซื้อ', 'active' => false],
+            ['short_name' => 'cqi', 'name' => 'โครงการพพัฒนาคุณภาพ (CQI)', 'active' => false],
+            ['short_name' => 'training', 'name' => 'ฝึกอบรมภาคอิสระ'],
         ];
         foreach ($documentType as $type) {
             Document::create($type);
@@ -39,6 +41,7 @@ class DatabaseSeeder extends Seeder
             ['document_type' => 'user', 'userid' => 'head_of_department', 'step' => 1],
             ['document_type' => 'media', 'userid' => 'head_of_department', 'step' => 1],
             ['document_type' => 'purchase', 'userid' => 'head_of_department', 'step' => 1],
+            ['document_type' => 'training', 'userid' => 'head_of_department', 'step' => 1],
         ];
         foreach ($documentApproveList as $approve) {
             DocumentListApprover::create($approve);

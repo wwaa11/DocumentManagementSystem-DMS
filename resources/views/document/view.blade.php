@@ -6,10 +6,13 @@
                 @include("document.it.detail")
             @elseif ($type == "USER")
                 @include("document.user.detail")
+            @elseif ($type == "Training")
+                @include("document.training.detail")
             @endif
         </div>
         <div class="card bg-base-100 mb-4 shadow-xl">
             <div class="card-body">
+                {{-- action --}}
                 @if ($document->status == "wait_approval")
                     <div class="flex flex-col gap-3">
                         <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>
@@ -21,6 +24,7 @@
                         <div class="divider"></div>
                     </div>
                 @endif
+                {{-- log --}}
                 @if ($type == "IT" || $type == "BORROW")
                     @include("document.logs", ["logs" => $document->logs])
                 @elseif ($type == "USER")
