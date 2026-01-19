@@ -356,6 +356,28 @@ class DatabaseSeeder extends Seeder
                 'task_position' => 'รองกรรมการผู้อำนวยการ',
                 'task_name'     => 'รออนุมัติจากผู้อำนวยการ',
             ],
+            // Training
+            [
+                'document_type' => 'training',
+                'step'          => 1,
+                'task_user'     => 'head_of_department',
+                'task_position' => '-',
+                'task_name'     => 'รออนุมัติจากแผนก',
+            ],
+            [
+                'document_type' => 'training',
+                'step'          => 2,
+                'task_user'     => 'training_pending',
+                'task_position' => '-',
+                'task_name'     => 'รอสร้างการอบรม',
+            ],
+            [
+                'document_type' => 'training',
+                'step'          => 3,
+                'task_user'     => 'training_process',
+                'task_position' => '-',
+                'task_name'     => 'ระหว่างการฝึกอบรม',
+            ],
         ];
         foreach ($documentTaskList as $task) {
             DocumentListTask::create($task);

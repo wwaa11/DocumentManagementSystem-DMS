@@ -11,12 +11,22 @@ class DocumentTraining extends Model
         'document_tag',
     ];
 
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date'   => 'datetime',
+    ];
+
     public function getDocumentTagAttribute()
     {
         return [
             'document_tag' => 'Training',
             'colour'       => 'secondary',
         ];
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'requester', 'userid');
     }
 
     public function approvers()
@@ -26,12 +36,12 @@ class DocumentTraining extends Model
 
     public function mentors()
     {
-        return $this->hasMany(DocumentTrainingMentor::class, 'training_id');
+        return $this->hasMany(DocumentTrainingMentor::class, 'document_training_id');
     }
 
     public function participants()
     {
-        return $this->hasMany(DocumentTrainingParticipant::class, 'training_id');
+        return $this->hasMany(DocumentTrainingParticipant::class, 'document_training_id');
     }
 
     public function files()

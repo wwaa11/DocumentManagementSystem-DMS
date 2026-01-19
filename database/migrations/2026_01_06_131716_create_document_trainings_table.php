@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('hours');
             $table->integer('minutes');
             $table->string('detail');
-            $table->string('status')->default('process');
+            $table->string('status')->default('wait_approval');
             $table->string('training_id')->nullable();
             $table->timestamps();
         });

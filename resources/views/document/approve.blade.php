@@ -6,6 +6,8 @@
                 @include("document.it.detail")
             @elseif ($type == "USER")
                 @include("document.user.detail")
+            @elseif ($type == "Training")
+                @include("document.training.detail")
             @endif
         </div>
         <div class="card bg-base-100 mb-4 shadow-xl">
