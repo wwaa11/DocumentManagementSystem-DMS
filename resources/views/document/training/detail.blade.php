@@ -73,4 +73,5 @@
             ไม่มีผู้เข้าร่วม
         </div>
     @endif
+    @include("document.tasks", ["tasks" => $document->tasks])
 </div>

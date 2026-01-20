@@ -46,7 +46,16 @@ class DocumentTraining extends Model
 
     public function files()
     {
-        // 'fileable' must match the prefix used in the files table migration
         return $this->morphMany(File::class, 'fileable');
+    }
+
+    public function tasks()
+    {
+        return $this->morphMany(Task::class, 'taskable');
+    }
+
+    public function logs()
+    {
+        return $this->morphMany(Log::class, 'loggable');
     }
 }

@@ -19,7 +19,7 @@ class DocumentTrainingController extends Controller
     {
         $request->validate([
             'approver'            => 'required|array',
-            'mentors_userid'      => 'required|array',
+            'mentors_userid'      => 'nullable|array',
             'participants_userid' => 'required|array',
             'training_name'       => 'required|string',
             'start_date'          => 'required|date',
@@ -61,10 +61,16 @@ class DocumentTrainingController extends Controller
             'selfApprove' => false,
             'approver'    => $approver,
         ];
+        $taskData = [
+            'document_type' => 'training',
+            'selfApprove'   => false,
+            'approver'      => $request['approver'],
+        ];
         $this->helper->createApprover('training', $approverField, $document);
         $this->helper->createFile($request, $document);
+        $this->helper->createTask($taskData, $document);
 
-        $mentors = $request->mentors_userid;
+        $mentors = $request->mentors_userid ?? [];
         foreach ($mentors as $index => $mentor) {
             $documentTrainingMentor                       = new DocumentTrainingMentor();
             $documentTrainingMentor->document_training_id = $document->id;

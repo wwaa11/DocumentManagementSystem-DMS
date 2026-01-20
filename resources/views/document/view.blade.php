@@ -25,10 +25,10 @@
                     </div>
                 @endif
                 {{-- log --}}
-                @if ($type == "IT" || $type == "BORROW")
-                    @include("document.logs", ["logs" => $document->logs])
-                @elseif ($type == "USER")
+                @if ($type == "USER")
                     @include("document.user.logs", ["logs" => $document->getAllDocuments()])
+                @else
+                    @include("document.logs", ["logs" => $document->logs])
                 @endif
             </div>
         </div>
