@@ -13,7 +13,9 @@
         <div class="card bg-base-100 mb-4 shadow-xl">
             <div class="card-body">
                 {{-- action --}}
-                @if ($document->status == "wait_approval")
+                @if ($type == "Training")
+                    @include("document.training.management")
+                @elseif ($document->status == "wait_approval")
                     <div class="flex flex-col gap-3">
                         <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>
                         <div class="divider"></div>
@@ -24,6 +26,7 @@
                         <div class="divider"></div>
                     </div>
                 @endif
+
                 {{-- log --}}
                 @if ($type == "USER")
                     @include("document.user.logs", ["logs" => $document->getAllDocuments()])

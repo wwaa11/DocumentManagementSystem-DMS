@@ -47,7 +47,23 @@
         </div>
     @endif
     <strong>รายชื่อผู้เข้าร่วม</strong>
-    @if (count($document->participants) > 0)
+    @if ($document->training_id != null)
+        <table class="table w-full">
+            <thead>
+                <tr>
+                    <th>รหัสพนักงาน</th>
+                    <th>ชื่อ-นามสกุล</th>
+                    <th>เวลาเข้าร่วม</th>
+                    <th>เวลาอนุมัติ</th>
+                </tr>
+            </thead>
+            <tbody id="attendance-table">
+                <tr>
+                    <td colspan="4">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    @elseif (count($document->participants) > 0)
         <table class="table">
             <thead>
                 <tr>
@@ -75,3 +91,73 @@
     @endif
     @include("document.tasks", ["tasks" => $document->tasks])
 </div>
+@push("scripts")
+    @if ($document->training_id != null)
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                axios.post("{{ route("document.training.getAttendance") }}", {
+                    project_id: '{{ $document->id }}',
+                }).then((response) => {
+                    if (response.data.success) {
+                        let html = "";
+                        for (const date in response.data.transaction) {
+                            html += `
+                                <tr class="bg-base-200">
+                                    <td colspan="4">${date}</td>
+                                </tr>
+                            `;
+                            for (const time in response.data.transaction[date]) {
+                                for (const user of response.data.transaction[date][time]) {
+                                    var canApprove = user.attend_datetime != null && user.approve_datetime == null;
+                                    console.log(canApprove, user.attend_datetime, user.approve_datetime);
+                                    html += `
+                                    <tr>
+                                        <td>${user.userid}</td>
+                                        <td>${user.name}</td>
+                                        <td>${user.attend_datetime ? user.attend_datetime : "-"}</td>
+                                        <td>${canApprove ? "<button class='btn btn-primary' onclick='approveAttendance(\"" + user.id + "\", \"" + user.userid + "\")'>อนุมัติ</button>" : user.approve_datetime ? user.approve_datetime : "-"}</td>
+                                    </tr>
+                                    `;
+                                }
+                            }
+                        }
+                        document.querySelector("#attendance-table").innerHTML = html;
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: response.data.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                });
+            });
+
+            function approveAttendance(id, userid) {
+                axios.post("{{ route("document.training.approveAttendance") }}", {
+                    id: id,
+                    userid: userid,
+                    project_id: '{{ $document->id }}',
+                }).then((response) => {
+                    if (response.data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'อนุมัติสำเร็จ',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: response.data.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                });
+            }
+        </script>
+    @endif
+@endpush

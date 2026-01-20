@@ -5,6 +5,7 @@ use App\Models\DocumentTraining;
 use App\Models\DocumentTrainingMentor;
 use App\Models\DocumentTrainingParticipant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class DocumentTrainingController extends Controller
 {
@@ -92,5 +93,166 @@ class DocumentTrainingController extends Controller
         }
 
         return redirect()->route('document.index')->with('success', 'สร้างเอกสารสำเร็จ!');
+    }
+
+    public function createProject(Request $request)
+    {
+        $projectId = $request->project_id;
+
+        $project = DocumentTraining::find($projectId);
+        if (! $project) {
+            return redirect()->route('document.index')->with('error', 'โปรเจกต์ไม่พบ!');
+        }
+
+        $participants = $project->participants()->pluck('participant')->toArray();
+
+        $postData = [
+            "type"       => "multiple",
+            "title"      => $project->title,
+            "detail"     => $project->detail,
+            "start_date" => $project->start_date->format('Y-m-d'),
+            "end_date"   => $project->end_date->format('Y-m-d'),
+            "start_time" => $project->start_time->format('H:i'),
+            "end_time"   => $project->end_time->format('H:i'),
+            "users"      => $participants,
+        ];
+
+        $response = Http::withHeaders([
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Bearer ' . env('API_TRAINING'),
+        ])
+            ->withoutVerifying()
+            ->post('https://pr9web.praram9.com/w_hrd/api/create-project', $postData);
+
+        if ($response->successful()) {
+            $res                  = $response->json();
+            $project->training_id = $res['project']['id'];
+            $project->save();
+
+            $project->tasks()->where('step', 2)->update([
+                'status'        => 'approve',
+                'task_name'     => 'เสร็จสิ้นการฝึกอบรมเสร็จสิ้น',
+                'task_user'     => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date'          => date('Y-m-d H:i:s'),
+            ]);
+
+            $project->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'create_project',
+                'details' => 'สร้างโครงการฝึกอบรม ' . $project->title . ' สำเร็จ!',
+            ]);
+
+            $response = [
+                'status'  => 'success',
+                'message' => 'สร้างโปรเจกต์สำเร็จ!',
+            ];
+        } else {
+            $response = [
+                'status'  => 'failed',
+                'message' => 'สร้างโปรเจกต์ไม่สำเร็จ!',
+            ];
+        }
+
+        return response()->json($response, 200);
+    }
+
+    public function getAttendance(Request $request)
+    {
+        $projectId = $request->project_id;
+        $project   = DocumentTraining::find($projectId);
+
+        if (! $project) {
+            return redirect()->route('document.index')->with('error', 'โปรเจกต์ไม่พบ!');
+        }
+
+        $response = Http::withHeaders([
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Bearer ' . env('API_TRAINING'),
+        ])
+            ->withoutVerifying()
+            ->get('https://pr9web.praram9.com/w_hrd/api/get-transaction?project_id=' . $project->training_id);
+
+        if ($response->successful()) {
+            $response = $response->json();
+
+        } else {
+            $response = [
+                'status'  => 'failed',
+                'message' => 'ดึงข้อมูลการไม่สำเร็จ!',
+            ];
+        }
+
+        return response()->json($response, 200);
+    }
+
+    public function approveAttendance(Request $request)
+    {
+        $id        = $request->id;
+        $projectId = $request->project_id;
+        $project   = DocumentTraining::find($projectId);
+
+        if (! $project) {
+
+            return redirect()->route('document.index')->with('error', 'โปรเจกต์ไม่พบ!');
+        }
+
+        $response = Http::withHeaders([
+            'Content-Type'  => 'application/json',
+            'Authorization' => 'Bearer ' . env('API_TRAINING'),
+        ])
+            ->withoutVerifying()
+            ->post('https://pr9web.praram9.com/w_hrd/api/approve-transaction', ['transaction_id' => $id]);
+
+        if ($response->successful()) {
+            $response = $response->json();
+
+            $project->logs()->create([
+                'userid'  => auth()->user()->userid,
+                'action'  => 'approve_attendance',
+                'details' => 'อนุมัติการเข้าร่วม ' . $request->userid . ' สำเร็จ!',
+            ]);
+        } else {
+            $response = [
+                'status'  => 'failed',
+                'message' => 'อนุมัติการเข้าร่วมไม่สำเร็จ!',
+            ];
+        }
+
+        return response()->json($response, 200);
+    }
+
+    public function closeProject(Request $request)
+    {
+        $projectId = $request->project_id;
+        $project   = DocumentTraining::find($projectId);
+
+        if (! $project) {
+            return redirect()->route('document.index')->with('error', 'โปรเจกต์ไม่พบ!');
+        }
+
+        $project->status = 'complete';
+        $project->save();
+
+        $project->tasks()->where('step', 3)->update([
+            'status'        => 'approve',
+            'task_name'     => 'เสร็จสิ้นการฝึกอบรมเสร็จสิ้น',
+            'task_user'     => auth()->user()->userid,
+            'task_position' => auth()->user()->position,
+            'date'          => date('Y-m-d H:i:s'),
+        ]);
+
+        $project->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'close_project',
+            'details' => 'ปิดโครงการฝึกอบรม ' . $project->title . ' สำเร็จ!',
+        ]);
+
+        $response = [
+            'status'  => 'success',
+            'message' => 'ปิดโครงการฝึกอบรมสำเร็จ!',
+        ];
+
+        return response()->json($response, 200);
     }
 }

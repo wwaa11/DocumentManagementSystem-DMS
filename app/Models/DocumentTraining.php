@@ -14,6 +14,8 @@ class DocumentTraining extends Model
     protected $casts = [
         'start_date' => 'datetime',
         'end_date'   => 'datetime',
+        'start_time' => 'datetime',
+        'end_time'   => 'datetime',
     ];
 
     public function getDocumentTagAttribute()
