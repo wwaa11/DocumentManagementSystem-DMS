@@ -42,6 +42,11 @@ class DocumentItUser extends Model
         return 'ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม';
     }
 
+    public function getDetailAttribute()
+    {
+        return $this->documentUser->detail;
+    }
+
     public function getListDetailAttribute()
     {
         return strlen($this->documentUser->detail) > 100 ? mb_substr($this->documentUser->detail, 0, 100) . '...' : $this->documentUser->detail;

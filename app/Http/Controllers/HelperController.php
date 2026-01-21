@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Approver;
@@ -28,12 +29,12 @@ class HelperController extends Controller
         }
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $total       = $items->count();
+        $total = $items->count();
 
         $currentItems = $items->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
         return new LengthAwarePaginator($currentItems, $total, $perPage, $currentPage, [
-            'path'  => LengthAwarePaginator::resolveCurrentPath(),
+            'path' => LengthAwarePaginator::resolveCurrentPath(),
             'query' => $queryParameters,
         ]);
     }
@@ -41,47 +42,72 @@ class HelperController extends Controller
     public function createApprover($type, $dataField, $approveable)
     {
         $approverGetList = DocumentListApprover::where('document_type', $type)->orderBy('step', 'asc')->get();
-        $approverList    = [];
+        $approverList = [];
         foreach ($approverGetList as $approver) {
             if ($approver->userid == 'head_of_department') {
                 $islastStep = $approver->step == $approverGetList->count();
+                // Self Approve
                 if ($dataField['selfApprove'] == 'true') {
+                    // Create Self Approve
                     $approverList[] = new Approver([
-                        'userid'      => auth()->user()->userid,
-                        'step'        => $approver->step,
-                        'status'      => 'approve',
+                        'userid' => auth()->user()->userid,
+                        'step' => $approver->step,
+                        'status' => 'approve',
                         'approved_at' => date('Y-m-d H:i:s'),
                     ]);
+                    // Check Last Step and Update Document Status
                     if ($islastStep && $type !== 'user') {
-                        $approveable->status = 'pending';
-                        $approveable->save();
-                    }
-                } else {
-                    if ($dataField['approver']['userid'] == auth()->user()->userid) {
-                        $approverList[] = new Approver([
-                            'userid'      => $dataField['approver']['userid'],
-                            'step'        => $approver->step,
-                            'status'      => 'approve',
-                            'approved_at' => date('Y-m-d H:i:s'),
-                        ]);
-                        if ($islastStep && $type !== 'user') {
-                            $approveable->status = 'pending';
-                            $approveable->save();
+                        if ($approveable->assigned_user_id !== null) {
+                            $approveable->update([
+                                'status' => 'process',
+                            ]);
+                        } else {
+                            $approveable->update([
+                                'status' => 'pending',
+                            ]);
                         }
-                    } else {
+                    }
+                }
+                // Need to Approve
+                else {
+                    // the Approver is the current user
+                    if ($dataField['approver']['userid'] == auth()->user()->userid) {
+                        // Create Self Approve
                         $approverList[] = new Approver([
                             'userid' => $dataField['approver']['userid'],
-                            'step'   => $approver->step,
+                            'step' => $approver->step,
+                            'status' => 'approve',
+                            'approved_at' => date('Y-m-d H:i:s'),
+                        ]);
+
+                        if ($islastStep && $type !== 'user') {
+                            if ($approveable->assigned_user_id !== null) {
+                                $approveable->update([
+                                    'status' => 'process',
+                                ]);
+                            } else {
+                                $approveable->update([
+                                    'status' => 'pending',
+                                ]);
+                            }
+                        }
+                    }
+                    // Need to Approve
+                    else {
+                        $approverList[] = new Approver([
+                            'userid' => $dataField['approver']['userid'],
+                            'step' => $approver->step,
                         ]);
 
                         $this->mail($dataField['approver']['email'], $approveable);
                     }
                 }
-            } else {
-                // More than 1 step
+            }
+            // More than 1 step
+            else {
                 $approverList[] = new Approver([
                     'userid' => $approver->userid,
-                    'step'   => $approver->step,
+                    'step' => $approver->step,
                 ]);
             }
         }
@@ -94,20 +120,20 @@ class HelperController extends Controller
         $taskList = DocumentListTask::where('document_type', $taskData['document_type'])->orderBy('step', 'asc')->get();
         foreach ($taskList as $task) {
             $taskAttributes = [
-                'step'          => $task->step,
-                'task_name'     => $task->task_name,
-                'task_user'     => $task->task_user,
+                'step' => $task->step,
+                'task_name' => $task->task_name,
+                'task_user' => $task->task_user,
                 'task_position' => $task->task_position,
             ];
             if (
                 ($task->step == 1 && $task->task_user == 'head_of_department' && $taskData['selfApprove']) ||
                 ($task->step == 1 && $taskData['approver']['userid'] == auth()->user()->userid)
             ) {
-                $taskAttributes['status']        = 'approve';
-                $taskAttributes['task_name']     = 'อนุมัติ';
-                $taskAttributes['task_user']     = auth()->user()->userid;
+                $taskAttributes['status'] = 'approve';
+                $taskAttributes['task_name'] = 'อนุมัติ';
+                $taskAttributes['task_user'] = auth()->user()->userid;
                 $taskAttributes['task_position'] = auth()->user()->position;
-                $taskAttributes['date']          = date('Y-m-d H:i:s');
+                $taskAttributes['date'] = date('Y-m-d H:i:s');
 
                 $findOtherApprove = null;
                 if ($taskable->approvers) {
@@ -121,7 +147,7 @@ class HelperController extends Controller
             }
 
             if ($task->task_user == 'head_of_department') {
-                $taskAttributes['task_user']     = $taskData['approver']['userid'];
+                $taskAttributes['task_user'] = $taskData['approver']['userid'];
                 $taskAttributes['task_position'] = $taskData['approver']['position'];
             }
 
@@ -137,15 +163,15 @@ class HelperController extends Controller
         if ($uploadedFiles) {
             foreach ($uploadedFiles as $file) {
                 $originalFilename = $file->getClientOriginalName();
-                $mimeType         = $file->getMimeType();
-                $size             = $file->getSize();
-                $storedPath       = $file->store('uploads', 'public'); // Store in storage/app/public/uploads
+                $mimeType = $file->getMimeType();
+                $size = $file->getSize();
+                $storedPath = $file->store('uploads', 'public'); // Store in storage/app/public/uploads
 
                 $fileData = new File([
                     'original_filename' => $originalFilename,
-                    'stored_path'       => $storedPath,
-                    'mime_type'         => $mimeType,
-                    'size'              => $size,
+                    'stored_path' => $storedPath,
+                    'mime_type' => $mimeType,
+                    'size' => $size,
                 ]);
 
                 $fileable->files()->save($fileData);
@@ -155,38 +181,40 @@ class HelperController extends Controller
 
     public function mail($email, $document)
     {
+        $title = is_string($document->title) ? $document->title : $document->title[0].$document->title[1];
         $detail = $document->detail;
-        $detail .= '<br><br><a href="' . route('document.type.approve', ['document_type' => $document->document_tag['document_tag'], 'document_id' => $document->id]) . '">Click here to approve</a>';
+        $detail .= '<br><br><a href="'.route('document.type.approve', ['document_type' => $document->document_tag['document_tag'], 'document_id' => $document->id]).'">Click here to approve</a>';
 
         if ($email == '' || $email == '-' || env('APP_ENV') == 'local') {
+
             $mail = Mail::create([
-                'email'   => $email,
-                'subject' => $document->title,
-                'body'    => $detail,
-                'status'  => 'test',
+                'email' => $email,
+                'subject' => $title,
+                'body' => $detail,
+                'status' => 'test',
             ]);
 
             return true;
         } else {
             $mail = Mail::create([
-                'email'   => $email,
-                'subject' => $document->title,
-                'body'    => $detail,
+                'email' => $email,
+                'subject' => $title,
+                'body' => $detail,
             ]);
 
             $response = Http::withHeaders([
                 'content-type' => 'application/json',
-                'API_KEY'      => env('API_EMAIL'),
+                'API_KEY' => env('API_EMAIL'),
             ])->post('http://172.20.1.12:8086/api/email/local/send', [
-                "To"          => [$email],
-                "Cc"          => [],
-                "Bcc"         => [],
-                "Username"    => "pr9autosendmail@praram9.com",
-                "Password"    => "P@rnchai289",
-                "DisplayName" => "DMS",
-                "Subject"     => $document->title,
-                "Body"        => $detail,
-                "Attachments" => [],
+                'To' => [$email],
+                'Cc' => [],
+                'Bcc' => [],
+                'Username' => 'pr9autosendmail@praram9.com',
+                'Password' => 'P@rnchai289',
+                'DisplayName' => 'DMS',
+                'Subject' => $document->title,
+                'Body' => $detail,
+                'Attachments' => [],
             ]);
 
             $response = $response->json();

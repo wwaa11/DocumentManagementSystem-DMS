@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,15 @@ class DocumentIT extends Model
         'process',       // Document is processing
         'done',          // Document is done wait for head of admin to approve
         'complete',      // Document is completed
+    ];
+
+    protected $fillable = [
+        'requester',
+        'assigned_user_id',
+        'type',
+        'title',
+        'detail',
+        'status',
     ];
 
     protected $appends = [
@@ -37,9 +47,9 @@ class DocumentIT extends Model
     public function getDocumentTypeNameAttribute()
     {
         if ($this->type == 'support') {
-            return $this->type . 'ขอแจ้งงาน/สนับสนุนการทำงาน';
+            return $this->type.'ขอแจ้งงาน/สนับสนุนการทำงาน';
         } elseif ($this->type == 'borrow') {
-            return $this->type . 'ขอยืม/คืนอุปกรณ์';
+            return $this->type.'ขอยืม/คืนอุปกรณ์';
         }
 
     }
@@ -48,7 +58,7 @@ class DocumentIT extends Model
     {
         return [
             'document_tag' => 'IT',
-            'colour'       => 'secondary',
+            'colour' => 'secondary',
         ];
     }
 
@@ -60,7 +70,7 @@ class DocumentIT extends Model
     public function getListDetailAttribute()
     {
 
-        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
+        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100).'...' : $this->detail;
     }
 
     // Relationship to Approver
@@ -90,5 +100,4 @@ class DocumentIT extends Model
         // 'loggable' must match the prefix used in the activity_logs table migration
         return $this->morphMany(Log::class, 'loggable');
     }
-
 }

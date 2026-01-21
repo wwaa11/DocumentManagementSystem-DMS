@@ -1,14 +1,15 @@
-@extends("layouts.app")
-@section("content")
+@extends('layouts.app')
+@section('content')
     <div class="mx-8">
         <h1 class="text-primary text-2xl font-bold">รายการเอกสาร </h1>
-        <span class="countdown font-mono text-sm">Refesh in <span class="bg-base-300 mx-2 rounded-md px-2" id="countdown" style="--value:30;"></span> seconds</span>
+        <span class="countdown font-mono text-sm">Refesh in <span class="bg-base-300 mx-2 rounded-md px-2" id="countdown"
+                style="--value:30;"></span> seconds</span>
         <div class="divider"></div>
-        @if ($action == "approve")
+        @if ($action == 'approve')
             <div class="mb-3 text-end">
                 <button class="btn btn-primary" type="button" onclick="approveAllDocuments()">อนุมัติเอกสารทั้งหมด</button>
             </div>
-        @elseif($action == "all")
+        @elseif($action == 'all')
             <div>
                 {{ $documents->links() }}
             </div>
@@ -40,16 +41,22 @@
                                     {{ $document->title }}
                                 @endif
                             </td>
-                            <td class="text-xs">{!! $document->ListDetail !!}</td>
+                            <td class="text-xs">
+                                <div class="cursor-pointer hover:text-blue-600 preview-trigger"
+                                    data-fulltext="{{ $document->detail }}" onclick="showDetail(this)">
+                                    {{ Str::limit($document->ListDetail, 50) }}
+                                    <i class="fas fa-search-plus ml-1 text-gray-400"></i>
+                                </div>
+                            </td>
                             <td>
                                 {{ $document->creator->name }}<br>
-                                {{ $document->created_at->format("d/m/Y H:i:s") }}
+                                {{ $document->created_at->format('d/m/Y H:i:s') }}
                             </td>
                             <td class="text-xs">
                                 @foreach ($document->approvers as $approver)
-                                    @if ($approver->status == "approve")
+                                    @if ($approver->status == 'approve')
                                         <i class="fas fa-check text-primary"></i>
-                                    @elseif($approver->status == "reject" || $approver->status == "cancel")
+                                    @elseif($approver->status == 'reject' || $approver->status == 'cancel')
                                         <i class="fas fa-times text-error"></i>
                                     @else
                                         <i class="fas fa-hourglass-half text-ghost"></i>
@@ -60,69 +67,72 @@
                             <td class="text-center">
                                 @php
                                     switch ($document->status) {
-                                        case "wait_approval":
-                                            $text = "รออนุมัติจากหน่วยงาน";
-                                            $class = "badge-soft badge-warning";
+                                        case 'wait_approval':
+                                            $text = 'รออนุมัติจากหน่วยงาน';
+                                            $class = 'badge-soft badge-warning';
                                             break;
-                                        case "not_approval":
-                                            $text = "หน่วยงานไม่อนุมัติ";
-                                            $class = "badge-soft badge-error";
+                                        case 'not_approval':
+                                            $text = 'หน่วยงานไม่อนุมัติ';
+                                            $class = 'badge-soft badge-error';
                                             break;
-                                        case "cancel":
-                                            $text = "ผู้ขอยกเลิกเอกสาร";
-                                            $class = "badge-soft badge-error";
+                                        case 'cancel':
+                                            $text = 'ผู้ขอยกเลิกเอกสาร';
+                                            $class = 'badge-soft badge-error';
                                             break;
-                                        case "pending":
-                                            $text = "รอการดำเนินการ";
-                                            $class = "badge-soft badge-warning";
+                                        case 'pending':
+                                            $text = 'รอการดำเนินการ';
+                                            $class = 'badge-soft badge-warning';
                                             break;
-                                        case "reject":
-                                            $text = "ยกเลิกเอกสาร";
-                                            $class = "badge-soft badge-error";
+                                        case 'reject':
+                                            $text = 'ยกเลิกเอกสาร';
+                                            $class = 'badge-soft badge-error';
                                             break;
-                                        case "process":
-                                            $text = "กำลังดำเนินการ";
-                                            $class = "badge-soft badge-warning";
+                                        case 'process':
+                                            $text = 'กำลังดำเนินการ';
+                                            $class = 'badge-soft badge-warning';
                                             break;
-                                        case "done":
-                                            $text = "เอกสารรออนุมัติ";
-                                            $class = "badge-soft badge-secondary";
+                                        case 'done':
+                                            $text = 'เอกสารรออนุมัติ';
+                                            $class = 'badge-soft badge-secondary';
                                             break;
-                                        case "complete":
-                                            $text = "เอกสารเสร็จสมบูรณ์";
-                                            $class = "badge-soft badge-success";
+                                        case 'complete':
+                                            $text = 'เอกสารเสร็จสมบูรณ์';
+                                            $class = 'badge-soft badge-success';
                                             break;
-                                        case "borrow_approve":
-                                            $text = "รออนุมัติการยืมอุปกรณ์";
-                                            $class = "badge-soft badge-secondary";
+                                        case 'borrow_approve':
+                                            $text = 'รออนุมัติการยืมอุปกรณ์';
+                                            $class = 'badge-soft badge-secondary';
                                             break;
-                                        case "borrow":
-                                            $text = "อุปกรณ์อยู่ระหว่างการยืม";
-                                            $class = "badge-soft badge-neutral";
+                                        case 'borrow':
+                                            $text = 'อุปกรณ์อยู่ระหว่างการยืม';
+                                            $class = 'badge-soft badge-neutral';
                                             break;
-                                        case "return_approve":
-                                            $text = "รอรับอุปกรณ์คืน";
-                                            $class = "badge-soft badge-primary";
+                                        case 'return_approve':
+                                            $text = 'รอรับอุปกรณ์คืน';
+                                            $class = 'badge-soft badge-primary';
                                             break;
-                                        case "return":
-                                            $text = "รออนุมัติการคืนอุปกรณ์";
-                                            $class = "badge-soft badge-secondary";
+                                        case 'return':
+                                            $text = 'รออนุมัติการคืนอุปกรณ์';
+                                            $class = 'badge-soft badge-secondary';
                                             break;
                                         default:
-                                            $text = "";
-                                            $class = "";
+                                            $text = '';
+                                            $class = '';
                                     }
                                 @endphp
                                 <div class="badge {{ $class }}">{{ $text }}</div>
-                                @if ($document->status == "process")
-                                    <div class="bg-primary mt-1 rounded">{{ $document->assigned_user_id }} : {{ $document->assigned_user->name }}</div>
+                                @if ($document->status == 'process')
+                                    <div class="bg-primary mt-1 rounded">{{ $document->assigned_user_id }} :
+                                        {{ $document->assigned_user->name }}</div>
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if ($action == "new")
-                                    <button class="btn btn-accent" type="button" onclick="acceptDocument('{{ $document->id }}','{{ $document->document_tag["document_tag"] }}')">รับงาน</button>
+                                @if ($action == 'new')
+                                    <button class="btn btn-accent" type="button"
+                                        onclick="acceptDocument('{{ $document->id }}','{{ $document->document_tag['document_tag'] }}')">รับงาน</button>
                                 @else
-                                    <a href="{{ route("admin.it.view", ["document_id" => $document->id, "action" => $action, "type" => $document->document_tag["document_tag"]]) }}">
+                                    <a
+                                        href="{{ route('admin.it.view', ['document_id' => $document->id, 'action' => $action, 'type' => $document->document_tag['document_tag']]) }}">
                                         <button class="btn btn-accent">ดูเอกสาร</button>
                                     </a>
                                 @endif
@@ -134,8 +144,8 @@
         </div>
     </div>
 @endsection
-@push("scripts")
-    @if ($action == "new")
+@push('scripts')
+    @if ($action == 'new')
         <script>
             function acceptDocument(documentId, type) {
                 Swal.fire({
@@ -152,7 +162,7 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        axios.post("{{ route("admin.it.accept") }}", {
+                        axios.post("{{ route('admin.it.accept') }}", {
                             id: documentId,
                             type: type
                         }).then((response) => {
@@ -182,7 +192,7 @@
                 });
             }
         </script>
-    @elseif($action == "approve")
+    @elseif($action == 'approve')
         <script>
             function approveAllDocuments() {
                 Swal.fire({
@@ -199,7 +209,7 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        axios.post("{{ route("admin.it.completeall") }}").then((response) => {
+                        axios.post("{{ route('admin.it.completeall') }}").then((response) => {
                             if (response.data.status == "success") {
                                 Swal.fire({
                                     title: 'สำเร็จ',
@@ -240,5 +250,19 @@
             }
         }
         countdown();
+
+        function showDetail(element) {
+            const content = element.getAttribute('data-fulltext');
+
+            Swal.fire({
+                title: '<strong>รายละเอียด</strong>',
+                html: `<div class="text-left" style="font-size: 0.9rem; line-height: 1.5;">
+                    ${content}
+                </div>`,
+                icon: 'info',
+                showConfirmButton: false,
+                width: '600px'
+            });
+        }
     </script>
 @endpush

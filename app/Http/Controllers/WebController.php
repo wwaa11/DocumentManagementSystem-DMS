@@ -1,7 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\HelperController;
 use App\Models\Document;
 use App\Models\DocumentBorrow;
 use App\Models\DocumentIT;
@@ -20,7 +20,7 @@ class WebController extends Controller
     public function __construct()
     {
         mb_internal_encoding('UTF-8');
-        $this->helper = new HelperController();
+        $this->helper = new HelperController;
     }
 
     private function getDocument($document_type, $document_id)
@@ -71,39 +71,39 @@ class WebController extends Controller
     // Index
     public function myDocument(Request $request)
     {
-        $my_documents     = auth()->user()->getMyDocuments();
+        $my_documents = auth()->user()->getMyDocuments();
         $approveDocuments = auth()->user()->getApproveDocument();
-        $documents        = [];
+        $documents = [];
         foreach ($approveDocuments as $item) {
-            $documentData            = $item->document;
-            $document_id             = $documentData->document_tag["document_tag"] . $documentData->id;
-            $detail                  = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100) . '...' : $documentData->detail;
+            $documentData = $item->document;
+            $document_id = $documentData->document_tag['document_tag'].$documentData->id;
+            $detail = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100).'...' : $documentData->detail;
             $documents[$document_id] = [
-                'flag'               => ($item->status == 'wait' ? 'approve' : 'my'),
-                'id'                 => $documentData->id,
-                'document_tag'       => $documentData->document_tag,
-                'document_number'    => $documentData->document_number,
+                'flag' => ($item->status == 'wait' ? 'approve' : 'my'),
+                'id' => $documentData->id,
+                'document_tag' => $documentData->document_tag,
+                'document_number' => $documentData->document_number,
                 'document_type_name' => $documentData->document_type_name,
-                'title'              => $documentData->title,
-                'detail'             => $detail,
-                'status'             => $documentData->status,
-                'created_at'         => $documentData->created_at,
+                'title' => $documentData->title,
+                'detail' => $detail,
+                'status' => $documentData->status,
+                'created_at' => $documentData->created_at,
             ];
         }
         foreach ($my_documents as $item) {
-            $document_id = $item->document_tag["document_tag"] . $item->id;
+            $document_id = $item->document_tag['document_tag'].$item->id;
             if (! isset($documents[$document_id])) {
-                $detail                  = strlen($item->detail) > 100 ? mb_substr($item->detail, 0, 100) . '...' : $item->detail;
+                $detail = strlen($item->detail) > 100 ? mb_substr($item->detail, 0, 100).'...' : $item->detail;
                 $documents[$document_id] = [
-                    'flag'               => 'my',
-                    'id'                 => $item->id,
-                    'document_tag'       => $item->document_tag,
-                    'document_number'    => $item->document_number,
+                    'flag' => 'my',
+                    'id' => $item->id,
+                    'document_tag' => $item->document_tag,
+                    'document_number' => $item->document_number,
                     'document_type_name' => $item->document_type_name,
-                    'title'              => $item->title,
-                    'detail'             => $detail,
-                    'status'             => $item->status,
-                    'created_at'         => $item->created_at,
+                    'title' => $item->title,
+                    'detail' => $detail,
+                    'status' => $item->status,
+                    'created_at' => $item->created_at,
                 ];
             }
         }
@@ -111,12 +111,12 @@ class WebController extends Controller
         // Apply filters
         $documents = collect($documents)->filter(function ($document) use ($request) {
             $documentNumber = $request->input('document_number');
-            $detail         = $request->input('detail');
-            $flag           = $request->input('flag');
-            $document_tag   = $request->input('document_tag');
-            $status         = $request->input('status');
+            $detail = $request->input('detail');
+            $flag = $request->input('flag');
+            $document_tag = $request->input('document_tag');
+            $status = $request->input('status');
             $createdAtStart = $request->input('created_at_start');
-            $createdAtEnd   = $request->input('created_at_end');
+            $createdAtEnd = $request->input('created_at_end');
 
             if ($documentNumber && ! str_contains(strtolower($document['document_number']), strtolower($documentNumber))) {
                 return false;
@@ -136,7 +136,7 @@ class WebController extends Controller
             if ($createdAtStart && strtotime($document['created_at']) < strtotime($createdAtStart)) {
                 return false;
             }
-            if ($createdAtEnd && strtotime($document['created_at']) > strtotime($createdAtEnd . ' 23:59:59')) {
+            if ($createdAtEnd && strtotime($document['created_at']) > strtotime($createdAtEnd.' 23:59:59')) {
                 return false;
             }
 
@@ -160,9 +160,9 @@ class WebController extends Controller
         $data = [];
         switch ($document_type) {
             case 'it':
-                $view      = 'document.it.create';
-                $it_admins = User::whereIN('role', ['it', 'admin'])->get();
-                $data      = compact('it_admins');
+                $view = 'document.it.create';
+                $it_admins = User::whereIN('role', ['dev', 'admin', 'it'])->get();
+                $data = compact('it_admins');
                 break;
             case 'media':
                 $view = 'document.media.create';
@@ -186,7 +186,7 @@ class WebController extends Controller
 
     public function userSearch(Request $request)
     {
-        $userid   = $request->input('userid');
+        $userid = $request->input('userid');
         $response = Http::withHeaders([
             'token' => env('API_AUTH_KEY'),
         ])->post('http://172.20.1.12/dbstaff/api/getuser', [
@@ -227,9 +227,9 @@ class WebController extends Controller
                 $document->save();
                 $document->tasks()->update(['status' => 'cancel', 'task_name' => 'ยกเลิกเอกสาร']);
                 $document->logs()->create([
-                    'userid'  => auth()->user()->userid,
-                    'action'  => 'cancel',
-                    'details' => 'ยกเลิกเอกสาร ' . $request->input('reason'),
+                    'userid' => auth()->user()->userid,
+                    'action' => 'cancel',
+                    'details' => 'ยกเลิกเอกสาร '.$request->input('reason'),
                 ]);
             }
         } else {
@@ -239,9 +239,9 @@ class WebController extends Controller
 
             $document->tasks()->update(['status' => 'cancel', 'task_name' => 'ยกเลิกเอกสาร']);
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'cancel',
-                'details' => 'ยกเลิกเอกสาร ' . $request->input('reason'),
+                'userid' => auth()->user()->userid,
+                'action' => 'cancel',
+                'details' => 'ยกเลิกเอกสาร '.$request->input('reason'),
             ]);
         }
 
@@ -282,74 +282,77 @@ class WebController extends Controller
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
+        // Case User Document have multiple sub document
         if ($document_type == 'USER') {
-            $approveList         = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
+            $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
             $approveList->status = $request->status;
             $approveList->save();
 
             foreach ($document->getAllDocuments() as $document) {
-                $document->status = $request->status == 'approve' ? 'pending' : 'not_approval';
+                // case Approve
+                if ($request->status == 'approve') {
+                    $status_change = 'pending';
+                }
+                // case Reject
+                elseif ($request->status == 'reject') {
+                    $status_change = 'not_approval';
+                }
+                $document->status = $status_change;
                 $document->save();
+
                 $document->tasks()->where('step', $approveList->step)->update([
-                    'status'        => $request->status,
-                    'task_name'     => $request->status == 'approve' ? 'อนุมัติ' : 'ไม่อนุมัติ',
-                    'task_user'     => auth()->user()->userid,
+                    'status' => $request->status,
+                    'task_name' => $request->status == 'approve' ? 'อนุมัติ' : 'ไม่อนุมัติ',
+                    'task_user' => auth()->user()->userid,
                     'task_position' => auth()->user()->position,
-                    'date'          => date('Y-m-d H:i:s'),
+                    'date' => date('Y-m-d H:i:s'),
                 ]);
+
                 $document->logs()->create([
-                    'userid'  => auth()->user()->userid,
-                    'action'  => $request->status,
+                    'userid' => auth()->user()->userid,
+                    'action' => $request->status,
                     'details' => $request->status == 'approve' ? 'อนุมัติเอกสาร' : $request->reason,
                 ]);
             }
-        } else {
+        }
+        // Other Document dont have sub document
+        else {
             $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
-            if ($request->status == 'approve') {
-                $approveList->status = 'approve';
-                $document->tasks()->where('step', $approveList->step)->update([
-                    'status'        => 'approve',
-                    'task_name'     => 'อนุมัติ',
-                    'task_user'     => auth()->user()->userid,
-                    'task_position' => auth()->user()->position,
-                    'date'          => date('Y-m-d H:i:s'),
-                ]);
-                $document->logs()->create([
-                    'userid'  => auth()->user()->userid,
-                    'action'  => 'approve',
-                    'details' => 'อนุมัติเอกสาร',
-                ]);
-                $checkNextStep = $document->approvers()->where('step', $approveList->step + 1)->first();
-                if (! $checkNextStep) {
-                    if ($document->assigned_user_id == null) {
-                        $document->status = 'pending';
-                    } else {
-                        $document->status = 'process';
-                    }
-                }
-            } else {
-                $document->status    = 'not_approval';
-                $approveList->status = 'reject';
-                $document->tasks()->where('step', $approveList->step)->update([
-                    'status'        => 'reject',
-                    'task_name'     => 'ไม่อนุมัติ',
-                    'task_user'     => auth()->user()->userid,
-                    'task_position' => auth()->user()->position,
-                    'date'          => date('Y-m-d H:i:s'),
-                ]);
-                $document->logs()->create([
-                    'userid'  => auth()->user()->userid,
-                    'action'  => 'reject',
-                    'details' => $request->reason,
-                ]);
-            }
+            $approveList->status = $request->status;
             $approveList->save();
+
+            $checkNextStep = $document->approvers()->where('step', $approveList->step + 1)->first();
+            if ($request->status == 'approve' && ! $checkNextStep) {
+                if ($document->assigned_user_id != null) {
+                    $status_change = 'process';
+                } else {
+                    $status_change = 'pending';
+                }
+            }
+            // case Reject
+            elseif ($request->status == 'reject') {
+                $status_change = 'not_approval';
+            }
+            $document->status = $status_change;
             $document->save();
+
+            $document->tasks()->where('step', $approveList->step)->update([
+                'status' => $request->status,
+                'task_name' => $request->status == 'approve' ? 'อนุมัติ' : 'ไม่อนุมัติ',
+                'task_user' => auth()->user()->userid,
+                'task_position' => auth()->user()->position,
+                'date' => date('Y-m-d H:i:s'),
+            ]);
+
+            $document->logs()->create([
+                'userid' => auth()->user()->userid,
+                'action' => $request->status,
+                'details' => $request->status == 'approve' ? 'อนุมัติเอกสาร' : $request->reason,
+            ]);
         }
 
         return response()->json([
             'status' => 'success',
         ]);
     }
-
 }

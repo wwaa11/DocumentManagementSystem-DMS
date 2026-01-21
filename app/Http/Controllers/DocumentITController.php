@@ -1,7 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\HelperController;
 use App\Models\DocumentBorrow;
 use App\Models\DocumentHc;
 use App\Models\DocumentHeartstream;
@@ -11,19 +11,17 @@ use App\Models\DocumentNumber;
 use App\Models\DocumentPAC;
 use App\Models\DocumentRegister;
 use App\Models\DocumentUser;
-use App\Models\File;
 use App\Models\Hardware;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class DocumentITController extends Controller
 {
-
     private $helper;
 
     public function __construct()
     {
-        $this->helper = new HelperController();
+        $this->helper = new HelperController;
     }
 
     // Create Document
@@ -50,35 +48,36 @@ class DocumentITController extends Controller
     {
         $userField = '';
         foreach ($users as $user) {
-            $userField .= 'รหัสพนักงาน: ' . $user['userid'] . '<br>';
-            $userField .= 'ชื่อ-นามสกุล: ' . $user['name'] . ' ' . $user['name_en'] . '<br>';
-            $userField .= 'แผนก: ' . $user['department'] . '<br>';
-            $userField .= 'ประเภท: ' . $title . '<br>';
+            $userField .= 'รหัสพนักงาน: '.$user['userid'].'<br>';
+            $userField .= 'ชื่อ-นามสกุล: '.$user['name'].' '.$user['name_en'].'<br>';
+            $userField .= 'แผนก: '.$user['department'].'<br>';
+            $userField .= 'ประเภท: '.$title.'<br>';
             $userField .= 'รายการที่ขอ: ';
             foreach ($user['request'] as $service => $value) {
                 if ($value == 'true') {
                     if ($service == 'other') {
-                        $userField .= $user['request']['other'] . ' ';
+                        $userField .= $user['request']['other'].' ';
                     } else {
-                        $userField .= $service . ' ';
+                        $userField .= $service.' ';
                     }
                 }
                 if ($service == 'detail') {
-                    $userField .= '<br>รายละเอียด: ' . $value . '<br>';
+                    $userField .= '<br>รายละเอียด: '.$value.'<br>';
                 }
 
             }
         }
+
         return $userField;
     }
 
     private function createDocumentIT($request)
     {
         $dataField = $request->all();
-        $taskData  = [
+        $taskData = [
             'document_type' => ($request->isHardware == 'true') ? 'it-hardware' : 'it',
-            'selfApprove'   => ($request['selfApprove'] == 'true') ? true : false,
-            'approver'      => $request['approver'],
+            'selfApprove' => ($request['selfApprove'] == 'true') ? true : false,
+            'approver' => $request['approver'],
         ];
 
         $title = $request->title;
@@ -87,21 +86,21 @@ class DocumentITController extends Controller
         }
         // set Detail Title
         if (str_contains($request->request_type_detail, 'อื่นๆ')) {
-            $title .= '|' . $request->request_type_detail . ' ' . $request->request_type_detail_other;
+            $title .= '|'.$request->request_type_detail.' '.$request->request_type_detail_other;
         } else {
             $isEmpty = empty($request->request_type_detail);
             if (! $isEmpty) {
-                $title .= '|' . $request->request_type_detail;
+                $title .= '|'.$request->request_type_detail;
             }
         }
 
-        $document                   = new DocumentIT();
-        $document->requester        = auth()->user()->userid;
-        $document->document_phone   = $request->document_phone;
-        $document->document_number  = DocumentNumber::getNextNumber($dataField['documentCode']);
-        $document->type             = $request->document_type;
-        $document->title            = $title;
-        $document->detail           = $request->support_detail;
+        $document = new DocumentIT;
+        $document->requester = auth()->user()->userid;
+        $document->document_phone = $request->document_phone;
+        $document->document_number = DocumentNumber::getNextNumber($dataField['documentCode']);
+        $document->type = $request->document_type;
+        $document->title = $title;
+        $document->detail = $request->support_detail;
         $document->assigned_user_id = ($request->document_admin) ? $request->document_admin : null;
         $document->save();
 
@@ -111,15 +110,15 @@ class DocumentITController extends Controller
 
         // Log
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'create',
+            'userid' => auth()->user()->userid,
+            'action' => 'create',
             'details' => 'สร้างเอกสาร IT',
         ]);
         if ($request->document_admin) {
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'info',
-                'details' => 'มอบหมายงานไปยัง ' . $request->document_admin,
+                'userid' => auth()->user()->userid,
+                'action' => 'info',
+                'details' => 'มอบหมายงานไปยัง '.$request->document_admin,
             ]);
         }
     }
@@ -127,13 +126,13 @@ class DocumentITController extends Controller
     private function createDocumentUser($request)
     {
         $dataField = $request->all();
-        $title     = $request->title;
-        $approver  = $request['approver'];
+        $title = $request->title;
+        $approver = $request['approver'];
 
-        $document                 = new DocumentUser();
-        $document->requester      = auth()->user()->userid;
+        $document = new DocumentUser;
+        $document->requester = auth()->user()->userid;
         $document->document_phone = $request->document_phone;
-        $document->title          = $title;
+        $document->title = $title;
         switch ($title) {
             case 'ขอแก้ไขสิทธิการใช้งาน':
                 $detail = $this->setUserFieldData($request->users, $title);
@@ -150,7 +149,7 @@ class DocumentITController extends Controller
 
         $approverField = [
             'selfApprove' => $request['selfApprove'],
-            'approver'    => $approver,
+            'approver' => $approver,
         ];
         $this->helper->createApprover('user', $approverField, $document);
         $this->helper->createFile($request, $document);
@@ -177,47 +176,47 @@ class DocumentITController extends Controller
     {
         switch ($type) {
             case 'it':
-                $document   = new DocumentItUser();
+                $document = new DocumentItUser;
                 $NumberType = 'ITU';
                 $logDetails = 'สร้างเอกสาร IT';
                 break;
             case 'hc':
-                $document   = new DocumentHc();
+                $document = new DocumentHc;
                 $NumberType = 'HC';
                 $logDetails = 'สร้างเอกสาร HC';
                 break;
             case 'pac':
-                $document   = new DocumentPac();
+                $document = new DocumentPac;
                 $NumberType = 'PAC';
                 $logDetails = 'สร้างเอกสาร PAC';
                 break;
             case 'heart-steam':
-                $document   = new DocumentHeartstream();
+                $document = new DocumentHeartstream;
                 $NumberType = 'HS';
                 $logDetails = 'สร้างเอกสาร Heart Stream';
                 break;
             case 'register':
-                $document   = new DocumentRegister();
+                $document = new DocumentRegister;
                 $NumberType = 'REG';
                 $logDetails = 'สร้างเอกสาร Register';
                 break;
         }
 
         $document->document_user_id = $documentUser->id;
-        $document->status           = $approver['userid'] == auth()->user()->userid ? 'pending' : 'wait_approval';
-        $document->document_number  = DocumentNumber::getNextNumber($NumberType);
+        $document->status = $approver['userid'] == auth()->user()->userid ? 'pending' : 'wait_approval';
+        $document->document_number = DocumentNumber::getNextNumber($NumberType);
         $document->save();
 
         $taskData = [
             'document_type' => $type,
-            'selfApprove'   => false,
-            'approver'      => $approver,
+            'selfApprove' => false,
+            'approver' => $approver,
         ];
         $this->helper->createTask($taskData, $document);
 
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'create',
+            'userid' => auth()->user()->userid,
+            'action' => 'create',
             'details' => $logDetails,
         ]);
     }
@@ -225,18 +224,18 @@ class DocumentITController extends Controller
     private function createDocumentBorrow($request)
     {
         $dataField = $request->all();
-        $taskData  = [
+        $taskData = [
             'document_type' => ($request->isHardware == 'true') ? 'it-borrow-hardware' : 'it-borrow',
-            'selfApprove'   => ($request['selfApprove'] == 'true') ? true : false,
-            'approver'      => $request['approver'],
+            'selfApprove' => ($request['selfApprove'] == 'true') ? true : false,
+            'approver' => $request['approver'],
         ];
 
-        $document                       = new DocumentBorrow;
-        $document->requester            = auth()->user()->userid;
-        $document->document_phone       = $request->document_phone;
-        $document->document_number      = DocumentNumber::getNextNumber($dataField['documentCode']);
-        $document->title                = $request->borrow_type == 'OTHER' ? $request->borrow_other_text : $request->borrow_type;
-        $document->detail               = $request->borrow_detail;
+        $document = new DocumentBorrow;
+        $document->requester = auth()->user()->userid;
+        $document->document_phone = $request->document_phone;
+        $document->document_number = DocumentNumber::getNextNumber($dataField['documentCode']);
+        $document->title = $request->borrow_type == 'OTHER' ? $request->borrow_other_text : $request->borrow_type;
+        $document->detail = $request->borrow_detail;
         $document->estimate_return_date = $request->return_date;
         $document->save();
 
@@ -245,8 +244,8 @@ class DocumentITController extends Controller
         $this->helper->createFile($request, $document);
 
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'create',
+            'userid' => auth()->user()->userid,
+            'action' => 'create',
             'details' => 'สร้างเอกสาร IT',
         ]);
     }
@@ -254,7 +253,7 @@ class DocumentITController extends Controller
     // Count Document
     public function adminDocumentCount()
     {
-        $documentListAll         = DocumentIT::whereIn('status', ['pending', 'process', 'done'])->get();
+        $documentListAll = DocumentIT::whereIn('status', ['pending', 'process', 'done'])->get();
         $documentListNewHardware = $documentListAll->where('status', 'pending')->filter(function ($item) {
             return $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
@@ -262,56 +261,59 @@ class DocumentITController extends Controller
             return ! $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
         $documentListApprove = $documentListAll->where('status', 'done')->count();
-        $documentListMy      = $documentListAll->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
+        $documentListMy = $documentListAll->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
 
-        $documentITUserList    = DocumentItUser::whereIn('status', ['pending', 'process', 'done'])->get();
+        $documentITUserList = DocumentItUser::whereIn('status', ['pending', 'process', 'done'])->get();
         $documentITUserListNew = $documentITUserList->where('status', 'pending')->filter(function ($item) {
             return ! $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
         $documentITUserListApprove = $documentITUserList->where('status', 'done')->count();
-        $documentITUserListMy      = $documentITUserList->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
+        $documentITUserListMy = $documentITUserList->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
 
-        $documentBorrowList         = DocumentBorrow::whereIn('status', ['pending', 'borrow_approve', 'return_approve', 'return'])->get();
+        $documentBorrowList = DocumentBorrow::whereIn('status', ['pending', 'borrow_approve', 'return_approve', 'return'])->get();
         $documentListBorrowHardware = $documentBorrowList->where('status', 'pending')->filter(function ($item) {
             return $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
-        $documentListBorrowNew     = $documentBorrowList->whereIn('status', ['pending', 'return_approve'])->count();
+        $documentListBorrowNew = $documentBorrowList->whereIn('status', ['pending', 'return_approve'])->count();
         $documentListBorrowApprove = $documentBorrowList->whereIn('status', ['borrow_approve', 'return'])->count();
 
         return response()->json([
             'it.hardware' => $documentListNewHardware + $documentListBorrowHardware,
-            'it.approve'  => $documentListApprove + $documentITUserListApprove + $documentListBorrowApprove,
-            'it.borrow'   => $documentListBorrowNew,
-            'it.new'      => $documentListNew + $documentITUserListNew,
-            'it.my'       => $documentListMy + $documentITUserListMy,
+            'it.approve' => $documentListApprove + $documentITUserListApprove + $documentListBorrowApprove,
+            'it.borrow' => $documentListBorrowNew,
+            'it.new' => $documentListNew + $documentITUserListNew,
+            'it.my' => $documentListMy + $documentITUserListMy,
         ]);
     }
+
     // Admin Page List Document
     public function adminHardwareDocuments()
     {
         $documentListAll = DocumentIT::where('status', 'pending')->get();
-        $documents       = $documentListAll->filter(function ($item) {
+        $documents = $documentListAll->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+
             return $task;
         });
         $documentBorrowList = DocumentBorrow::where('status', 'pending')->get();
-        $documentsborrow    = $documentBorrowList->filter(function ($item) {
+        $documentsborrow = $documentBorrowList->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+
             return $task;
         });
         $documents = $documents->concat($documentsborrow)->sortBy('created_at');
-        $action    = 'hardware';
+        $action = 'hardware';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
 
     public function adminApproveDocuments()
     {
-        $documents       = DocumentIT::where('status', 'done')->get();
+        $documents = DocumentIT::where('status', 'done')->get();
         $documentsITUser = DocumentItUser::where('status', 'done')->get();
         $documentsBorrow = DocumentBorrow::whereIn('status', ['borrow_approve', 'return'])->get();
-        $documents       = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortBy('created_at');
-        $action          = 'approve';
+        $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortBy('created_at');
+        $action = 'approve';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
@@ -319,39 +321,41 @@ class DocumentITController extends Controller
     public function adminNewDocuments()
     {
         $documentListAll = DocumentIT::where('status', 'pending')->get();
-        $documents       = $documentListAll->filter(function ($item) {
+        $documents = $documentListAll->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+
             return ! $task;
         });
         $documentITUserListAll = DocumentItUser::where('status', 'pending')->get();
-        $documentsITUser       = $documentITUserListAll->filter(function ($item) {
+        $documentsITUser = $documentITUserListAll->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+
             return ! $task;
         });
         $documents = $documents->concat($documentsITUser)->sortBy('created_at');
-        $action    = 'new';
+        $action = 'new';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
 
     public function adminMyDocuments()
     {
-        $documents       = DocumentIT::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
+        $documents = DocumentIT::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
         $documentsITUser = DocumentItUser::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
-        $documents       = $documents->concat($documentsITUser)->sortBy('created_at');
-        $action          = 'my';
+        $documents = $documents->concat($documentsITUser)->sortBy('created_at');
+        $action = 'my';
 
         return view('admin.it.list', compact('documents', 'action'));
     }
 
     public function adminAllDocuments(Request $request)
     {
-        $documents       = DocumentIT::all();
+        $documents = DocumentIT::all();
         $documentsITUser = DocumentItUser::all();
         $documentsBorrow = DocumentBorrow::all();
-        $documents       = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortByDESC('created_at');
+        $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortByDESC('created_at');
 
-        $action    = 'all';
+        $action = 'all';
         $documents = $this->helper->paginateCollection($documents, 10, $request);
 
         return view('admin.it.list', compact('documents', 'action'));
@@ -379,12 +383,12 @@ class DocumentITController extends Controller
     public function approveHardwareDocument(Request $request)
     {
         $request->validate([
-            'id'     => 'required',
-            'type'   => 'required',
+            'id' => 'required',
+            'type' => 'required',
             'status' => 'required|in:approve,reject',
             'reason' => 'required_if:status,reject',
         ]);
-        $detail = ($request->status == 'approve') ? 'อนุมัติ' : 'ปฏิเสธ ' . $request->reason;
+        $detail = ($request->status == 'approve') ? 'อนุมัติ' : 'ปฏิเสธ '.$request->reason;
 
         switch ($request->type) {
             case 'IT':
@@ -395,27 +399,27 @@ class DocumentITController extends Controller
                 break;
         }
 
-        $status           = ($request->status == 'approve') ? 'อนุมัติ' : 'ปฏิเสธ';
+        $status = ($request->status == 'approve') ? 'อนุมัติ' : 'ปฏิเสธ';
         $document->status = ($request->status == 'approve') ? 'pending' : 'reject';
         $document->save();
 
         $document->tasks()->where('step', 2)->update([
-            'status'        => $request->status,
-            'task_name'     => $status,
-            'task_user'     => auth()->user()->userid,
+            'status' => $request->status,
+            'task_name' => $status,
+            'task_user' => auth()->user()->userid,
             'task_position' => auth()->user()->position,
-            'date'          => date('Y-m-d H:i:s'),
+            'date' => date('Y-m-d H:i:s'),
         ]);
 
         // Log
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => $request->status,
+            'userid' => auth()->user()->userid,
+            'action' => $request->status,
             'details' => $detail,
         ]);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => $detail,
         ]);
     }
@@ -423,7 +427,7 @@ class DocumentITController extends Controller
     public function acceptDocument(Request $request)
     {
         $request->validate([
-            'id'   => 'required',
+            'id' => 'required',
             'type' => 'required|in:IT,USER',
         ]);
 
@@ -435,23 +439,23 @@ class DocumentITController extends Controller
 
         if ($document->assigned_user_id !== null) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'เอกสารนี้ได้ถูกรับงานแล้ว!',
             ]);
         }
-        $document->status           = 'process';
+        $document->status = 'process';
         $document->assigned_user_id = auth()->user()->userid;
         $document->save();
 
         // Log
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'accept',
+            'userid' => auth()->user()->userid,
+            'action' => 'accept',
             'details' => 'รับงาน',
         ]);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'รับงานสำเร็จ!',
         ]);
     }
@@ -459,8 +463,8 @@ class DocumentITController extends Controller
     public function cancelDocument(Request $request)
     {
         $request->validate([
-            'id'     => 'required',
-            'type'   => 'required',
+            'id' => 'required',
+            'type' => 'required',
             'reason' => 'required',
         ]);
 
@@ -474,20 +478,20 @@ class DocumentITController extends Controller
         $document->save();
 
         $document->tasks()->where('task_user', 'IT Department')->update([
-            'status'        => 'reject',
-            'task_name'     => 'ปฏิเสธ',
-            'task_user'     => auth()->user()->userid,
+            'status' => 'reject',
+            'task_name' => 'ปฏิเสธ',
+            'task_user' => auth()->user()->userid,
             'task_position' => auth()->user()->position,
-            'date'          => date('Y-m-d H:i:s'),
+            'date' => date('Y-m-d H:i:s'),
         ]);
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'cancel',
-            'details' => 'ยกเลิกเอกสาร : ' . $request->reason,
+            'userid' => auth()->user()->userid,
+            'action' => 'cancel',
+            'details' => 'ยกเลิกเอกสาร : '.$request->reason,
         ]);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'ยกเลิกเอกสารสำเร็จ!',
         ]);
     }
@@ -495,7 +499,7 @@ class DocumentITController extends Controller
     public function cancelJob(Request $request)
     {
         $request->validate([
-            'id'   => 'required',
+            'id' => 'required',
             'type' => 'required',
         ]);
 
@@ -507,21 +511,21 @@ class DocumentITController extends Controller
 
         if ($document->status !== 'process' || $document->assigned_user_id !== auth()->user()->userid) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'เอกสารนี้ไม่สามารถยกเลิกงานได้!',
             ]);
         }
-        $document->status           = 'pending';
+        $document->status = 'pending';
         $document->assigned_user_id = null;
         $document->save();
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'transfer',
+            'userid' => auth()->user()->userid,
+            'action' => 'transfer',
             'details' => 'ยกเลิกการรับงาน ส่งใบงานไปยังใบงานใหม่',
         ]);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'ยกเลิกการรับงานสำเร็จ!',
         ]);
     }
@@ -538,23 +542,23 @@ class DocumentITController extends Controller
             $uploadedFiles = $request->file('document_files');
             if ($uploadedFiles) {
                 foreach ($uploadedFiles as $file) {
-                    $originalFilename = 'IT_' . $file->getClientOriginalName();
-                    $mimeType         = $file->getMimeType();
-                    $size             = $file->getSize();
-                    $storedPath       = $file->store('uploads', 'public');
+                    $originalFilename = 'IT_'.$file->getClientOriginalName();
+                    $mimeType = $file->getMimeType();
+                    $size = $file->getSize();
+                    $storedPath = $file->store('uploads', 'public');
 
                     $document->files()->create([
                         'original_filename' => $originalFilename,
-                        'stored_path'       => $storedPath,
-                        'mime_type'         => $mimeType,
-                        'size'              => $size,
+                        'stored_path' => $storedPath,
+                        'mime_type' => $mimeType,
+                        'size' => $size,
                     ]);
                 }
             }
 
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'process',
+                'userid' => auth()->user()->userid,
+                'action' => 'process',
                 'details' => $request->detail,
             ]);
         }
@@ -563,37 +567,37 @@ class DocumentITController extends Controller
             if ($request->detail === null) {
                 return redirect()->route('admin.it.mylist')->with('error', 'กรุณากรอกรายละเอียดการดำเนินการ!');
             }
-            $document->status           = 'done';
+            $document->status = 'done';
             $document->assigned_user_id = null;
             $document->save();
             $document->tasks()->where('task_user', 'IT Department')->update([
-                'status'        => 'approve',
-                'task_name'     => 'ดำเนินการเสร็จสิ้น',
-                'task_user'     => auth()->user()->userid,
+                'status' => 'approve',
+                'task_name' => 'ดำเนินการเสร็จสิ้น',
+                'task_user' => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
+                'date' => date('Y-m-d H:i:s'),
             ]);
         } elseif ($request->transfer_userid === 'new') {
             if ($request->detail === null) {
                 return redirect()->route('admin.it.mylist')->with('error', 'กรุณากรอกรายละเอียดการดำเนินการ!');
             }
 
-            $document->status           = 'pending';
+            $document->status = 'pending';
             $document->assigned_user_id = null;
             $document->save();
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'work',
+                'userid' => auth()->user()->userid,
+                'action' => 'work',
                 'details' => 'ดำเนินการเสร็จสิ้น ส่งใบงานไปยังใบงานใหม่',
             ]);
         } else {
-            $document->status           = 'process';
+            $document->status = 'process';
             $document->assigned_user_id = $request->transfer_userid;
             $document->save();
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'transfer',
-                'details' => 'ส่งใบงานไปยัง ' . $request->transfer_userid,
+                'userid' => auth()->user()->userid,
+                'action' => 'transfer',
+                'details' => 'ส่งใบงานไปยัง '.$request->transfer_userid,
             ]);
         }
 
@@ -603,8 +607,8 @@ class DocumentITController extends Controller
     public function completeDocument(Request $request)
     {
         $request->validate([
-            'id'     => 'required',
-            'type'   => 'required',
+            'id' => 'required',
+            'type' => 'required',
             'status' => 'required|in:approve,reject',
         ]);
 
@@ -614,14 +618,14 @@ class DocumentITController extends Controller
             $document = DocumentItUser::find($request->id);
         } else {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'ไม่พบเอกสาร!',
             ]);
         }
 
         if ($document->status !== 'done') {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'เอกสารนี้ไม่สามารถดำเนินการได้!',
             ]);
         }
@@ -631,31 +635,31 @@ class DocumentITController extends Controller
             $document->save();
 
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'complete',
+                'userid' => auth()->user()->userid,
+                'action' => 'complete',
                 'details' => 'อนุมัติเอกสารเสร็จสิ้น',
             ]);
 
             $document->tasks()->orderBy('step', 'desc')->first()->update([
-                'status'        => 'approve',
-                'task_name'     => 'อนุมัติเอกสารเสร็จสิ้น',
-                'task_user'     => auth()->user()->userid,
+                'status' => 'approve',
+                'task_name' => 'อนุมัติเอกสารเสร็จสิ้น',
+                'task_user' => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
+                'date' => date('Y-m-d H:i:s'),
             ]);
         } else {
             $document->status = 'pending';
             $document->save();
 
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'reject',
-                'details' => 'ไม่อนุมัติเอกสาร : ' . $request->reason,
+                'userid' => auth()->user()->userid,
+                'action' => 'reject',
+                'details' => 'ไม่อนุมัติเอกสาร : '.$request->reason,
             ]);
         }
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'อนุมัติเอกสารเสร็จสิ้น!',
         ]);
     }
@@ -668,17 +672,17 @@ class DocumentITController extends Controller
             $document->save();
 
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'complete',
+                'userid' => auth()->user()->userid,
+                'action' => 'complete',
                 'details' => 'อนุมัติเอกสารเสร็จสิ้น',
             ]);
 
             $document->tasks()->orderBy('step', 'desc')->first()->update([
-                'status'        => 'approve',
-                'task_name'     => 'อนุมัติเอกสารเสร็จสิ้น',
-                'task_user'     => auth()->user()->userid,
+                'status' => 'approve',
+                'task_name' => 'อนุมัติเอกสารเสร็จสิ้น',
+                'task_user' => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
+                'date' => date('Y-m-d H:i:s'),
             ]);
         }
         $documentUser = DocumentItUser::where('status', 'done')->get();
@@ -687,17 +691,17 @@ class DocumentITController extends Controller
             $document->save();
 
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'complete',
+                'userid' => auth()->user()->userid,
+                'action' => 'complete',
                 'details' => 'อนุมัติเอกสารเสร็จสิ้น',
             ]);
 
             $document->tasks()->orderBy('step', 'desc')->first()->update([
-                'status'        => 'approve',
-                'task_name'     => 'อนุมัติเอกสารเสร็จสิ้น',
-                'task_user'     => auth()->user()->userid,
+                'status' => 'approve',
+                'task_name' => 'อนุมัติเอกสารเสร็จสิ้น',
+                'task_user' => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
+                'date' => date('Y-m-d H:i:s'),
             ]);
         }
         $documentsBorrow = DocumentBorrow::whereIn('status', ['borrow_approve', 'return'])->get();
@@ -705,12 +709,12 @@ class DocumentITController extends Controller
             switch ($borrow->status) {
                 case 'borrow_approve':
                     $status = 'borrow';
-                    $task   = 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ';
+                    $task = 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ';
                     $detail = 'อนุมัติการให้ยึมอุปกรณ์';
                     break;
                 case 'return':
                     $status = 'complete';
-                    $task   = 'คืนอุปกรณ์เรียบร้อย';
+                    $task = 'คืนอุปกรณ์เรียบร้อย';
                     $detail = 'คืนอุปกรณ์เรียบร้อย';
                     break;
             }
@@ -718,22 +722,22 @@ class DocumentITController extends Controller
             $borrow->save();
 
             $borrow->tasks()->where('task_name', $task)->update([
-                'status'        => 'approve',
-                'task_user'     => auth()->user()->userid,
+                'status' => 'approve',
+                'task_user' => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
+                'date' => date('Y-m-d H:i:s'),
             ]);
 
             $borrow->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'approve',
+                'userid' => auth()->user()->userid,
+                'action' => 'approve',
                 'details' => $detail,
             ]);
 
         }
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'อนุมัติเอกสารเสร็จสิ้น!',
         ]);
     }
@@ -744,6 +748,7 @@ class DocumentITController extends Controller
         $documents = DocumentBorrow::whereIn('status', ['pending', 'borrow', 'return_approve'])->get();
         $documents = $documents->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+
             return ! $task;
         });
         $action = 'borrow';
@@ -754,8 +759,8 @@ class DocumentITController extends Controller
     public function adminBorrowAdd(Request $request)
     {
         $request->validate([
-            'id'     => 'required',
-            'date'   => 'required',
+            'id' => 'required',
+            'date' => 'required',
             'serial' => 'required',
         ]);
 
@@ -763,19 +768,19 @@ class DocumentITController extends Controller
         $approver = $document->approvers()->first();
         $document->hardwares()->create([
             'serial_number' => $request->serial,
-            'detail'        => $request->detail,
-            'borrow_date'   => $request->date,
-            'approver'      => $approver->userid,
+            'detail' => $request->detail,
+            'borrow_date' => $request->date,
+            'approver' => $approver->userid,
         ]);
 
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'add',
-            'details' => 'ระบุอุปกรณ์ที่ให้ยืม : ' . $request->serial,
+            'userid' => auth()->user()->userid,
+            'action' => 'add',
+            'details' => 'ระบุอุปกรณ์ที่ให้ยืม : '.$request->serial,
         ]);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'เพิ่มอุปกรณ์สำเร็จ!',
         ]);
     }
@@ -788,14 +793,14 @@ class DocumentITController extends Controller
 
         $document = Hardware::find($request->id);
         $document->borrow_document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'remove',
-            'details' => 'ลบอุปกรณ์ที่ให้ยืม : ' . $document->serial_number,
+            'userid' => auth()->user()->userid,
+            'action' => 'remove',
+            'details' => 'ลบอุปกรณ์ที่ให้ยืม : '.$document->serial_number,
         ]);
         $document->delete();
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'ลบอุปกรณ์สำเร็จ!',
         ]);
     }
@@ -810,7 +815,7 @@ class DocumentITController extends Controller
 
         if (count($document->hardwares) == 0) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'ต้องมีอุปกรณ์ที่ยืมอย่างน้อย 1 อุปกรณ์!',
             ]);
         }
@@ -819,20 +824,20 @@ class DocumentITController extends Controller
         $document->save();
 
         $document->tasks()->where('task_name', 'รอบันทึกรายละเอียดการยืม จากฝ่ายเทคโนโลยีสารสนเทศ')->update([
-            'status'        => 'approve',
-            'task_user'     => auth()->user()->userid,
+            'status' => 'approve',
+            'task_user' => auth()->user()->userid,
             'task_position' => auth()->user()->position,
-            'date'          => date('Y-m-d H:i:s'),
+            'date' => date('Y-m-d H:i:s'),
         ]);
 
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'process',
+            'userid' => auth()->user()->userid,
+            'action' => 'process',
             'details' => 'ขออนุมัติการให้ยึมอุปกรณ์',
         ]);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'ขออนุมัติอุปกรณ์สำเร็จ!',
         ]);
     }
@@ -840,42 +845,42 @@ class DocumentITController extends Controller
     public function adminBorrowApprove(Request $request)
     {
         $request->validate([
-            'id'   => 'required',
+            'id' => 'required',
             'type' => 'required|in:borrow,return',
         ]);
 
         switch ($request->type) {
             case 'borrow':
                 $status = 'borrow';
-                $task   = 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ';
+                $task = 'รออนุมัติการยืม จากฝ่ายเทคโนโลยีสารสนเทศ';
                 $detail = 'อนุมัติการให้ยึมอุปกรณ์';
                 break;
             case 'return':
                 $status = 'complete';
-                $task   = 'คืนอุปกรณ์เรียบร้อย';
+                $task = 'คืนอุปกรณ์เรียบร้อย';
                 $detail = 'อนุมัติการคืนอุปกรณ์';
                 break;
         }
 
-        $document         = DocumentBorrow::find($request->id);
+        $document = DocumentBorrow::find($request->id);
         $document->status = $status;
         $document->save();
 
         $document->tasks()->where('task_name', $task)->update([
-            'status'        => 'approve',
-            'task_user'     => auth()->user()->userid,
+            'status' => 'approve',
+            'task_user' => auth()->user()->userid,
             'task_position' => auth()->user()->position,
-            'date'          => date('Y-m-d H:i:s'),
+            'date' => date('Y-m-d H:i:s'),
         ]);
 
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'approve',
+            'userid' => auth()->user()->userid,
+            'action' => 'approve',
             'details' => $detail,
         ]);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'อนุมัติสำเร็จ!',
         ]);
     }
@@ -893,9 +898,9 @@ class DocumentITController extends Controller
         $hardware->save();
 
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'retrun',
-            'details' => 'ขอคืนอุปกรณ์ : ' . $hardware->serial_number,
+            'userid' => auth()->user()->userid,
+            'action' => 'retrun',
+            'details' => 'ขอคืนอุปกรณ์ : '.$hardware->serial_number,
         ]);
 
         if ($document->hardwares()->whereNull('return_date')->count() == 0) {
@@ -903,21 +908,21 @@ class DocumentITController extends Controller
             $document->save();
 
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'retrun',
+                'userid' => auth()->user()->userid,
+                'action' => 'retrun',
                 'details' => 'ขอคืนอุปกรณ์ครบแล้ว',
             ]);
 
             $document->tasks()->where('task_name', 'รออนุมัติการคืน จากแผนกผู้ขอยืม')->update([
-                'status'        => 'approve',
-                'task_user'     => auth()->user()->userid,
+                'status' => 'approve',
+                'task_user' => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
+                'date' => date('Y-m-d H:i:s'),
             ]);
         }
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'รับอุปกรณ์สำเร็จ!',
         ]);
     }
@@ -935,9 +940,9 @@ class DocumentITController extends Controller
         $hardware->save();
 
         $document->logs()->create([
-            'userid'  => auth()->user()->userid,
-            'action'  => 'retrun',
-            'details' => 'รับอุปกรณ์คืน : ' . $document->serial_number,
+            'userid' => auth()->user()->userid,
+            'action' => 'retrun',
+            'details' => 'รับอุปกรณ์คืน : '.$document->serial_number,
         ]);
 
         if ($document->hardwares()->whereNull('retrieve_date')->count() == 0) {
@@ -945,23 +950,22 @@ class DocumentITController extends Controller
             $document->save();
 
             $document->logs()->create([
-                'userid'  => auth()->user()->userid,
-                'action'  => 'retreive',
+                'userid' => auth()->user()->userid,
+                'action' => 'retreive',
                 'details' => 'รับคืนอุปกรณ์ครบแล้ว',
             ]);
 
             $document->tasks()->where('task_name', 'รอบันทึกรายละเอียดการคืน จากฝ่ายเทคโนโลยีสารสนเทศ')->update([
-                'status'        => 'approve',
-                'task_user'     => auth()->user()->userid,
+                'status' => 'approve',
+                'task_user' => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
-                'date'          => date('Y-m-d H:i:s'),
+                'date' => date('Y-m-d H:i:s'),
             ]);
         }
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'รับอุปกรณ์สำเร็จ!',
         ]);
     }
-
 }
