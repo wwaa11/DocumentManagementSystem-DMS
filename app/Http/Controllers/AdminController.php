@@ -122,12 +122,18 @@ class AdminController extends Controller
         $search = $request->input('search');
 
         $roles = [
-            'admin'       => 'Admin',
-            'it'          => 'IT',
-            'lab'         => 'Lab',
-            'pac'         => 'PAC',
-            'heartstream' => 'Heartstream',
-            'register'    => 'Register',
+            'admin'               => 'Admin',
+            'it'                  => 'IT',
+            'it-hardware'         => 'IT Hardware',
+            'it-approve'          => 'IT Approve',
+            'lab'                 => 'Lab',
+            'lab-approve'         => 'Lab Approve',
+            'pac'                 => 'PAC',
+            'pac-approve'         => 'PAC Approve',
+            'heartstream'         => 'Heartstream',
+            'heartstream-approve' => 'Heartstream Approve',
+            'register'            => 'Register',
+            'register-approve'    => 'Register Approve',
         ];
 
         $users = User::where('role', '!=', 'dev')

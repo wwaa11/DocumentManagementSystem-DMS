@@ -127,7 +127,9 @@
 </script>
 <script>
     function updateCount(id, number) {
-        document.getElementById(id).textContent = number;
+        if (document.getElementById(id)) {
+            document.getElementById(id).textContent = number;
+        }
     }
 
     function logoutRequest() {
