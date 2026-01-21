@@ -30,832 +30,243 @@ class User extends Authenticatable
         'menu',
     ];
 
+    private function countList($listArray)
+    {
+        $count = [];
+        $dataList = [
+            "it" => [
+                'type' => 'it',
+                'route' => 'admin.it.count',
+            ],
+            "pac" => [
+                'type' => 'pac',
+                'route' => 'admin.user.count',
+            ],
+            "lab" => [
+                'type' => 'lab',
+                'route' => 'admin.user.count',
+            ],
+            "heartstream" => [
+                'type' => 'heartstream',
+                'route' => 'admin.user.count',
+            ],
+            "register" => [
+                'type' => 'register',
+                'route' => 'admin.user.count',
+            ],
+        ];
+
+        foreach ($listArray as $value) {
+            $count[] = $dataList[$value];
+        }
+
+        return $count;
+    }
+    private function menuList($listArray)
+    {
+        $menu = [];
+        $menulist = [
+            'admin' => [
+                [
+                    'title' => 'Admin',
+                    'type' => 'admin',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Approvers',
+                    'type' => 'approver',
+                    'id' => 'approver',
+                    'link' => 'approvers.list',
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Roles',
+                    'type' => 'role',
+                    'id' => 'role',
+                    'link' => 'roles.list',
+                    'count' => false,
+                ],
+            ],
+            'it-approve' => [
+                [
+                    'title' => 'Approve',
+                    'type' => 'it',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Approve Jobs',
+                    'type' => 'it',
+                    'id' => 'approve',
+                    'link' => 'admin.it.approvelist',
+                    'count' => true,
+                ]
+            ],
+            'it-hardware' => [
+                [
+                    'title' => 'Hardware',
+                    'type' => 'it',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Hardware Jobs',
+                    'type' => 'it',
+                    'id' => 'hardware',
+                    'link' => 'admin.it.hardwarelist',
+                    'count' => true,
+                ]
+            ],
+            'it' => [
+                [
+                    'title' => 'IT',
+                    'type' => 'it',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Borrow',
+                    'type' => 'it',
+                    'id' => 'borrow',
+                    'link' => 'admin.it.borrowlist',
+                    'count' => true,
+                ],
+                [
+                    'title' => 'New Jobs',
+                    'type' => 'it',
+                    'id' => 'new',
+                    'link' => 'admin.it.newlist',
+                    'count' => true,
+                ],
+                [
+                    'title' => 'My Jobs',
+                    'type' => 'it',
+                    'id' => 'my',
+                    'link' => 'admin.it.mylist',
+                    'count' => true,
+                ],
+                [
+                    'title' => 'All Jobs',
+                    'type' => 'it',
+                    'id' => 'all',
+                    'link' => 'admin.it.alllist',
+                    'count' => false,
+                ],
+            ]
+        ];
+
+        $userMenu = ['pac', 'lab', 'heartstream', 'register'];
+        foreach ($userMenu as $type) {
+            $menulist[$type . '-approve'] = [
+                [
+                    'title' => 'Approve ' . strtoupper($type),
+                    'type' => $type,
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Approve Jobs',
+                    'type' => $type,
+                    'id' => 'approve',
+                    'link' => 'admin.user.approvelist',
+                    'count' => true,
+                ],
+            ];
+            $menulist[$type] = [
+                [
+                    'title' => strtoupper($type),
+                    'type' => $type,
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'New Jobs',
+                    'type' => $type,
+                    'id' => 'new',
+                    'link' => 'admin.user.newlist',
+                    'count' => true,
+                ],
+                [
+                    'title' => 'My Jobs',
+                    'type' => $type,
+                    'id' => 'my',
+                    'link' => 'admin.user.mylist',
+                    'count' => true,
+                ],
+                [
+                    'title' => 'All Jobs',
+                    'type' => $type,
+                    'id' => 'all',
+                    'link' => 'admin.user.alllist',
+                    'count' => false,
+                ],
+            ];
+        }
+        ;
+
+        foreach ($listArray as $value) {
+            if (array_key_exists($value, $menulist)) {
+                $menu = array_merge($menu, $menulist[$value]);
+            }
+        }
+
+        return $menu;
+    }
+
     public function getMenuAttribute()
     {
-        switch ($this->role) {
-            case 'dev':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'it',
-                            'route' => 'admin.it.count',
-                        ],
-                        [
-                            'type'  => 'pac',
-                            'route' => 'admin.user.count',
-                        ],
-                        [
-                            'type'  => 'lab',
-                            'route' => 'admin.user.count',
-                        ],
-                        [
-                            'type'  => 'heartstream',
-                            'route' => 'admin.user.count',
-                        ],
-                        [
-                            'type'  => 'register',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        // Admin
-                        [
-                            'title' => 'Admin',
-                            'type'  => 'admin',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approvers',
-                            'type'  => 'approver',
-                            'id'    => 'approver',
-                            'link'  => 'approvers.list',
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Roles',
-                            'type'  => 'role',
-                            'id'    => 'role',
-                            'link'  => 'roles.list',
-                            'count' => false,
-                        ],
-                        // IT
-                        [
-                            'title' => 'IT',
-                            'type'  => 'it',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Hardware Jobs',
-                            'type'  => 'it',
-                            'id'    => 'hardware',
-                            'link'  => 'admin.it.hardwarelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'it',
-                            'id'    => 'approve',
-                            'link'  => 'admin.it.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'Borrow',
-                            'type'  => 'it',
-                            'id'    => 'borrow',
-                            'link'  => 'admin.it.borrowlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'it',
-                            'id'    => 'new',
-                            'link'  => 'admin.it.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'it',
-                            'id'    => 'my',
-                            'link'  => 'admin.it.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'it',
-                            'id'    => 'all',
-                            'link'  => 'admin.it.alllist',
-                            'count' => false,
-                        ],
-                        // PAC
-                        [
-                            'title' => 'PAC',
-                            'type'  => 'pac',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'approve',
-                            'link'  => 'admin.user.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                        // LAB
-                        [
-                            'title' => 'LAB',
-                            'type'  => 'lab',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'approve',
-                            'link'  => 'admin.user.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                        // HEARTSTREAM
-                        [
-                            'title' => 'HEARTSTREAM',
-                            'type'  => 'heartstream',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'approve',
-                            'link'  => 'admin.user.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                        // REGISTRATION
-                        [
-                            'title' => 'REGISTRATION',
-                            'type'  => 'register',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'register',
-                            'id'    => 'approve',
-                            'link'  => 'admin.user.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'register',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'register',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'register',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-            case 'admin':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'it',
-                            'route' => 'admin.it.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'Admin',
-                            'type'  => 'admin',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approvers',
-                            'type'  => 'approver',
-                            'id'    => 'approver',
-                            'link'  => 'approvers.list',
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Roles',
-                            'type'  => 'role',
-                            'id'    => 'role',
-                            'link'  => 'roles.list',
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'IT',
-                            'type'  => 'it',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Borrow',
-                            'type'  => 'it',
-                            'id'    => 'borrow',
-                            'link'  => 'admin.it.borrowlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'it',
-                            'id'    => 'new',
-                            'link'  => 'admin.it.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'it',
-                            'id'    => 'my',
-                            'link'  => 'admin.it.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'it',
-                            'id'    => 'all',
-                            'link'  => 'admin.it.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-            case 'it':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'it',
-                            'route' => 'admin.it.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'IT',
-                            'type'  => 'it',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Borrow',
-                            'type'  => 'it',
-                            'id'    => 'borrow',
-                            'link'  => 'admin.it.borrowlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'it',
-                            'id'    => 'new',
-                            'link'  => 'admin.it.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'it',
-                            'id'    => 'my',
-                            'link'  => 'admin.it.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'it',
-                            'id'    => 'all',
-                            'link'  => 'admin.it.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-            case 'it-hardware':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'it',
-                            'route' => 'admin.it.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'IT',
-                            'type'  => 'it',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Hardware Jobs',
-                            'type'  => 'it',
-                            'id'    => 'hardware',
-                            'link'  => 'admin.it.hardwarelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'Borrow',
-                            'type'  => 'it',
-                            'id'    => 'borrow',
-                            'link'  => 'admin.it.borrowlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'it',
-                            'id'    => 'new',
-                            'link'  => 'admin.it.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'it',
-                            'id'    => 'my',
-                            'link'  => 'admin.it.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'it',
-                            'id'    => 'all',
-                            'link'  => 'admin.it.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-            case 'it-approve':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'it',
-                            'route' => 'admin.it.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'IT',
-                            'type'  => 'it',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'it',
-                            'id'    => 'approve',
-                            'link'  => 'admin.it.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'Borrow',
-                            'type'  => 'it',
-                            'id'    => 'borrow',
-                            'link'  => 'admin.it.borrowlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'it',
-                            'id'    => 'new',
-                            'link'  => 'admin.it.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'it',
-                            'id'    => 'my',
-                            'link'  => 'admin.it.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'it',
-                            'id'    => 'all',
-                            'link'  => 'admin.it.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-
-            case 'pac':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'pac',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'PAC',
-                            'type'  => 'pac',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-            case 'pac-approve':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'pac',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'PAC',
-                            'type'  => 'pac',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'approve',
-                            'link'  => 'admin.user.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'pac',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-
-            case 'lab':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'lab',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'LAB',
-                            'type'  => 'lab',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-            case 'lab-approve':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'lab',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'LAB',
-                            'type'  => 'lab',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'approve',
-                            'link'  => 'admin.user.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'lab',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-
-            case 'heartstream':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'heartstream',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'HEARTSTREAM',
-                            'type'  => 'heartstream',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-            case 'heartstream-approve':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'heartstream',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'HEARTSTREAM',
-                            'type'  => 'heartstream',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'approve',
-                            'link'  => 'admin.user.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'heartstream',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-
-            case 'register':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'register',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'REGISTRATION',
-                            'type'  => 'register',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'register',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'register',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'register',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-            case 'register-approve':
-                return [
-                    'count' => [
-                        [
-                            'type'  => 'register',
-                            'route' => 'admin.user.count',
-                        ],
-                    ],
-                    'lists' => [
-                        [
-                            'title' => 'REGISTRATION',
-                            'type'  => 'register',
-                            'id'    => 'title',
-                            'link'  => null,
-                            'count' => false,
-                        ],
-                        [
-                            'title' => 'Approve Jobs',
-                            'type'  => 'register',
-                            'id'    => 'approve',
-                            'link'  => 'admin.user.approvelist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'New Jobs',
-                            'type'  => 'register',
-                            'id'    => 'new',
-                            'link'  => 'admin.user.newlist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'My Jobs',
-                            'type'  => 'register',
-                            'id'    => 'my',
-                            'link'  => 'admin.user.mylist',
-                            'count' => true,
-                        ],
-                        [
-                            'title' => 'All Jobs',
-                            'type'  => 'register',
-                            'id'    => 'all',
-                            'link'  => 'admin.user.alllist',
-                            'count' => false,
-                        ],
-                    ],
-                ];
-                break;
-
-            default:
-                return false;
-                break;
+        if ($this->role == 'dev') {
+            $count = $this->countList(['it', 'pac', 'lab', 'heartstream', 'register']);
+            $menu = $this->menuList(['admin', 'it-approve', 'it-hardware', 'it', 'pac-approve', 'pac', 'lab-approve', 'lab', 'heartstream-approve', 'heartstream', 'register-approve', 'register']);
+        } elseif ($this->role == 'admin') {
+            $count = $this->countList(['it']);
+            $menu = $this->menuList(['admin', 'it']);
+        } elseif ($this->role == 'it') {
+            $count = $this->countList(['it']);
+            $menu = $this->menuList(['it']);
+        } elseif ($this->role == 'it-approve') {
+            $count = $this->countList(['it']);
+            $menu = $this->menuList(['it-approve', 'it']);
+        } elseif ($this->role == 'it-hardware') {
+            $count = $this->countList(['it']);
+            $menu = $this->menuList(['it-hardware', 'it']);
+        } elseif ($this->role == 'lab') {
+            $count = $this->countList(['lab']);
+            $menu = $this->menuList(['lab']);
+        } elseif ($this->role == 'lab-approve') {
+            $count = $this->countList(['lab']);
+            $menu = $this->menuList(['lab-approve', 'lab']);
+        } elseif ($this->role == 'pac') {
+            $count = $this->countList(['pac']);
+            $menu = $this->menuList(['pac']);
+        } elseif ($this->role == 'pac-approve') {
+            $count = $this->countList(['pac']);
+            $menu = $this->menuList(['pac-approve', 'pac']);
+        } elseif ($this->role == 'heartstream') {
+            $count = $this->countList(['heartstream']);
+            $menu = $this->menuList(['heartstream']);
+        } elseif ($this->role == 'heartstream-approve') {
+            $count = $this->countList(['heartstream']);
+            $menu = $this->menuList(['heartstream-approve', 'heartstream']);
+        } elseif ($this->role == 'register') {
+            $count = $this->countList(['register']);
+            $menu = $this->menuList(['register']);
+        } elseif ($this->role == 'register-approve') {
+            $count = $this->countList(['register']);
+            $menu = $this->menuList(['register-approve', 'register']);
         }
+
+        return [
+            'count' => $count,
+            'lists' => $menu,
+        ];
     }
 
     public function getGetApproverAttribute()
@@ -869,10 +280,10 @@ class User extends Authenticatable
         $response = Http::withHeaders([
             'token' => env('API_AUTH_KEY'),
         ])->post('http://172.20.1.12/dbstaff/api/getapprover', [
-            'userid' => auth()->user()->userid,
-        ])->json();
+                    'userid' => auth()->user()->userid,
+                ])->json();
 
-        if (! isset($response['status']) || $response['status'] != 1) {
+        if (!isset($response['status']) || $response['status'] != 1) {
             $result = (object) ['status' => false];
         } else {
             $result = (object) ['status' => true, 'approver' => (object) $response['approver']];
@@ -885,7 +296,7 @@ class User extends Authenticatable
 
     public function getApproveDocument()
     {
-        $documentList         = Approver::where('userid', $this->userid)->whereIn('status', ['wait', 'approve'])->orderByDesc('id')->get();
+        $documentList = Approver::where('userid', $this->userid)->whereIn('status', ['wait', 'approve'])->orderByDesc('id')->get();
         $filteredDocumentList = $documentList->filter(function ($item) {
             if ($item->step == 1) {
                 return true;
