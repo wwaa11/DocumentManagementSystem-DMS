@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\DocumentTraining;
 use App\Models\DocumentTrainingMentor;
 use App\Models\DocumentTrainingParticipant;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -254,5 +255,46 @@ class DocumentTrainingController extends Controller
         ];
 
         return response()->json($response, 200);
+    }
+
+    public function saveAssessment(Request $request)
+    {
+        $projectId = $request->project_id;
+        $assessments = $request->assessments; // Array of [participant_id => [date, type, score]]
+
+        foreach ($assessments as $participantId => $data) {
+            DocumentTrainingParticipant::where('id', $participantId)
+                ->where('document_training_id', $projectId)
+                ->update([
+                    'assetment_date' => $data['date'],
+                    'assetment_type' => $data['type'],
+                    'score'          => $data['score'],
+                ]);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'บันทึกข้อมูลการประเมินสำเร็จ!',
+        ]);
+    }
+
+    public function downloadPDF($id)
+    {
+        $project = DocumentTraining::with(['participants', 'mentors', 'creator'])->find($id);
+        $project_owner = $project->tasks()->where('step', 3)->first()->user;
+        $project_date = $project->tasks()->where('step', 3)->first()->date;
+
+        if (!$project) {
+            return redirect()->back()->with('error', 'โปรเจกต์ไม่พบ!');
+        }
+
+        if ($project->status !== 'complete') {
+            return response()->json(['message' => 'Project is not closed.'], 403);
+        }
+
+        $pdf = Pdf::loadView('document.training.pdf', compact('project', 'project_owner', 'project_date'));
+        $pdf->setPaper('a4', 'portrait');
+        
+        return $pdf->download("Training_{$project->id}.pdf");
     }
 }

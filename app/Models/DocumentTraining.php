@@ -18,6 +18,10 @@ class DocumentTraining extends Model
         'end_time'   => 'datetime',
     ];
 
+    protected $fillable = [
+        'status',
+    ];
+
     public function getDocumentTagAttribute()
     {
         return [

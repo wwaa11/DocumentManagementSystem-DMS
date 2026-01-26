@@ -1,243 +1,252 @@
-@extends('layouts.app')
-@section('content')
-    <div class="mx-auto max-w-5xl">
-        <div class="from-primary/10 to-base-100 rounded-lg bg-gradient-to-r p-6">
-            <h2 class="text-primary mb-2 text-3xl font-bold tracking-tight">
-                <i class="fas fa-file-alt mr-2"></i> ใบบันทึกการฝึกอบรมภาคอิสระ
-            </h2>
-            <div class="divider opacity-50"></div>
-            <p class="text-base-content/70">กรอกข้อมูลด้านล่างเพื่อสร้างเอกสารใหม่</p>
+@extends("layouts.app")
+@section("content")
+    <div class="mx-auto max-w-5xl pb-10">
+        <!-- Header Section -->
+        <div class="from-primary/10 to-base-100 border-primary/5 mb-8 rounded-2xl border bg-gradient-to-br p-8 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="bg-primary text-primary-content rounded-xl p-4 shadow-lg">
+                    <i class="fas fa-graduation-cap text-3xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-extrabold tracking-tight">ใบบันทึกการฝึกอบรมภาคอิสระ</h2>
+                    <p class="text-base-content/60 mt-1">กรอกข้อมูลหลักสูตรและรายละเอียดผู้เข้าร่วมเพื่อขออนุมัติจัดฝึกอบรม</p>
+                </div>
+            </div>
         </div>
-        <form id="create-form" action="{{ route('document.training.create') }}" method="POST" enctype="multipart/form-data">
+
+        <form class="space-y-8" id="create-form" action="{{ route("document.training.create") }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @if ($errors->any())
-                <div class="alert alert-error" role="alert">
-                    <span class="fas fa-exclamation-triangle mr-2"></span>
-                    <span>มีข้อผิดพลาดในการสร้างเอกสาร</span>
-                </div>
-                @foreach ($errors->all() as $error)
-                    <div>- {{ $error }}</div>
-                @endforeach
-            @endif
-            @include('document.approver_create')
-            <div class="card border-base-300 bg-base-100 mb-6 p-6 shadow-xl">
-                <div class="form-control">
-                    <label class="label pb-1">
-                        <span class="label-text text-base-content/70 flex items-center font-medium">
-                            <i class="fas fa-briefcase text-primary mr-2"></i> ชื่อหลักสูตร
-                            <span class="text-red-500">*</span>
-                        </span>
-                    </label>
-                    <div>
-                        <input class="input input-bordered w-full" id="training_name" name="training_name" type="text" />
+
+            <!-- Approver Selection -->
+            <div class="card bg-base-100 border-base-200 overflow-visible border shadow-xl">
+                <div class="card-body p-0">
+                    <div class="bg-base-200/50 border-base-200 flex items-center gap-2 border-b px-8 py-4">
+                        <i class="fas fa-user-check text-primary"></i>
+                        <span class="text-sm font-bold uppercase tracking-wider">ลำดับการอนุมัติ (Approval Chain)</span>
+                    </div>
+                    <div class="p-8">
+                        @include("document.approver_create")
                     </div>
                 </div>
+            </div>
 
-                <div class="form-control mt-3">
-                    <label class="label pb-1">
-                        <span class="label-text text-base-content/70 flex items-center font-medium">
-                            <i class="fas fa-briefcase text-primary mr-2"></i> ที่มา <span class="text-red-500">*</span>
-                        </span>
-                    </label>
-
-                    <div class="mb-3 flex flex-wrap items-center gap-4">
-                        <input class="radio radio-primary" type="radio" name="source_type" value="in_plan" />
-                        <span class="whitespace-nowrap">จัดในแผน ลำดับที่</span>
-                        <input class="input input-bordered input-sm flex-grow" type="text" name="plan_no"
-                            placeholder="..." />
-                        <span class="text-sm opacity-70">(อ้างอิงลำดับที่ในแผนการฝึกอบรมประจำปี)</span>
+            <!-- Training Details Card -->
+            <div class="card bg-base-100 border-base-200 border shadow-xl">
+                <div class="card-body p-0">
+                    <div class="bg-base-200/50 border-base-200 flex items-center gap-2 border-b px-8 py-4">
+                        <i class="fas fa-info-circle text-primary"></i>
+                        <span class="text-sm font-bold uppercase tracking-wider">ข้อมูลรายละเอียดการฝึกอบรม</span>
                     </div>
 
-                    <div class="mb-3 flex flex-wrap items-center gap-4">
-                        <input class="radio radio-primary" type="radio" name="source_type" value="substitute" />
-                        <span class="whitespace-nowrap">จัดแทนในแผน เรื่อง</span>
-                        <input class="input input-bordered input-sm flex-grow" type="text" name="substitute_topic" />
-                        <span class="whitespace-nowrap">เนื่องจาก</span>
-                        <input class="input input-bordered input-sm flex-grow" type="text" name="substitute_reason" />
-                    </div>
-
-                    <div class="mb-3 flex flex-wrap items-center gap-4">
-                        <input class="radio radio-primary" type="radio" name="source_type" value="out_of_plan" />
-                        <span class="whitespace-nowrap">จัดนอกแผน เนื่องจาก</span>
-                        <input class="input input-bordered input-sm flex-grow" type="text" name="out_of_plan_reason" />
-                    </div>
-                </div>
-
-                <div class="form-control mt-3">
-                    <div class="grid grid-cols-1 items-end gap-6 md:grid-cols-2">
+                    <div class="space-y-6 p-8">
+                        <!-- Course Name -->
                         <div class="form-control">
-                            <label class="label pb-1">
-                                <span class="label-text text-base-content/70 flex items-center font-medium">
-                                    <i class="fas fa-calendar-alt text-primary mr-2"></i> วันที่เริ่มฝึกอบรม
-                                    <span class="text-red-500">*</span>
-                                </span>
+                            <label class="label pt-0">
+                                <span class="label-text text-base-content/70 font-bold">ชื่อหลักสูตร <span class="text-error">*</span></span>
                             </label>
-                            <input class="input input-bordered w-full" type="date" name="start_date" />
+                            <input class="input input-bordered focus:input-primary w-full shadow-sm transition-all" id="training_name" name="training_name" type="text" placeholder="ระบุชื่อหลักสูตรการฝึกอบรม" />
                         </div>
 
+                        <!-- Source/Origin -->
                         <div class="form-control">
                             <label class="label pb-1">
-                                <span class="label-text text-base-content/70 flex items-center font-medium">
-                                    <i class="fas fa-calendar-check text-primary mr-2"></i> วันที่สิ้นสุดการฝึกอบรม
-                                    <span class="text-red-500">*</span>
-                                </span>
+                                <span class="label-text text-base-content/70 font-bold">ที่มาของหลักสูตร <span class="text-error">*</span></span>
                             </label>
-                            <input class="input input-bordered w-full" type="date" name="end_date" />
-                        </div>
-                    </div>
-                </div>
+                            <div class="mt-2 space-y-4">
+                                <!-- In Plan -->
+                                <div class="bg-base-200/30 border-base-200 hover:border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4 transition-all">
+                                    <input class="radio radio-primary radio-sm" id="src_in_plan" type="radio" name="source_type" value="in_plan" />
+                                    <label class="flex flex-grow cursor-pointer items-center gap-2 font-medium" for="src_in_plan">
+                                        จัดในแผน ลำดับที่
+                                    </label>
+                                    <input class="input input-bordered input-sm focus:input-primary w-32" type="text" name="plan_no" placeholder="..." />
+                                    <span class="text-xs italic opacity-50">(อ้างอิงลำดับที่ในแผนประจำปี)</span>
+                                </div>
 
-                <div class="form-control mt-3">
-                    <div class="grid grid-cols-1 items-end gap-6 md:grid-cols-3">
-                        <div class="form-control">
-                            <label class="label"><span class="label-text font-medium">เวลาเริ่ม</span>
-                                <span class="text-red-500">*</span></label>
-                            <div class="flex items-center gap-2">
-                                <input class="input input-bordered w-full" type="time" name="start_time" />
-                                <span>ถึง</span>
+                                <!-- Substitute -->
+                                <div class="bg-base-200/30 border-base-200 hover:border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4 transition-all">
+                                    <input class="radio radio-primary radio-sm" id="src_sub" type="radio" name="source_type" value="substitute" />
+                                    <label class="flex cursor-pointer items-center gap-2 font-medium" for="src_sub">
+                                        จัดแทนเรื่อง
+                                    </label>
+                                    <input class="input input-bordered input-sm focus:input-primary flex-grow" type="text" name="substitute_topic" placeholder="ชื่อวิชาในแผนที่ถูกแทน" />
+                                    <span class="font-medium">เนื่องจาก</span>
+                                    <input class="input input-bordered input-sm focus:input-primary flex-grow" type="text" name="substitute_reason" placeholder="เหตุผลที่จัดแทน" />
+                                </div>
+
+                                <!-- Out of Plan -->
+                                <div class="bg-base-200/30 border-base-200 hover:border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4 transition-all">
+                                    <input class="radio radio-primary radio-sm" id="src_out" type="radio" name="source_type" value="out_of_plan" />
+                                    <label class="flex cursor-pointer items-center gap-2 font-medium" for="src_out">
+                                        จัดนอกแผน เนื่องจาก
+                                    </label>
+                                    <input class="input input-bordered input-sm focus:input-primary flex-grow" type="text" name="out_of_plan_reason" placeholder="ระบุเหตุผลที่จัดนอกแผน" />
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-control">
-                            <label class="label"><span class="label-text font-medium">เวลาสิ้นสุด</span>
-                                <span class="text-red-500">*</span></label>
-                            <input class="input input-bordered w-full" type="time" name="end_time" />
+                        <!-- Date & Time Grid -->
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text text-base-content/70 font-bold">วันที่เริ่ม - สิ้นสุด <span class="text-error">*</span></span></label>
+                                <div class="join w-full shadow-sm">
+                                    <input class="input input-bordered join-item focus:input-primary w-full" type="date" name="start_date" />
+                                    <span class="join-item bg-base-200 border-base-300 flex items-center border-y px-4"><i class="fas fa-arrow-right opacity-30"></i></span>
+                                    <input class="input input-bordered join-item focus:input-primary w-full" type="date" name="end_date" />
+                                </div>
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text text-base-content/70 font-bold">ช่วงเวลา <span class="text-error">*</span></span></label>
+                                <div class="join w-full shadow-sm">
+                                    <input class="input input-bordered join-item focus:input-primary w-full" type="time" name="start_time" />
+                                    <span class="join-item bg-base-200 border-base-300 flex items-center border-y px-4"><i class="fas fa-clock opacity-30"></i></span>
+                                    <input class="input input-bordered join-item focus:input-primary w-full" type="time" name="end_time" />
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- Duration -->
                         <div class="form-control">
-                            <label class="label"><span class="label-text font-medium">รวมเวลา (ชั่วโมง/นาที)</span>
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <div class="flex items-center gap-2">
-                                <input class="input input-bordered w-full text-center" type="number"
-                                    name="duration_hours" placeholder="0" />
-                                <span>ชม.</span>
-                                <input class="input input-bordered w-full text-center" type="number"
-                                    name="duration_minutes" placeholder="0" />
-                                <span>น.</span>
+                            <label class="label"><span class="label-text text-base-content/70 font-bold">รวมเวลาทั้งหมด (Duration) <span class="text-error">*</span></span></label>
+                            <div class="bg-primary/5 border-primary/10 flex w-fit items-center gap-4 rounded-xl border p-4">
+                                <div class="flex items-center gap-2">
+                                    <input class="input input-bordered w-20 text-center font-bold" type="number" name="duration_hours" placeholder="0" />
+                                    <span class="text-primary text-sm font-bold">ชั่วโมง</span>
+                                </div>
+                                <div class="divider divider-horizontal mx-0"></div>
+                                <div class="flex items-center gap-2">
+                                    <input class="input input-bordered w-20 text-center font-bold" type="number" name="duration_minutes" placeholder="0" />
+                                    <span class="text-primary text-sm font-bold">นาที</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="form-control mt-3">
-                    <div class="mb-2 flex items-center justify-between">
-                        <h3 class="card-title text-primary flex items-center text-xl">
-                            <i class="fas fa-user-tie mr-2"></i> รายชื่อวิทยากร (Mentors)
-                        </h3>
-                        <button class="btn btn-primary btn-sm" type="button" onclick="openMentorModal()">
+            <!-- Mentors & Participants Grid -->
+            <div class="grid grid-cols-1 gap-8">
+                <!-- Mentors -->
+                <div class="card bg-base-100 border-base-200 overflow-hidden border shadow-xl">
+                    <div class="bg-base-200/50 border-base-200 flex items-center justify-between border-b px-8 py-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user-tie text-primary"></i>
+                            <span class="text-sm font-bold uppercase tracking-wide">รายชื่อวิทยากร (Mentors)</span>
+                        </div>
+                        <button class="btn btn-primary btn-sm pulse-on-hover rounded-full" type="button" onclick="openMentorModal()">
                             <i class="fas fa-plus mr-1"></i> เพิ่มวิทยากร
                         </button>
                     </div>
-                    <div class="overflow-x-auto rounded-lg">
+                    <div class="p-0">
                         <table class="table w-full" id="mentor-table">
                             <thead>
-                                <tr class="bg-base-200">
-                                    <th>รหัสพนักงาน</th>
+                                <tr class="bg-base-100 italic">
+                                    <th class="pl-8">รหัสพนักงาน</th>
                                     <th>ชื่อ-นามสกุล</th>
                                     <th>ตำแหน่ง</th>
-                                    <th class="text-center">จัดการ</th>
+                                    <th class="pr-8 text-center">จัดการ</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-base-100 divide-y">
+                                <!-- Empty state by default -->
                             </tbody>
                         </table>
+                        <div class="py-8 text-center text-sm italic opacity-40" id="mentor-empty">ยังไม่มีรายชื่อวิทยากร</div>
                     </div>
                 </div>
 
-                <div class="form-control mt-6">
-                    <div class="mb-2 flex items-center justify-between">
-                        <h3 class="card-title text-primary flex items-center text-xl">
-                            <i class="fas fa-users mr-2"></i> รายชื่อผู้เข้าร่วม (Participants)
-                            <span class="text-red-500 text-sm">*</span>
-                        </h3>
-                        <button class="btn btn-primary btn-sm" type="button" onclick="openParticipantModal()">
+                <!-- Participants -->
+                <div class="card bg-base-100 border-base-200 overflow-hidden border shadow-xl">
+                    <div class="bg-base-200/50 border-base-200 flex items-center justify-between border-b px-8 py-4">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-users text-primary"></i>
+                            <span class="text-sm font-bold uppercase tracking-wide">รายชื่อผู้เข้าร่วม (Participants) <span class="text-error">*</span></span>
+                        </div>
+                        <button class="btn btn-primary btn-sm pulse-on-hover rounded-full" type="button" onclick="openParticipantModal()">
                             <i class="fas fa-plus mr-1"></i> เพิ่มผู้เข้าร่วม
                         </button>
                     </div>
-                    <div class="overflow-x-auto rounded-lg">
+                    <div class="p-0">
                         <table class="table w-full" id="participant-table">
                             <thead>
-                                <tr class="bg-base-200">
-                                    <th>รหัสพนักงาน</th>
+                                <tr class="bg-base-100 italic">
+                                    <th class="pl-8">รหัสพนักงาน</th>
                                     <th>ชื่อ-นามสกุล</th>
-                                    <th>ตำแหน่ง</th>
-                                    <th>แผนก</th>
-                                    <th class="text-center">จัดการ</th>
+                                    <th>ตำแหน่ง / แผนก</th>
+                                    <th class="pr-8 text-center">จัดการ</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="divide-base-100 divide-y">
+                                <!-- Empty state by default -->
                             </tbody>
                         </table>
+                        <div class="py-8 text-center text-sm italic opacity-40" id="participant-empty">ยังไม่มีรายชื่อผู้เข้าร่วม</div>
                     </div>
                 </div>
+            </div>
 
-                <div class="form-control mt-3">
-                    <h3 class="card-title text-primary mb-2 flex items-center text-xl">
-                        <div>
-                            <i class="fas fa-paperclip text-primary mr-2"></i>แนบเอกสารประกอบการฝึกอบรม
-                            <span class="text-accent text-xs">* ใส่เอกสารแนบได้ไม่เกิน 20 ไฟล์</span>
+            <!-- Attachments -->
+            <div class="card bg-base-100 border-base-200 border shadow-xl">
+                <div class="card-body p-0">
+                    <div class="bg-base-200/50 border-base-200 flex items-center gap-2 border-b px-8 py-4">
+                        <i class="fas fa-paperclip text-primary"></i>
+                        <span class="text-sm font-bold uppercase tracking-wide">เอกสารประกอบการฝึกอบรม (Attachments)</span>
+                    </div>
+                    <div class="p-8">
+                        <div class="border-base-200 hover:border-primary/30 hover:bg-primary/5 group cursor-pointer rounded-2xl border-4 border-dashed p-10 text-center transition-all" id="drop-area">
+                            <input class="hidden" id="file_input" type="file" name="document_files[]" multiple>
+                            <div class="bg-base-200 group-hover:bg-primary group-hover:text-primary-content mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all">
+                                <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                            </div>
+                            <h4 class="text-lg font-bold">ลากและวางไฟล์ที่นี่</h4>
+                            <p class="mt-1 text-sm opacity-50">หรือ <span class="text-primary font-bold">คลิกเพื่อเลือกไฟล์</span> จากเครื่องของคุณ</p>
+                            <div class="mt-4 text-[10px] font-bold uppercase tracking-widest opacity-40">Max 20 Files • PDF, JPG, PNG</div>
                         </div>
-                    </h3>
-                    <div class="border-base-300 hover:border-primary cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-all"
-                        id="drop-area">
-                        <input class="hidden" id="file_input" type="file" name="document_files[]" multiple>
-                        <p class="text-base-content/70"><i class="fas fa-cloud-upload-alt mr-2"></i>
-                            ลากและวางไฟล์ที่นี่ หรือ <span class="text-primary font-bold">คลิกเพื่อเลือกไฟล์</span>
-                        </p>
-                    </div>
-                    <div class="mt-4 flex flex-wrap gap-2" id="file_display">
-                        {{-- display file in this div with remove file button --}}
+                        <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3" id="file_display">
+                            {{-- files dynamically inserted here --}}
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="mt-6 flex justify-center">
-                    <button class="btn btn-accent gap-2 transition-all duration-200 hover:scale-105" type="submit"
-                        onclick="submitForm()">
-                        <i class="fas fa-paper-plane"></i> สร้างเอกสาร
-                    </button>
-                </div>
+            <!-- Submit Button Area -->
+            <div class="sticky bottom-8 z-30 mt-10 flex justify-center">
+                <button class="btn btn-primary btn-lg gap-3 rounded-full px-12 shadow-2xl transition-all hover:scale-105 active:scale-95" type="submit" onclick="submitForm()">
+                    <i class="fas fa-paper-plane"></i>
+                    <span class="text-lg">สร้างเอกสารการฝึกอบรม</span>
+                </button>
             </div>
         </form>
     </div>
 @endsection
-@push('scripts')
+
+@push("scripts")
     <script>
-        let files = []; // To store selected files, accessible globally within this script block
-        let fileInput; // Declare fileInput in a higher scope
+        let files = [];
+        let fileInput;
 
         document.addEventListener('DOMContentLoaded', function() {
             const dropArea = document.getElementById('drop-area');
-            fileInput = document.getElementById('file_input'); // Assign to the higher-scoped variable
+            fileInput = document.getElementById('file_input');
             const fileDisplay = document.getElementById('file_display');
 
-            // Prevent default drag behaviors
-            ;
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 dropArea.addEventListener(eventName, preventDefaults, false);
                 document.body.addEventListener(eventName, preventDefaults, false);
             });
 
-            // Highlight drop area when item is dragged over it
-            ;
             ['dragenter', 'dragover'].forEach(eventName => {
                 dropArea.addEventListener(eventName, highlight, false);
             });
 
-            ;
             ['dragleave', 'drop'].forEach(eventName => {
                 dropArea.addEventListener(eventName, unhighlight, false);
             });
 
-            // Handle dropped files
             dropArea.addEventListener('drop', handleDrop, false);
-
-            // Handle file input change
             fileInput.addEventListener('change', function() {
                 handleFiles(this.files);
             });
-
-            // Handle click on drop area to open file input
             dropArea.addEventListener('click', function() {
                 fileInput.click();
             });
@@ -248,26 +257,21 @@
             }
 
             function highlight() {
-                dropArea.classList.add('border-primary');
-                dropArea.classList.remove('border-base-300');
+                dropArea.classList.add('border-primary', 'bg-primary/5');
             }
 
             function unhighlight() {
-                dropArea.classList.remove('border-primary');
-                dropArea.classList.add('border-base-300');
+                dropArea.classList.remove('border-primary', 'bg-primary/5');
             }
 
             function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const newFiles = dt.files;
-                handleFiles(newFiles);
+                handleFiles(e.dataTransfer.files);
             }
 
             function handleFiles(newFiles) {
                 newFiles = Array.from(newFiles);
                 newFiles.forEach(file => {
-                    if (!files.some(existingFile => existingFile.name === file.name && existingFile.size ===
-                            file.size)) {
+                    if (!files.some(f => f.name === file.name && f.size === file.size)) {
                         files.push(file);
                     }
                 });
@@ -275,19 +279,27 @@
             }
 
             function updateFileDisplay() {
-                fileDisplay.innerHTML = ''; // Clear current display
+                fileDisplay.innerHTML = '';
                 files.forEach((file, index) => {
                     const fileElement = document.createElement('div');
-                    fileElement.className = 'flex items-center gap-2 bg-base-200 p-2 rounded-md';
+                    fileElement.className = 'flex items-center justify-between gap-3 bg-base-200/50 p-3 rounded-xl border border-base-300 group hover:border-primary/30 transition-all';
                     fileElement.innerHTML = `
-                                                                                <span class="text-sm">${file.name}</span>
-                                                                                <button type="button" class="remove-file-btn text-error hover:text-error-focus" data-index="${index}">
-                                                                                    <i class="fas fa-times-circle"></i>
-                                                                                </button>
-                                                                            `;
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <i class="fas fa-file text-primary/60"></i>
+                            <span class="text-xs font-bold truncate">${file.name}</span>
+                        </div>
+                        <button type="button" class="btn btn-circle btn-ghost btn-xs text-error opacity-0 group-hover:opacity-100 transition-all" onclick="removeFile(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
                     fileDisplay.appendChild(fileElement);
                 });
                 updateFileInput();
+            }
+
+            window.removeFile = function(index) {
+                files.splice(index, 1);
+                updateFileDisplay();
             }
 
             function updateFileInput() {
@@ -295,55 +307,63 @@
                 files.forEach(file => dataTransfer.items.add(file));
                 fileInput.files = dataTransfer.files;
             }
-
-            // Handle remove file button click
-            fileDisplay.addEventListener('click', function(e) {
-                if (e.target.closest('.remove-file-btn')) {
-                    const indexToRemove = parseInt(e.target.closest('.remove-file-btn').dataset.index);
-                    files.splice(indexToRemove, 1); // Remove file from array
-                    updateFileDisplay();
-                }
-            });
         });
-    </script>
-    <script>
-        function addRowToTable(tableId, data, hiddenPrefix) {
-            const tableBody = document.querySelector(`#${tableId} tbody`);
-            const row = document.createElement('tr');
-
-            let cells = `
-                                                    <td>${data.userid} <input type="hidden" name="${hiddenPrefix}_userid[]" value="${data.userid}"></td>
-                                                    <td>${data.name} <input type="hidden" name="${hiddenPrefix}_name[]" value="${data.name}"></td>
-                                                    <td>${data.position} <input type="hidden" name="${hiddenPrefix}_position[]" value="${data.position}"></td>
-                                                `;
-
-            if (data.department) {
-                cells +=
-                    `<td>${data.department} <input type="hidden" name="${hiddenPrefix}_dept[]" value="${data.department}"></td>`;
-            }
-
-            cells += `<td class="text-center">
-                                                    <button type="button" class="btn btn-ghost btn-xs text-error" onclick="this.closest('tr').remove()">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                  </td>`;
-
-            row.innerHTML = cells;
-            tableBody.appendChild(row);
-        }
 
         // Search User Function
         async function searchUser(userid) {
             try {
-                const response = await axios.post('{{ route('user.search') }}', {
+                const response = await axios.post('{{ route("user.search") }}', {
                     userid: userid
                 });
-
                 return response.data.user;
             } catch (error) {
-                Swal.fire('Error', 'ไม่พบข้อมูลพนักงาน', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ไม่พบข้อมูล',
+                    text: 'ไม่พบข้อมูลพนักงานรหัสนี้ในระบบ',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 return null;
             }
+        }
+
+        function toggleEmptyStates() {
+            const mentorTable = document.querySelector('#mentor-table tbody');
+            const participantTable = document.querySelector('#participant-table tbody');
+            document.getElementById('mentor-empty').style.display = mentorTable.children.length > 0 ? 'none' : 'block';
+            document.getElementById('participant-empty').style.display = participantTable.children.length > 0 ? 'none' : 'block';
+        }
+
+        function addRowToTable(tableId, data, hiddenPrefix) {
+            const tableBody = document.querySelector(`#${tableId} tbody`);
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-base-200/20 transition-all';
+
+            let cells = `
+                <td class="pl-8 py-4">
+                    <span class="badge badge-neutral font-bold">${data.userid}</span>
+                    <input type="hidden" name="${hiddenPrefix}_userid[]" value="${data.userid}">
+                </td>
+                <td class="py-4 font-bold text-sm">${data.name} <input type="hidden" name="${hiddenPrefix}_name[]" value="${data.name}"></td>
+                <td class="py-4">
+                    <div class="text-xs font-bold opacity-70">${data.position}</div>
+                    ${data.department ? `<div class="text-[10px] opacity-40 uppercase">${data.department}</div>` : ''}
+                    <input type="hidden" name="${hiddenPrefix}_position[]" value="${data.position}">
+                    ${data.department ? `<input type="hidden" name="${hiddenPrefix}_dept[]" value="${data.department}">` : ''}
+                </td>
+                <td class="text-center pr-8 py-4">
+                    <button type="button" class="btn btn-ghost btn-circle btn-sm text-error hover:bg-error/10" onclick="this.closest('tr').remove(); toggleEmptyStates();">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+
+            row.innerHTML = cells;
+            tableBody.appendChild(row);
+            toggleEmptyStates();
         }
 
         // Mentor Modal
@@ -351,75 +371,61 @@
             const {
                 value: formValues
             } = await Swal.fire({
-                title: '<span class="text-2xl font-bold text-base-content">เพิ่มวิทยากร</span>',
+                title: 'เพิ่มวิทยากร',
                 html: `
-                                                        <div class="text-left p-2">
-                                                            <div class="form-control w-full mb-4">
-                                                                <label class="label"><span class="label-text font-semibold">รหัสพนักงาน</span></label>
-                                                                <div class="flex gap-2">
-                                                                    <input id="swal-userid" class="input input-bordered w-full focus:border-primary" placeholder="รหัสพนักงาน">
-                                                                    <button type="button" id="swal-search" class="btn btn-primary px-6">
-                                                                        <i class="fas fa-search mr-1"></i> ค้นหา
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="form-control w-full mb-4">
-                                                                <label class="label"><span class="label-text font-semibold">ชื่อ-นามสกุล</span></label>
-                                                                <input id="swal-name" class="input input-bordered w-full" placeholder="ระบุชื่อวิทยากร">
-                                                            </div>
-
-                                                            <div class="form-control w-full">
-                                                                <label class="label"><span class="label-text font-semibold">ตำแหน่ง</span></label>
-                                                                <input id="swal-position" class="input input-bordered w-full" placeholder="ระบุตำแหน่ง">
-                                                            </div>
-                                                        </div>
-                                                    `,
+                    <div class="text-left py-4 space-y-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">รหัสพนักงาน</span></label>
+                            <div class="join w-full">
+                                <input id="swal-userid" class="input input-bordered join-item w-full" placeholder="Ex: 650000">
+                                <button type="button" id="swal-search" class="btn btn-primary join-item px-6"><i class="fas fa-search"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">ชื่อ-นามสกุล</span></label>
+                            <input id="swal-name" class="input input-bordered w-full" placeholder="ชื่อวิทยากร">
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">ตำแหน่ง</span></label>
+                            <input id="swal-position" class="input input-bordered w-full" placeholder="ตำแหน่ง">
+                        </div>
+                    </div>
+                `,
                 showCancelButton: true,
-                confirmButtonText: 'บันทึกข้อมูล',
+                confirmButtonText: 'เพิ่มรายชื่อ',
                 cancelButtonText: 'ยกเลิก',
                 customClass: {
-                    confirmButton: 'btn btn-primary px-8 mx-2',
-                    cancelButton: 'btn btn-ghost px-8 mx-2',
-                    popup: 'rounded-2xl shadow-2xl bg-base-100', // Matches DaisyUI card style
+                    confirmButton: 'btn btn-primary px-10 mx-2',
+                    cancelButton: 'btn btn-ghost px-10 mx-2',
+                    popup: 'rounded-3xl shadow-2xl border border-base-200'
                 },
-                buttonsStyling: false, // Disables default Swal buttons to use Tailwind classes
-                focusConfirm: false,
+                buttonsStyling: false,
                 didOpen: () => {
                     const searchBtn = document.getElementById('swal-search');
                     searchBtn.addEventListener('click', async () => {
                         const id = document.getElementById('swal-userid').value;
-                        if (!id) return Swal.showValidationMessage('กรุณากรอกรหัสพนักงาน');
-
-                        searchBtn.classList.add('loading'); // Add DaisyUI loading spinner
+                        if (!id) return;
+                        searchBtn.classList.add('loading');
                         const data = await searchUser(id);
                         searchBtn.classList.remove('loading');
-
                         if (data) {
                             document.getElementById('swal-name').value = data.name || '';
-                            document.getElementById('swal-position').value = data.position ||
-                                '';
+                            document.getElementById('swal-position').value = data.position || '';
                         }
                     });
                 },
                 preConfirm: () => {
                     const userid = document.getElementById('swal-userid').value;
                     const name = document.getElementById('swal-name').value;
-                    if (!userid || !name) {
-                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
-                        return false;
-                    }
+                    if (!userid || !name) return Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
                     return {
-                        userid: userid,
-                        name: name,
+                        userid,
+                        name,
                         position: document.getElementById('swal-position').value
                     }
                 }
             });
-
-            if (formValues) {
-                addRowToTable('mentor-table', formValues, 'mentors');
-            }
+            if (formValues) addRowToTable('mentor-table', formValues, 'mentors');
         }
 
         // Participant Modal
@@ -427,64 +433,52 @@
             const {
                 value: formValues
             } = await Swal.fire({
-                title: '<span class="text-2xl font-bold text-base-content">เพิ่มผู้เข้าร่วม</span>',
+                title: 'เพิ่มผู้เข้าร่วม',
                 html: `
-                                                        <div class="text-left p-2">
-                                                            <div class="form-control w-full mb-4">
-                                                                <label class="label"><span class="label-text font-semibold">รหัสพนักงาน</span></label>
-                                                                <div class="flex gap-2">
-                                                                    <input id="swal-userid" class="input input-bordered w-full focus:border-primary" placeholder="รหัสพนักงาน">
-                                                                    <button type="button" id="swal-search-p" class="btn btn-primary px-6">
-                                                                        <i class="fas fa-search mr-1"></i> ค้นหา
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="grid grid-cols-1 gap-4">
-                                                                <div class="form-control w-full">
-                                                                    <label class="label"><span class="label-text font-semibold text-base-content/70">ชื่อ-นามสกุล</span></label>
-                                                                    <input id="swal-name" class="input input-bordered w-full" placeholder="ระบุชื่อผู้เข้าร่วม">
-                                                                </div>
-
-                                                                <div class="grid grid-cols-2 gap-4">
-                                                                    <div class="form-control w-full">
-                                                                        <label class="label"><span class="label-text font-semibold text-base-content/70">ตำแหน่ง</span></label>
-                                                                        <input id="swal-position" class="input input-bordered w-full" placeholder="ตำแหน่ง">
-                                                                    </div>
-                                                                    <div class="form-control w-full">
-                                                                        <label class="label"><span class="label-text font-semibold text-base-content/70">แผนก</span></label>
-                                                                        <input id="swal-dept" class="input input-bordered w-full" placeholder="แผนก/ฝ่าย">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    `,
+                    <div class="text-left py-4 space-y-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">รหัสพนักงาน</span></label>
+                            <div class="join w-full">
+                                <input id="swal-userid" class="input input-bordered join-item w-full" placeholder="Ex: 650000">
+                                <button type="button" id="swal-search-p" class="btn btn-primary join-item px-6"><i class="fas fa-search"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">ชื่อ-นามสกุล</span></label>
+                            <input id="swal-name" class="input input-bordered w-full" placeholder="ชื่อพนักงาน">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text font-bold">ตำแหน่ง</span></label>
+                                <input id="swal-position" class="input input-bordered w-full" placeholder="ตำแหน่ง">
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text font-bold">แผนก</span></label>
+                                <input id="swal-dept" class="input input-bordered w-full" placeholder="แผนก">
+                            </div>
+                        </div>
+                    </div>
+                `,
                 showCancelButton: true,
-                confirmButtonText: '<i class="fas fa-save mr-2"></i> บันทึกผู้เข้าร่วม',
+                confirmButtonText: 'เพิ่มผู้เข้าร่วม',
                 cancelButtonText: 'ยกเลิก',
                 customClass: {
-                    confirmButton: 'btn btn-primary px-8 mx-2',
-                    cancelButton: 'btn btn-ghost px-8 mx-2',
-                    popup: 'rounded-3xl shadow-2xl bg-base-100 border border-base-200',
+                    confirmButton: 'btn btn-primary px-10 mx-2',
+                    cancelButton: 'btn btn-ghost px-10 mx-2',
+                    popup: 'rounded-3xl shadow-2xl border border-base-200'
                 },
                 buttonsStyling: false,
-                focusConfirm: false,
                 didOpen: () => {
                     const searchBtn = document.getElementById('swal-search-p');
                     searchBtn.addEventListener('click', async () => {
                         const id = document.getElementById('swal-userid').value;
-                        if (!id) return Swal.showValidationMessage(
-                            'กรุณากรอกรหัสพนักงานก่อนค้นหา');
-
+                        if (!id) return;
                         searchBtn.classList.add('loading');
-                        const data = await searchUser(
-                            id); // Using the axios function created earlier
+                        const data = await searchUser(id);
                         searchBtn.classList.remove('loading');
-
                         if (data) {
                             document.getElementById('swal-name').value = data.name || '';
-                            document.getElementById('swal-position').value = data.position ||
-                                '';
+                            document.getElementById('swal-position').value = data.position || '';
                             document.getElementById('swal-dept').value = data.department || '';
                         }
                     });
@@ -492,113 +486,69 @@
                 preConfirm: () => {
                     const userid = document.getElementById('swal-userid').value;
                     const name = document.getElementById('swal-name').value;
-                    if (!userid || !name) {
-                        Swal.showValidationMessage('จำเป็นต้องระบุรหัสพนักงานและชื่อ');
-                        return false;
-                    }
+                    if (!userid || !name) return Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
                     return {
-                        userid: userid,
-                        name: name,
+                        userid,
+                        name,
                         position: document.getElementById('swal-position').value,
                         department: document.getElementById('swal-dept').value
                     }
                 }
             });
-
-            if (formValues) {
-                addRowToTable('participant-table', formValues, 'participants');
-            }
+            if (formValues) addRowToTable('participant-table', formValues, 'participants');
         }
 
         function submitForm() {
             event.preventDefault();
-
-            // Validate required fields
             let missingFields = [];
-            let isValid = true;
 
-            // 1. Training Name
-            if (!document.getElementById('training_name').value) {
-                missingFields.push('ชื่อหลักสูตร');
-                isValid = false;
-            }
+            if (!document.getElementById('training_name').value) missingFields.push('ชื่อหลักสูตร');
+            if (!document.querySelector('input[name="source_type"]:checked')) missingFields.push('ที่มาหลักสูตร');
+            if (!document.querySelector('input[name="start_date"]').value || !document.querySelector('input[name="end_date"]').value) missingFields.push('วันที่ฝึกอบรม');
+            if (document.querySelectorAll('input[name="participants_userid[]"]').length === 0) missingFields.push('รายชื่อผู้เข้าร่วม');
+            if (files.length === 0) missingFields.push('เอกสารแนบประกอบการอบรม');
 
-            // 2. Source Type
-            const sourceType = document.querySelector('input[name="source_type"]:checked');
-            if (!sourceType) {
-                missingFields.push('ที่มาหลักสูตร');
-                isValid = false;
-            } else if (sourceType.value === 'in_plan') {
-                if (!document.querySelector('input[name="plan_no"]').value) {
-                    missingFields.push('เลขที่แผน');
-                    isValid = false;
-                }
-            } else if (sourceType.value === 'substitute') {
-                if (!document.querySelector('input[name="substitute_topic"]').value) {
-                    missingFields.push('เรื่อง');
-                    isValid = false;
-                }
-                if (!document.querySelector('input[name="substitute_reason"]').value) {
-                    missingFields.push('เนื่องจาก');
-                    isValid = false;
-                }
-            } else if (sourceType.value === 'out_plan') {
-                if (!document.querySelector('input[name="out_of_plan_reason"]').value) {
-                    missingFields.push('เนื่องจาก');
-                    isValid = false;
-                }
-            }
-
-            // 3. Dates and Times
-            const dateFields = ['start_date', 'end_date', 'duration_hours'];
-            var dateTime = false;
-            dateFields.forEach(name => {
-                const element = document.querySelector(`input[name="${name}"]`);
-                if (!element || !element.value) {
-                    dateTime = true;
-                }
-            });
-            if (dateTime) {
-                missingFields.push('วันที่-เวลา');
-                isValid = false;
-            }
-
-            // 4. Participants
-            const participants = document.getElementsByName('participants_userid[]');
-            if (participants.length === 0) {
-                missingFields.push('ผู้เข้าร่วม');
-                isValid = false;
-            }
-
-            // 5. Files
-            if (files.length === 0) {
-                missingFields.push('แนบเอกสารประกอบการฝึกอบรม');
-                isValid = false;
-            }
-
-            if (!isValid) {
+            if (missingFields.length > 0) {
                 Swal.fire({
                     title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
-                    html: missingFields.join('<br>'),
+                    html: `<div class="text-left mt-2"><ul class="list-disc pl-5"><li>${missingFields.join('</li><li>')}</li></ul></div>`,
                     icon: 'error',
-                    showConfirmButton: false,
+                    confirmButtonText: 'รับทราบ',
                     buttonsStyling: false,
-                    timer: 2000,
-                    timerProgressBar: true
+                    customClass: {
+                        confirmButton: 'btn btn-primary px-10'
+                    }
+                });
+                return;
+            }
+
+            // Check total file size (PHP post_max_size is 24MB, so we cap at 20MB)
+            const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+            if (totalSize > 20 * 1024 * 1024) {
+                Swal.fire({
+                    title: 'ขนาดไฟล์รวมใหญ่เกินไป',
+                    html: `ขนาดไฟล์รวมทั้งหมดคือ <b>${(totalSize / (1024 * 1024)).toFixed(2)} MB</b><br>กรุณาลดขนาดไฟล์รวมให้ไม่เกิน <b>20 MB</b>`,
+                    icon: 'error',
+                    confirmButtonText: 'ตกลง',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-primary px-10'
+                    }
                 });
                 return;
             }
 
             Swal.fire({
-                title: 'ต้องการสร้างเอกสารหรือไม่?',
+                title: 'ยืนยันการสร้างเอกสาร?',
+                text: "กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนกดตกลง",
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonText: 'ตกลง',
-                cancelButtonText: 'ยกเลิก',
+                confirmButtonText: 'ยืนยันสร้างเอกสาร',
+                cancelButtonText: 'ตรวจสอบอีกครั้ง',
                 buttonsStyling: false,
                 customClass: {
-                    confirmButton: 'btn btn-primary mx-3',
-                    cancelButton: 'btn btn-ghost mx-3'
+                    confirmButton: 'btn btn-primary px-10 mx-2',
+                    cancelButton: 'btn btn-ghost px-10 mx-2'
                 },
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -609,13 +559,7 @@
                             Swal.showLoading();
                         }
                     });
-                    const form = document.getElementById('create-form');
-                    if (fileInput) {
-                        const dataTransfer = new DataTransfer();
-                        files.forEach(file => dataTransfer.items.add(file));
-                        fileInput.files = dataTransfer.files;
-                    }
-                    form.submit();
+                    document.getElementById('create-form').submit();
                 }
             });
         }

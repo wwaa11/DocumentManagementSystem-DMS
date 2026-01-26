@@ -12,6 +12,9 @@ Route::get('/login', [AuthController::class, 'Login'])->name('login');
 Route::post('/login', [AuthController::class, 'LoginRequest'])->name('post.login');
 Route::post('/logout', [AuthController::class, 'LogoutRequest'])->name('logout');
 
+// HRD download files
+Route::get('/training/download-pdf/{id}', [DocumentTrainingController::class, 'downloadPDF'])->name('document.training.downloadPDF');
+
 Route::group(['middleware' => 'auth'], function () {
     // Admin
     Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
@@ -94,5 +97,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/training/get-attendance', [DocumentTrainingController::class, 'getAttendance'])->name('document.training.getAttendance');
     Route::post('/training/approve-attendance', [DocumentTrainingController::class, 'approveAttendance'])->name('document.training.approveAttendance');
     Route::post('/training/close-project', [DocumentTrainingController::class, 'closeProject'])->name('document.training.closeProject');
+    Route::post('/training/save-assessment', [DocumentTrainingController::class, 'saveAssessment'])->name('document.training.saveAssessment');
+    Route::get('/training/download-pdf/{id}', [DocumentTrainingController::class, 'downloadPDF'])->name('document.training.downloadPDF');
 
 });
