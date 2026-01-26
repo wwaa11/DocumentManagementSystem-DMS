@@ -26,6 +26,10 @@ class DocumentBorrow extends Model
         'list_detail',
     ];
 
+    protected $fillable = [
+        'status',
+    ];
+
     protected $casts = [
         'estimate_return_date' => 'datetime',
     ];

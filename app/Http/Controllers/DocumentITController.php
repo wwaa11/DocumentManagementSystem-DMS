@@ -13,6 +13,7 @@ use App\Models\DocumentRegister;
 use App\Models\DocumentUser;
 use App\Models\Hardware;
 use App\Models\User;
+use App\Models\Log;
 use Illuminate\Http\Request;
 
 class DocumentITController extends Controller
@@ -272,9 +273,12 @@ class DocumentITController extends Controller
 
         $documentBorrowList = DocumentBorrow::whereIn('status', ['pending', 'borrow_approve', 'return_approve', 'return'])->get();
         $documentListBorrowHardware = $documentBorrowList->where('status', 'pending')->filter(function ($item) {
-            return $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+            return $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->where('status', 'wait')->first();
         })->count();
-        $documentListBorrowNew = $documentBorrowList->whereIn('status', ['pending', 'return_approve'])->count();
+        $documentListBorrowNew = $documentBorrowList->whereIn('status', ['pending', 'return_approve'])->filter(function ($item) {
+            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+            return ! $task || $task->status != 'wait';
+        })->count();
         $documentListBorrowApprove = $documentBorrowList->whereIn('status', ['borrow_approve', 'return'])->count();
 
         return response()->json([
@@ -350,15 +354,80 @@ class DocumentITController extends Controller
 
     public function adminAllDocuments(Request $request)
     {
-        $documents = DocumentIT::all();
-        $documentsITUser = DocumentItUser::all();
-        $documentsBorrow = DocumentBorrow::all();
+        $search = $request->get('search');
+        $status = $request->get('status');
+        $type = $request->get('type');
+        $start_date = $request->get('start_date');
+        $end_date = $request->get('end_date');
+
+        // DocumentIT
+        $itQuery = DocumentIT::query();
+        if ($search) {
+            $itQuery->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhere('title', 'LIKE', "%{$search}%")
+                    ->orWhere('detail', 'LIKE', "%{$search}%");
+            });
+        }
+        if ($status) {
+            $itQuery->where('status', $status);
+        }
+        if ($start_date) {
+            $itQuery->whereDate('created_at', '>=', $start_date);
+        }
+        if ($end_date) {
+            $itQuery->whereDate('created_at', '<=', $end_date);
+        }
+        $documents = ($type == 'ALL' || $type == 'IT') ? $itQuery->get() : collect();
+
+        // DocumentItUser
+        $itUserQuery = DocumentItUser::query();
+        if ($search) {
+            $itUserQuery->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhereHas('documentUser', function ($sq) use ($search) {
+                        $sq->where('title', 'LIKE', "%{$search}%")
+                            ->orWhere('detail', 'LIKE', "%{$search}%");
+                    });
+            });
+        }
+        if ($status) {
+            $itUserQuery->where('status', $status);
+        }
+        if ($start_date) {
+            $itUserQuery->whereDate('created_at', '>=', $start_date);
+        }
+        if ($end_date) {
+            $itUserQuery->whereDate('created_at', '<=', $end_date);
+        }
+        $documentsITUser = ($type == 'ALL' || $type == 'USER') ? $itUserQuery->get() : collect();
+
+        // DocumentBorrow
+        $borrowQuery = DocumentBorrow::query();
+        if ($search) {
+            $borrowQuery->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhere('title', 'LIKE', "%{$search}%")
+                    ->orWhere('detail', 'LIKE', "%{$search}%");
+            });
+        }
+        if ($status) {
+            $borrowQuery->where('status', $status);
+        }
+        if ($start_date) {
+            $borrowQuery->whereDate('created_at', '>=', $start_date);
+        }
+        if ($end_date) {
+            $borrowQuery->whereDate('created_at', '<=', $end_date);
+        }
+        $documentsBorrow = ($type == 'ALL' || $type == 'BORROW') ? $borrowQuery->get() : collect();
+
         $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortByDESC('created_at');
 
         $action = 'all';
         $documents = $this->helper->paginateCollection($documents, 10, $request);
 
-        return view('admin.it.list', compact('documents', 'action'));
+        return view('admin.it.list', compact('documents', 'action', 'search','type', 'status', 'start_date', 'end_date'));
     }
 
     public function adminviewDocument($type, $document_id, $action)
@@ -967,5 +1036,120 @@ class DocumentITController extends Controller
             'status' => 'success',
             'message' => 'รับอุปกรณ์สำเร็จ!',
         ]);
+    }
+
+    // Report
+    // Report
+    public function adminReportDocuments(Request $request)
+    {
+        $start_date = $request->get('start_date', date('Y-m-01'));
+        $end_date = $request->get('end_date', date('Y-m-d'));
+
+        // 1. Department Request Stats
+        // Need to combine from all document types
+        $itDocs = DocumentIT::query();
+        $itUserDocs = DocumentItUser::query();
+        $borrowDocs = DocumentBorrow::query();
+
+        if ($start_date) {
+            $itDocs->whereDate('created_at', '>=', $start_date);
+            $itUserDocs->whereDate('created_at', '>=', $start_date);
+            $borrowDocs->whereDate('created_at', '>=', $start_date);
+        }
+        if ($end_date) {
+            $itDocs->whereDate('created_at', '<=', $end_date);
+            $itUserDocs->whereDate('created_at', '<=', $end_date);
+            $borrowDocs->whereDate('created_at', '<=', $end_date);
+        }
+
+        $itDocs = $itDocs->with('creator')->get();
+        // For DocumentItUser, the department is in the parent DocumentUser
+        $itUserDocs = $itUserDocs->with('documentUser.creator')->get();
+        $borrowDocs = $borrowDocs->with('creator')->get();
+
+        $deptStats = [];
+        foreach ($itDocs as $doc) {
+            $dept = $doc->creator->department ?? 'N/A';
+            $deptStats[$dept] = ($deptStats[$dept] ?? 0) + 1;
+        }
+        foreach ($itUserDocs as $doc) {
+            $dept = $doc->documentUser->creator->department ?? 'N/A';
+            $deptStats[$dept] = ($deptStats[$dept] ?? 0) + 1;
+        }
+        foreach ($borrowDocs as $doc) {
+            $dept = $doc->creator->department ?? 'N/A';
+            $deptStats[$dept] = ($deptStats[$dept] ?? 0) + 1;
+        }
+        arsort($deptStats);
+
+        // 2. Admin Action Stats (Take, Close, Transfer)
+        // We look at Logs where action is 'accept' (take), 'done' (close), 'transfer' (transfer)
+        // Logic: 'accept' action in logs means admin take job.
+        // 'transfer' action in logs means admin transfer job.
+        // 'complete' or 'done' (status update) or action in logs?
+        // Looking at processDocument:
+        // - if transfer_userid is null: logs action 'process' (but status becomes 'done'), and tasks updated to 'approve'.
+        // Wait, action 'accept' is clear. 'transfer' is clear.
+        // 'close' would be when they set it to 'done'. Action in logs is 'process' when they finish.
+        $logsQuery = Log::whereIn('action', ['accept', 'process', 'transfer', 'work']);
+        if ($start_date) {
+            $logsQuery->whereDate('created_at', '>=', $start_date);
+        }
+        if ($end_date) {
+            $logsQuery->whereDate('created_at', '<=', $end_date);
+        }
+        $logs = $logsQuery->with('user')->get();
+
+        $adminStats = [];
+        foreach ($logs as $log) {
+            $admin = $log->user->name ?? $log->userid;
+            if (!isset($adminStats[$admin])) {
+                $adminStats[$admin] = ['take' => 0, 'close' => 0, 'transfer' => 0];
+            }
+            if ($log->action == 'accept') {
+                $adminStats[$admin]['take']++;
+            } elseif ($log->action == 'process' || $log->action == 'work') {
+                $adminStats[$admin]['close']++;
+            } elseif ($log->action == 'transfer') {
+                $adminStats[$admin]['transfer']++;
+            }
+        }
+
+        // 3. Document Stats (Separated by Type)
+        $keys = ['wait_approval', 'pending', 'process', 'done', 'complete', 'reject', 'total'];
+        $itStats = array_fill_keys($keys, 0);
+        $userStats = array_fill_keys($keys, 0);
+        $borrowStats = array_fill_keys($keys, 0);
+
+        $process = function($docs, &$stats) {
+            foreach ($docs as $doc) {
+                $stats['total']++;
+                if ($doc->status == 'wait_approval') {
+                    $stats['wait_approval']++;
+                } elseif (in_array($doc->status, ['pending', 'return_approve'])) {
+                    $stats['pending']++;
+                } elseif (in_array($doc->status, ['process', 'borrow'])) {
+                    $stats['process']++;
+                } elseif (in_array($doc->status, ['done', 'borrow_approve', 'return'])) {
+                    $stats['done']++;
+                } elseif ($doc->status == 'complete') {
+                    $stats['complete']++;
+                } elseif (in_array($doc->status, ['reject', 'cancel', 'not_approval'])) {
+                    $stats['reject']++;
+                }
+            }
+        };
+
+        $process($itDocs, $itStats);
+        $process($itUserDocs, $userStats);
+        $process($borrowDocs, $borrowStats);
+
+        // Overall Stats
+        $allStats = array_fill_keys($keys, 0);
+        foreach ($keys as $key) {
+            $allStats[$key] = $itStats[$key] + $userStats[$key] + $borrowStats[$key];
+        }
+
+        return view('admin.it.report', compact('deptStats', 'adminStats', 'allStats', 'itStats', 'userStats', 'borrowStats', 'start_date', 'end_date'));
     }
 }

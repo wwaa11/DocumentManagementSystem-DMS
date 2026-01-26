@@ -141,7 +141,7 @@ class AdminController extends Controller
                 $query->where('userid', 'like', "%$search%")
                     ->orWhere('name', 'like', "%$search%");
             })
-            ->orderBy('userid', 'asc')
+            ->orderBy('role', 'asc')
             ->paginate(100);
 
         return view('admin.roles')->with(compact('users', 'roles', 'search'));

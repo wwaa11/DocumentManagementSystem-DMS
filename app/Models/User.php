@@ -152,9 +152,16 @@ class User extends Authenticatable
                 ],
                 [
                     'title' => 'All Jobs',
-                    'type' => 'it',
+                    'type' => 'ALL',
                     'id' => 'all',
                     'link' => 'admin.it.alllist',
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Report',
+                    'type' => 'it-report',
+                    'id' => 'report',
+                    'link' => 'admin.it.reportlist',
                     'count' => false,
                 ],
             ]
@@ -205,6 +212,13 @@ class User extends Authenticatable
                     'type' => $type,
                     'id' => 'all',
                     'link' => 'admin.user.alllist',
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Report',
+                    'type' => $type,
+                    'id' => 'report',
+                    'link' => 'admin.user.reportlist',
                     'count' => false,
                 ],
             ];

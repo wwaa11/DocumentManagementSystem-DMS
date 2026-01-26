@@ -64,7 +64,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/borrowlist/summary', [DocumentITController::class, 'adminBorrowSummary'])->name('admin.it.borrowlist.summary');
         Route::post('/admin/borrowlist/approve', [DocumentITController::class, 'adminBorrowApprove'])->name('admin.it.borrowlist.approve');
         Route::post('/admin/borrowlist/retrieve', [DocumentITController::class, 'adminBorrowRetrieve'])->name('admin.it.borrowlist.retrieve');
-
+        // Report
+        Route::get('/admin/reportlist', [DocumentITController::class, 'adminReportDocuments'])->name('admin.it.reportlist');
     });
     // HC , Heart Stream, PAC, Register
     Route::prefix('user')->middleware(['auth', 'user'])->group(function () {
@@ -83,6 +84,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/process', [DocumentUserController::class, 'processDocument'])->name('admin.user.process');
         Route::post('/admin/complete', [DocumentUserController::class, 'completeDocument'])->name('admin.user.complete');
         Route::post('/admin/completeall', [DocumentUserController::class, 'completeAllDocument'])->name('admin.user.completeall');
+        // Report
+        Route::get('/admin/reportlist', [DocumentUserController::class, 'adminReportDocuments'])->name('admin.user.reportlist');
     });
 
     // Training

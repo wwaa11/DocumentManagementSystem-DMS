@@ -286,14 +286,116 @@
         function submitForm() {
             event.preventDefault();
 
-            //Validate Required Fields
-            const type = $('#type-user').is(':checked') ? 'user' : 'support';
-            const title = $('input[name="title"]:checked').val();
+            // Detect type correctly
+            const type = $('input[name="document_type"]:checked').val();
+            if (!type) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณาเลือกประเภทเอกสาร',
+                    confirmButtonText: 'ตกลง',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                });
+                return;
+            }
 
-            if (type === 'user') {
-                doctor_hr_it = $('#doctor_hr_it').is(':checked');
-                doctor_hr_hclab = $('#doctor_hr_hclab').is(':checked');
-                doctor_hr_pacs = $('#doctor_hr_pacs').is(':checked');
+            let isValid = true;
+            let errorMessage = '';
+
+            // Common validation: Phone
+            if (!$('#document_phone').val()) {
+                isValid = false;
+                errorMessage = 'กรุณาระบุเบอร์โทรศัพท์ภายใน';
+            }
+
+            // Validation per type
+            if (isValid) {
+                if (type === 'user') {
+                    const title = $('input[name="title"]:checked').val();
+                    if (!title) {
+                        isValid = false;
+                        errorMessage = 'กรุณาเลือกหัวข้อขอรหัสผู้ใช้งาน';
+                    } else if (title === 'เลขาแพทย์' || title === 'ฝ่ายบุคคล') {
+                        const hasSystem = $('#doctor_hr_it').is(':checked') ||
+                            $('#doctor_hr_hclab').is(':checked') ||
+                            $('#doctor_hr_pacs').is(':checked') ||
+                            $('#doctor_hr_heartstream').is(':checked') ||
+                            $('#doctor_hr_register').is(':checked');
+                        if (!hasSystem) {
+                            isValid = false;
+                            errorMessage = 'กรุณาเลือกอย่างน้อย 1 ระบบ';
+                        } else if (!$('#user_detail').val()) {
+                            isValid = false;
+                            errorMessage = 'กรุณากรอกรายละเอียด';
+                        }
+                    }
+                } else if (type === 'support') {
+                    const title = $('input[name="title"]:checked').val();
+                    if (!title) {
+                        isValid = false;
+                        errorMessage = 'กรุณาเลือกประเภทงานที่ต้องการแจ้ง';
+                    } else if (title === 'OTHER' && !$('#title_other_text').val()) {
+                        isValid = false;
+                        errorMessage = 'กรุณาระบุประเภทงานอื่นๆ';
+                    } else if (['HARDWARE', 'SOFTWARE', 'SSB'].includes(title)) {
+                        const requestDetail = $('input[name="request_type_detail"]:checked').val();
+                        if (!requestDetail) {
+                            isValid = false;
+                            errorMessage = 'กรุณาเลือกรายละเอียดการขอ';
+                        } else if (requestDetail === 'อื่นๆ') {
+                            if (title === 'HARDWARE' && !$('#request_other_hardware').val()) {
+                                isValid = false;
+                                errorMessage = 'กรุณาระบุรายละเอียดอื่นๆ (Hardware)';
+                            } else if (title === 'SOFTWARE' && !$('#request_other_software').val()) {
+                                isValid = false;
+                                errorMessage = 'กรุณาระบุรายละเอียดอื่นๆ (Software)';
+                            } else if (title === 'SSB' && !$('#request_other_ssb').val()) {
+                                isValid = false;
+                                errorMessage = 'กรุณาระบุรายละเอียดอื่นๆ (SSB)';
+                            }
+                        }
+                    }
+
+                    if (isValid && !$('#support_detail').val()) {
+                        isValid = false;
+                        errorMessage = 'กรุณากรอกรายละเอียดเพิ่มเติม';
+                    }
+                } else if (type === 'borrow') {
+                    const borrowType = $('input[name="borrow_type"]:checked').val();
+                    if (!borrowType) {
+                        isValid = false;
+                        errorMessage = 'กรุณาเลือกประเภทอุปกรณ์ที่ต้องการยืม';
+                    } else if (borrowType === 'OTHER' && !$('#borrow_other_text').val()) {
+                        isValid = false;
+                        errorMessage = 'กรุณาระบุประเภทอุปกรณ์อื่นๆ';
+                    }
+
+                    if (isValid && !$('input[name="return_date"]').val()) {
+                        isValid = false;
+                        errorMessage = 'กรุณาระบุวันที่คาดว่าจะคืนอุปกรณ์';
+                    }
+
+                    if (isValid && !$('#borrow_detail').val()) {
+                        isValid = false;
+                        errorMessage = 'กรุณากรอกรายละเอียดเพิ่มเติม';
+                    }
+                }
+            }
+
+            if (!isValid) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+                    text: errorMessage,
+                    confirmButtonText: 'ตกลง',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                });
+                return;
             }
 
             Swal.fire({

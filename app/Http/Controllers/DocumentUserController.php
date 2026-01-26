@@ -117,25 +117,54 @@ class DocumentUserController extends Controller
         return view('admin.user.list', compact('documents', 'action', 'type'));
     }
 
-    public function adminAllDocuments($type)
+    public function adminAllDocuments(Request $request, $type)
     {
+        $search = $request->get('search');
+        $status = $request->get('status');
+        $start_date = $request->get('start_date');
+        $end_date = $request->get('end_date');
+
         switch ($type) {
             case 'pac':
-                $documents = DocumentPac::orderByDesc('id')->paginate(10);
+                $query = DocumentPac::query();
                 break;
             case 'lab':
-                $documents = DocumentHc::orderByDesc('id')->paginate(10);
+                $query = DocumentHc::query();
                 break;
             case 'heartstream':
-                $documents = DocumentHeartstream::orderByDesc('id')->paginate(10);
+                $query = DocumentHeartstream::query();
                 break;
             case 'register':
-                $documents = DocumentRegister::orderByDesc('id')->paginate(10);
+                $query = DocumentRegister::query();
                 break;
         }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhereHas('documentUser', function ($sq) use ($search) {
+                        $sq->where('title', 'LIKE', "%{$search}%")
+                            ->orWhere('detail', 'LIKE', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($start_date) {
+            $query->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $query->whereDate('created_at', '<=', $end_date);
+        }
+
+        $documents = $query->orderByDesc('id')->paginate(10);
         $action = 'all';
 
-        return view('admin.user.list', compact('documents', 'action', 'type'));
+        return view('admin.user.list', compact('documents', 'action', 'type', 'search', 'status', 'start_date', 'end_date'));
     }
 
     public function viewDocument($type, $document_id, $action)
@@ -494,4 +523,129 @@ class DocumentUserController extends Controller
         ]);
     }
 
+    // Report
+    public function adminReportDocuments(Request $request)
+    {
+        $start_date = $request->get('start_date', date('Y-m-01'));
+        $end_date   = $request->get('end_date', date('Y-m-d'));
+        $type       = $request->get('type'); // pac, lab, heartstream, register
+
+        $queries = [
+            'pac'         => DocumentPac::query(),
+            'lab'         => DocumentHc::query(),
+            'heartstream' => DocumentHeartstream::query(),
+            'register'    => DocumentRegister::query(),
+        ];
+
+        // Filter by date and type
+        foreach ($queries as $key => $query) {
+            if ($start_date) {
+                $query->whereDate('created_at', '>=', $start_date);
+            }
+            if ($end_date) {
+                $query->whereDate('created_at', '<=', $end_date);
+            }
+        }
+
+        // 1. Department Request Stats
+        $deptStats = [];
+        $allDocs   = [];
+
+        foreach ($queries as $key => $query) {
+            if ($type && $type !== $key && $type !== 'ALL') {
+                continue;
+            }
+            $docs = $query->with('documentUser.creator')->get();
+            $allDocs[$key] = $docs;
+            foreach ($docs as $doc) {
+                $dept = $doc->documentUser->creator->department ?? 'N/A';
+                $deptStats[$dept] = ($deptStats[$dept] ?? 0) + 1;
+            }
+        }
+        arsort($deptStats);
+
+        // 2. Admin Action Stats
+        $logsQuery = \App\Models\Log::whereIn('action', ['accept', 'process', 'transfer', 'work']);
+        if ($start_date) {
+            $logsQuery->whereDate('created_at', '>=', $start_date);
+        }
+        if ($end_date) {
+            $logsQuery->whereDate('created_at', '<=', $end_date);
+        }
+
+        // Filter logs by morphable type if needed? 
+        // Logs are morphMany, they have loggable_type.
+        // If type is set, filter by that loggable_type.
+        if ($type && $type !== 'ALL') {
+            $modelMap = [
+                'pac'         => DocumentPac::class,
+                'lab'         => DocumentHc::class,
+                'heartstream' => DocumentHeartstream::class,
+                'register'    => DocumentRegister::class,
+            ];
+            if (isset($modelMap[$type])) {
+                $logsQuery->where('loggable_type', $modelMap[$type]);
+            }
+        } else {
+            $logsQuery->whereIn('loggable_type', [
+                DocumentPac::class,
+                DocumentHc::class,
+                DocumentHeartstream::class,
+                DocumentRegister::class,
+            ]);
+        }
+
+        $logs = $logsQuery->with('user')->get();
+        $adminStats = [];
+        foreach ($logs as $log) {
+            $admin = $log->user->name ?? $log->userid;
+            if (!isset($adminStats[$admin])) {
+                $adminStats[$admin] = ['take' => 0, 'close' => 0, 'transfer' => 0];
+            }
+            if ($log->action == 'accept') {
+                $adminStats[$admin]['take']++;
+            } elseif ($log->action == 'process' || $log->action == 'work') {
+                $adminStats[$admin]['close']++;
+            } elseif ($log->action == 'transfer') {
+                $adminStats[$admin]['transfer']++;
+            }
+        }
+
+        // 3. Document Stats by Status
+        $keys = ['wait_approval', 'pending', 'process', 'done', 'complete', 'reject', 'total'];
+        $statsByType = [];
+        foreach (['pac', 'lab', 'heartstream', 'register'] as $k) {
+            $statsByType[$k] = array_fill_keys($keys, 0);
+        }
+
+        foreach ($allDocs as $k => $docs) {
+            foreach ($docs as $doc) {
+                $statsByType[$k]['total']++;
+                if ($doc->status == 'wait_approval') {
+                    $statsByType[$k]['wait_approval']++;
+                } elseif ($doc->status == 'pending') {
+                    $statsByType[$k]['pending']++;
+                } elseif ($doc->status == 'process') {
+                    $statsByType[$k]['process']++;
+                } elseif ($doc->status == 'done') {
+                    $statsByType[$k]['done']++;
+                } elseif ($doc->status == 'complete') {
+                    $statsByType[$k]['complete']++;
+                } elseif (in_array($doc->status, ['reject', 'cancel', 'not_approval'])) {
+                    $statsByType[$k]['reject']++;
+                }
+            }
+        }
+
+        // Overall Stats (filtered by type if specified)
+        $allStats = array_fill_keys($keys, 0);
+        foreach ($statsByType as $k => $s) {
+            if ($type && $type !== $k && $type !== 'ALL') continue;
+            foreach ($keys as $key) {
+                $allStats[$key] += $s[$key];
+            }
+        }
+
+        return view('admin.user.report', compact('deptStats', 'adminStats', 'allStats', 'statsByType', 'start_date', 'end_date', 'type'));
+    }
 }
