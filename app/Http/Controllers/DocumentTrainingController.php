@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\DocumentTraining;
 use App\Models\DocumentTrainingMentor;
 use App\Models\DocumentTrainingParticipant;
+use App\Models\DocumentTrainingDate;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -24,10 +25,14 @@ class DocumentTrainingController extends Controller
             'mentors_userid'      => 'nullable|array',
             'participants_userid' => 'required|array',
             'training_name'       => 'required|string',
-            'start_date'          => 'required|date',
-            'end_date'            => 'required|date',
-            'start_time'          => 'required|date_format:H:i',
-            'end_time'            => 'required|date_format:H:i',
+            'date_mode'           => 'required|string|in:range,specific',
+            'start_date'          => 'required_if:date_mode,range|nullable|date',
+            'end_date'            => 'required_if:date_mode,range|nullable|date',
+            'start_time'          => 'required_if:date_mode,range|nullable',
+            'end_time'            => 'required_if:date_mode,range|nullable',
+            'specific_date'       => 'required_if:date_mode,specific|array',
+            'specific_start_time' => 'required_if:date_mode,specific|array',
+            'specific_end_time'   => 'required_if:date_mode,specific|array',
             'duration_hours'      => 'required|integer',
             'duration_minutes'    => 'nullable|integer',
             'source_type'         => 'required|string',
@@ -50,14 +55,36 @@ class DocumentTrainingController extends Controller
         $document             = new DocumentTraining();
         $document->requester  = auth()->user()->userid;
         $document->title      = $request->training_name;
-        $document->start_date = $request->start_date;
-        $document->end_date   = $request->end_date;
-        $document->start_time = $request->start_time;
-        $document->end_time   = $request->end_time;
         $document->hours      = $request->duration_hours;
         $document->minutes    = $request->duration_minutes ?? 0;
         $document->detail     = $detail;
         $document->save();
+
+        // Create Dates
+        if ($request->date_mode === 'range') {
+            $current = new \DateTime($request->start_date);
+            $end = new \DateTime($request->end_date);
+            while ($current <= $end) {
+                DocumentTrainingDate::create([
+                    'document_training_id' => $document->id,
+                    'date'                 => $current->format('Y-m-d'),
+                    'start_time'           => $request->start_time,
+                    'end_time'             => $request->end_time,
+                ]);
+                $current->modify('+1 day');
+            }
+        } else {
+            foreach ($request->specific_date as $index => $date) {
+                if ($date) {
+                    DocumentTrainingDate::create([
+                        'document_training_id' => $document->id,
+                        'date'                 => $date,
+                        'start_time'           => $request->specific_start_time[$index],
+                        'end_time'             => $request->specific_end_time[$index],
+                    ]);
+                }
+            }
+        }
 
         $approverField = [
             'selfApprove' => false,
@@ -106,15 +133,28 @@ class DocumentTrainingController extends Controller
         }
 
         $participants = $project->participants()->pluck('participant')->toArray();
+        $dates = $project->dates()->get();
+        
+        $firstDate = $dates->first();
+        $lastDate = $dates->last();
+
+        $startRegister = $firstDate->dateString . ' ' . $firstDate->start_time;
+        $endRegister = $lastDate->dateString . ' ' . $lastDate->end_time;
 
         $postData = [
+            "document_id" => $project->id,
             "type"       => "multiple",
             "title"      => $project->title,
             "detail"     => $project->detail,
-            "start_date" => $project->start_date->format('Y-m-d'),
-            "end_date"   => $project->end_date->format('Y-m-d'),
-            "start_time" => $project->start_time->format('H:i'),
-            "end_time"   => $project->end_time->format('H:i'),
+            "project_start_register" => $startRegister,
+            "project_end_register" => $endRegister,
+            "dates"      => $dates->map(function($d) {
+                return [
+                    'dateString' => $d->dateString,
+                    'start_time' => $d->start_time,
+                    'end_time'   => $d->end_time,
+                ];
+            })->toArray(),
             "users"      => $participants,
         ];
 

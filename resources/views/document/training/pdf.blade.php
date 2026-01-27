@@ -97,8 +97,12 @@
     <div style="margin-bottom: 10px;">
         <div><strong>ชื่อหลักสูตร:</strong> {{ $project->title }}</div>
         <div><strong>ที่มาของหลักสูตร:</strong> {{ $project->detail }}</div>
-        <div><strong>กำหนดการ:</strong> {{ $project->start_date->format("d/m/Y") }} ถึง {{ $project->end_date->format("d/m/Y") }}</div>
-        <div><strong>เวลา:</strong> {{ $project->start_time->format("H:i") }} - {{ $project->end_time->format("H:i") }} (รวม {{ $project->hours }} ชม. {{ $project->minutes }} น.)</div>
+        <div><strong>กำหนดการ:</strong>
+            @foreach ($project->dates as $d)
+                <div style="margin-left: 20px;">• {{ $d->date->format("d/m/Y") }} เวลา {{ \Carbon\Carbon::parse($d->start_time)->format("H:i") }} - {{ \Carbon\Carbon::parse($d->end_time)->format("H:i") }}</div>
+            @endforeach
+            <div style="margin-left: 20px;"><strong>รวมเวลาทั้งหมด:</strong> {{ $project->hours }} ชม. {{ $project->minutes }} น.</div>
+        </div>
     </div>
 
     <div class="section-title">รายชื่อวิทยากร</div>

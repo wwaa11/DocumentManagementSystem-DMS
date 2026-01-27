@@ -11,16 +11,14 @@ class DocumentTraining extends Model
         'document_tag',
     ];
 
-    protected $casts = [
-        'start_date' => 'datetime',
-        'end_date'   => 'datetime',
-        'start_time' => 'datetime',
-        'end_time'   => 'datetime',
-    ];
-
     protected $fillable = [
         'status',
     ];
+
+    public function dates()
+    {
+        return $this->hasMany(DocumentTrainingDate::class, 'document_training_id');
+    }
 
     public function getDocumentTagAttribute()
     {

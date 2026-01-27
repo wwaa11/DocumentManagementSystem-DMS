@@ -251,7 +251,7 @@
         async function closeProject() {
             const result = await Swal.fire({
                 title: 'เสร็จสิ้นการฝึกอบรม?',
-                html: 'ต้องการปิดโครงการฝึกอบรมนี้และ <br><b class="text-warning">บันทึกข้อมูลประวัติพนักงาน</b> ทั้งหมดใช่หรือไม่?',
+                html: 'ต้องการปิดโครงการฝึกอบรมนี้ ใช่หรือไม่? <br><b class="text-error">กรุณาบันทึกผลการประเมิณก่อน<br>หลังจากปิดโครงการจะไม่สามารถประเมินได้อีก</b> ',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'ยืนยันปิดโครงการ',

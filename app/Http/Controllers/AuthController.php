@@ -87,13 +87,13 @@ class AuthController extends Controller
             if (! $userData) {
                 $userData         = new User();
                 $userData->userid = $userid;
+                $userData->role       = $this->setRoles($responseData['user']['department'], $responseData['user']['division']);
             }
             $userData->name       = $responseData['user']['name'];
             $userData->position   = $responseData['user']['position'];
             $userData->department = $responseData['user']['department'];
             $userData->division   = $responseData['user']['division'];
             $userData->email      = $responseData['user']['email'];
-            $userData->role       = $this->setRoles($responseData['user']['department'], $responseData['user']['division']);
             $userData->save();
 
             Auth::login($userData);

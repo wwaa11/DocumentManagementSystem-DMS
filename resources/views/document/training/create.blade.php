@@ -18,17 +18,7 @@
             @csrf
 
             <!-- Approver Selection -->
-            <div class="card bg-base-100 border-base-200 overflow-visible border shadow-xl">
-                <div class="card-body p-0">
-                    <div class="bg-base-200/50 border-base-200 flex items-center gap-2 border-b px-8 py-4">
-                        <i class="fas fa-user-check text-primary"></i>
-                        <span class="text-sm font-bold uppercase tracking-wider">ลำดับการอนุมัติ (Approval Chain)</span>
-                    </div>
-                    <div class="p-8">
-                        @include("document.approver_create")
-                    </div>
-                </div>
-            </div>
+            @include("document.approver_create")
 
             <!-- Training Details Card -->
             <div class="card bg-base-100 border-base-200 border shadow-xl">
@@ -88,20 +78,63 @@
                         <!-- Date & Time Grid -->
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div class="form-control">
-                                <label class="label"><span class="label-text text-base-content/70 font-bold">วันที่เริ่ม - สิ้นสุด <span class="text-error">*</span></span></label>
-                                <div class="join w-full shadow-sm">
-                                    <input class="input input-bordered join-item focus:input-primary w-full" type="date" name="start_date" />
+                                <label class="label pb-0"><span class="label-text text-base-content/70 font-bold">วันที่ฝึกอบรม <span class="text-error">*</span></span></label>
+
+                                <div class="my-2 flex flex-wrap gap-2">
+                                    <label class="bg-base-200/50 border-base-300 hover:border-primary/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 transition-all">
+                                        <input class="radio radio-primary radio-xs" type="radio" name="date_mode" value="range" checked />
+                                        <span class="text-[11px] font-bold">ระบุช่วงเวลา</span>
+                                    </label>
+                                    <label class="bg-base-200/50 border-base-300 hover:border-primary/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 transition-all">
+                                        <input class="radio radio-primary radio-xs" type="radio" name="date_mode" value="specific" />
+                                        <span class="text-[11px] font-bold">ระบุวันที่ (Add)</span>
+                                    </label>
+                                </div>
+
+                                <!-- Range Mode Wrapper -->
+                                <div class="join w-full shadow-sm" id="range_mode_wrapper">
+                                    <input class="input input-bordered join-item focus:input-primary w-full" id="start_date" type="date" name="start_date" />
                                     <span class="join-item bg-base-200 border-base-300 flex items-center border-y px-4"><i class="fas fa-arrow-right opacity-30"></i></span>
-                                    <input class="input input-bordered join-item focus:input-primary w-full" type="date" name="end_date" />
+                                    <input class="input input-bordered join-item focus:input-primary w-full" id="end_date" type="date" name="end_date" />
+                                </div>
+
+                                <!-- Specific Mode Wrapper -->
+                                <div class="hidden space-y-3" id="specific_mode_wrapper">
+                                    <div class="space-y-3" id="specific_date_list">
+                                        <div class="bg-base-200/30 border-base-200 group relative rounded-xl border p-4">
+                                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                                <div class="form-control">
+                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">วันที่</span></label>
+                                                    <input class="input input-bordered focus:input-primary h-10 w-full text-sm" type="date" name="specific_date[]" />
+                                                </div>
+                                                <div class="form-control">
+                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">เวลาเริ่ม</span></label>
+                                                    <input class="input input-bordered focus:input-primary h-10 w-full text-sm" type="time" name="specific_start_time[]" />
+                                                </div>
+                                                <div class="form-control">
+                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">เวลาสิ้นสุด</span></label>
+                                                    <input class="input input-bordered focus:input-primary h-10 w-full text-sm" type="time" name="specific_end_time[]" />
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-ghost btn-circle btn-xs text-error bg-base-100 absolute -right-2 -top-2 cursor-default opacity-0 shadow-sm transition-all group-hover:opacity-100" type="button">
+                                                <i class="fas fa-times text-[10px]"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 mt-1 rounded-full font-bold" type="button" onclick="addSpecificDateLine()">
+                                        <i class="fas fa-plus mr-1"></i> เพิ่มวันที่และเวลา
+                                    </button>
                                 </div>
                             </div>
-                            <div class="form-control">
+
+                            <div class="form-control" id="range_time_container">
                                 <label class="label"><span class="label-text text-base-content/70 font-bold">ช่วงเวลา <span class="text-error">*</span></span></label>
                                 <div class="join w-full shadow-sm">
-                                    <input class="input input-bordered join-item focus:input-primary w-full" type="time" name="start_time" />
+                                    <input class="input input-bordered join-item focus:input-primary w-full" id="start_time" type="time" name="start_time" />
                                     <span class="join-item bg-base-200 border-base-300 flex items-center border-y px-4"><i class="fas fa-clock opacity-30"></i></span>
-                                    <input class="input input-bordered join-item focus:input-primary w-full" type="time" name="end_time" />
+                                    <input class="input input-bordered join-item focus:input-primary w-full" id="end_time" type="time" name="end_time" />
                                 </div>
+                                <div class="mt-2 text-[10px] font-bold italic opacity-40">* ใช้ช่วงเวลานี้ร่วมกับทุกวันที่ระบุในแบบช่วงเวลา</div>
                             </div>
                         </div>
 
@@ -110,12 +143,12 @@
                             <label class="label"><span class="label-text text-base-content/70 font-bold">รวมเวลาทั้งหมด (Duration) <span class="text-error">*</span></span></label>
                             <div class="bg-primary/5 border-primary/10 flex w-fit items-center gap-4 rounded-xl border p-4">
                                 <div class="flex items-center gap-2">
-                                    <input class="input input-bordered w-20 text-center font-bold" type="number" name="duration_hours" placeholder="0" />
+                                    <input class="input input-bordered w-24 text-center font-bold" id="duration_hours" type="number" name="duration_hours" placeholder="0" />
                                     <span class="text-primary text-sm font-bold">ชั่วโมง</span>
                                 </div>
                                 <div class="divider divider-horizontal mx-0"></div>
                                 <div class="flex items-center gap-2">
-                                    <input class="input input-bordered w-20 text-center font-bold" type="number" name="duration_minutes" placeholder="0" />
+                                    <input class="input input-bordered w-24 text-center font-bold" id="duration_minutes" type="number" name="duration_minutes" placeholder="0" />
                                     <span class="text-primary text-sm font-bold">นาที</span>
                                 </div>
                             </div>
@@ -307,6 +340,110 @@
                 files.forEach(file => dataTransfer.items.add(file));
                 fileInput.files = dataTransfer.files;
             }
+
+            // --- Duration Calculation Logic ---
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            const startTimeInput = document.getElementById('start_time');
+            const endTimeInput = document.getElementById('end_time');
+            const durationHoursInput = document.getElementById('duration_hours');
+            const durationMinutesInput = document.getElementById('duration_minutes');
+
+            window.addSpecificDateLine = function() {
+                const container = document.getElementById('specific_date_list');
+                const newLine = document.createElement('div');
+                newLine.className = 'bg-base-200/30 p-4 rounded-xl border border-base-200 group relative';
+                newLine.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">วันที่</span></label>
+                            <input class="input input-bordered focus:input-primary h-10 text-sm w-full" type="date" name="specific_date[]" />
+                        </div>
+                        <div class="form-control">
+                            <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">เวลาเริ่ม</span></label>
+                            <input class="input input-bordered focus:input-primary h-10 text-sm w-full" type="time" name="specific_start_time[]" />
+                        </div>
+                        <div class="form-control">
+                            <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">เวลาสิ้นสุด</span></label>
+                            <input class="input input-bordered focus:input-primary h-10 text-sm w-full" type="time" name="specific_end_time[]" />
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-ghost btn-circle btn-xs text-error absolute -top-2 -right-2 bg-base-100 shadow-sm opacity-0 group-hover:opacity-100 transition-all" onclick="this.closest('.group').remove(); calculateDuration();">
+                        <i class="fas fa-times text-[10px]"></i>
+                    </button>
+                `;
+                container.appendChild(newLine);
+                newLine.querySelectorAll('input').forEach(input => {
+                    input.addEventListener('change', calculateDuration);
+                });
+            }
+
+            function calculateDuration() {
+                const mode = document.querySelector('input[name="date_mode"]:checked').value;
+                let totalMinutes = 0;
+
+                if (mode === 'range') {
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+                    const startTime = startTimeInput.value;
+                    const endTime = endTimeInput.value;
+
+                    if (startDate && endDate && startTime && endTime) {
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        if (end >= start) {
+                            const [hStart, mStart] = startTime.split(':').map(Number);
+                            const [hEnd, mEnd] = endTime.split(':').map(Number);
+                            const dailyMinutes = (hEnd * 60 + mEnd) - (hStart * 60 + mStart);
+                            if (dailyMinutes >= 0) {
+                                const totalDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
+                                totalMinutes = dailyMinutes * totalDays;
+                            }
+                        }
+                    }
+                } else {
+                    const specificGroups = document.querySelectorAll('#specific_date_list .group');
+                    specificGroups.forEach(group => {
+                        const date = group.querySelector('input[name="specific_date[]"]').value;
+                        const sTime = group.querySelector('input[name="specific_start_time[]"]').value;
+                        const eTime = group.querySelector('input[name="specific_end_time[]"]').value;
+
+                        if (date && sTime && eTime) {
+                            const [hS, mS] = sTime.split(':').map(Number);
+                            const [hE, mE] = eTime.split(':').map(Number);
+                            const diff = (hE * 60 + mE) - (hS * 60 + mS);
+                            if (diff > 0) totalMinutes += diff;
+                        }
+                    });
+                }
+
+                if (totalMinutes > 0) {
+                    durationHoursInput.value = Math.floor(totalMinutes / 60);
+                    durationMinutesInput.value = totalMinutes % 60;
+                } else {
+                    durationHoursInput.value = 0;
+                    durationMinutesInput.value = 0;
+                }
+            }
+
+            // Listen for changes
+            [startDateInput, endDateInput, startTimeInput, endTimeInput].forEach(input => {
+                input.addEventListener('change', calculateDuration);
+            });
+
+            document.querySelectorAll('#specific_date_list input').forEach(input => {
+                input.addEventListener('change', calculateDuration);
+            });
+
+            document.querySelectorAll('input[name="date_mode"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const isRange = this.value === 'range';
+                    document.getElementById('range_mode_wrapper').classList.toggle('hidden', !isRange);
+                    document.getElementById('specific_mode_wrapper').classList.toggle('hidden', isRange);
+                    document.getElementById('range_time_container').classList.toggle('hidden', !isRange);
+                    calculateDuration();
+                });
+            });
         });
 
         // Search User Function
@@ -504,7 +641,30 @@
 
             if (!document.getElementById('training_name').value) missingFields.push('ชื่อหลักสูตร');
             if (!document.querySelector('input[name="source_type"]:checked')) missingFields.push('ที่มาหลักสูตร');
-            if (!document.querySelector('input[name="start_date"]').value || !document.querySelector('input[name="end_date"]').value) missingFields.push('วันที่ฝึกอบรม');
+
+            const dateMode = document.querySelector('input[name="date_mode"]:checked').value;
+            if (dateMode === 'range') {
+                if (!document.querySelector('input[name="start_date"]').value || !document.querySelector('input[name="end_date"]').value) {
+                    missingFields.push('วันที่ฝึกอบรม (ระบุช่วงเวลา)');
+                }
+            } else {
+                const specificDates = Array.from(document.querySelectorAll('input[name="specific_date[]"]')).filter(i => i.value);
+                if (specificDates.length === 0) {
+                    missingFields.push('วันที่ฝึกอบรม (ระบุวันที่)');
+                } else {
+                    // Check if each date has a time
+                    const specificGroups = document.querySelectorAll('#specific_date_list .group');
+                    specificGroups.forEach((group, idx) => {
+                        const date = group.querySelector('input[name="specific_date[]"]').value;
+                        const sTime = group.querySelector('input[name="specific_start_time[]"]').value;
+                        const eTime = group.querySelector('input[name="specific_end_time[]"]').value;
+                        if (date && (!sTime || !eTime)) {
+                            missingFields.push(`กรุณาระบุเวลาสำหรับวันที่รายการที่ ${idx + 1}`);
+                        }
+                    });
+                }
+            }
+
             if (document.querySelectorAll('input[name="participants_userid[]"]').length === 0) missingFields.push('รายชื่อผู้เข้าร่วม');
             if (files.length === 0) missingFields.push('เอกสารแนบประกอบการอบรม');
 

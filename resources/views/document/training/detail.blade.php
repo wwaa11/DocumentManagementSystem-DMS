@@ -65,12 +65,24 @@
                     <div class="bg-base-250 mt-1 rounded-lg p-2 text-sm font-bold">{{ $document->detail }}</div>
                 </div>
                 <div>
-                    <div class="text-xs font-bold uppercase tracking-tighter opacity-40">กำหนดการฝึกอบรม (Schedule)</div>
-                    <div class="text-primary mt-1 flex items-center gap-2 font-extrabold">
-                        <i class="fas fa-calendar-alt"></i>
-                        {{ $document->start_date->format("d M Y") }}
-                        <span class="opacity-30">→</span>
-                        {{ $document->end_date->format("d M Y") }}
+                    <div class="mb-2 text-xs font-bold uppercase tracking-tighter opacity-40">กำหนดการฝึกอบรม (Schedule)</div>
+                    <div class="space-y-2">
+                        @foreach ($document->dates as $d)
+                            <div class="bg-primary/5 border-primary/10 flex items-center justify-between rounded-lg border px-4 py-2">
+                                <div class="flex items-center gap-2 text-sm font-bold">
+                                    <i class="fas fa-calendar-day text-primary opacity-40"></i>
+                                    {{ $d->date->format("d M Y") }}
+                                </div>
+                                <div class="text-primary flex items-center gap-2 font-mono text-[11px] font-bold">
+                                    <i class="fas fa-clock opacity-40"></i>
+                                    {{ \Carbon\Carbon::parse($d->start_time)->format("H:i") }} - {{ \Carbon\Carbon::parse($d->end_time)->format("H:i") }}
+                                </div>
+                            </div>
+                        @endforeach
+                        <div class="border-base-200 mt-4 border-t pt-4">
+                            <div class="text-[10px] font-bold uppercase tracking-widest opacity-40">เวลารวมทั้งหมด</div>
+                            <div class="text-primary text-lg font-black">{{ $document->hours }} ชม. {{ $document->minutes }} น.</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -221,22 +233,22 @@
                                         <td class="py-4">
                                             ${user.attend_datetime ? 
                                                 `<div class="flex items-center gap-2 font-mono font-bold text-accent">
-                                                            <i class="fas fa-clock text-[10px] opacity-40"></i>
-                                                            ${user.attend_datetime}
-                                                         </div>` : 
+                                                                    <i class="fas fa-clock text-[10px] opacity-40"></i>
+                                                                    ${user.attend_datetime}
+                                                                 </div>` : 
                                                 `<span class="text-error italic text-xs font-medium opacity-50">Not Checked-in</span>`
                                             }
                                         </td>
                                         <td class="pr-8 py-4 text-center">
                                             ${canApprove && isApprove ? 
                                                 `<button class='btn btn-accent btn-xs rounded-full px-4' onclick='approveAttendance("${user.id}", "${user.userid}")'>
-                                                            <i class="fas fa-check mr-1"></i> อนุมัติ
-                                                         </button>` : 
+                                                                    <i class="fas fa-check mr-1"></i> อนุมัติ
+                                                                 </button>` : 
                                                 user.approve_datetime ? 
                                                     `<div class="flex flex-col items-center">
-                                                                <div class="text-[9px] font-bold opacity-30 tracking-tight uppercase">Approved At</div>
-                                                                <div class="badge badge-success badge-sm font-bold font-mono text-[10px] py-1 h-auto">${user.approve_datetime}</div>
-                                                             </div>` : 
+                                                                        <div class="text-[9px] font-bold opacity-30 tracking-tight uppercase">Approved At</div>
+                                                                        <div class="badge badge-success badge-sm font-bold font-mono text-[10px] py-1 h-auto">${user.approve_datetime}</div>
+                                                                     </div>` : 
                                                     `<span class="opacity-10">—</span>`
                                             }
                                         </td>
