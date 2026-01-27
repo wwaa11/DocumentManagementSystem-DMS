@@ -2,17 +2,7 @@
 @section("content")
     <div class="mx-auto max-w-5xl pb-10">
         <!-- Header Section -->
-        <div class="from-primary/10 to-base-100 border-primary/5 mb-8 rounded-2xl border bg-gradient-to-br p-8 shadow-sm">
-            <div class="flex items-center gap-4">
-                <div class="bg-primary text-primary-content rounded-xl p-4 shadow-lg">
-                    <i class="fas fa-graduation-cap text-3xl"></i>
-                </div>
-                <div>
-                    <h2 class="text-3xl font-extrabold tracking-tight">ใบบันทึกการฝึกอบรมภาคอิสระ</h2>
-                    <p class="text-base-content/60 mt-1">กรอกข้อมูลหลักสูตรและรายละเอียดผู้เข้าร่วมเพื่อขออนุมัติจัดฝึกอบรม</p>
-                </div>
-            </div>
-        </div>
+        @include("document.header", ["title" => "ใบบันทึกการฝึกอบรมภาคอิสระ", "description" => "กรอกข้อมูลหลักสูตรและรายละเอียดผู้เข้าร่วมเพื่อขออนุมัติจัดฝึกอบรม", "icon" => "fas fa-graduation-cap"])
 
         <form class="space-y-8" id="create-form" action="{{ route("document.training.create") }}" method="POST" enctype="multipart/form-data">
             @csrf
@@ -75,45 +65,86 @@
                             </div>
                         </div>
 
-                        <!-- Date & Time Grid -->
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div class="form-control">
-                                <label class="label pb-0"><span class="label-text text-base-content/70 font-bold">วันที่ฝึกอบรม <span class="text-error">*</span></span></label>
+                        <!-- Date & Time Selection -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="label py-0">
+                                    <span class="label-text text-base-content/70 font-bold">วันและเวลาที่ฝึกอบรม <span class="text-error">*</span></span>
+                                </label>
 
-                                <div class="my-2 flex flex-wrap gap-2">
-                                    <label class="bg-base-200/50 border-base-300 hover:border-primary/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 transition-all">
-                                        <input class="radio radio-primary radio-xs" type="radio" name="date_mode" value="range" checked />
-                                        <span class="text-[11px] font-bold">ระบุช่วงเวลา</span>
+                                <div class="bg-base-200/50 border-base-300 flex rounded-xl border p-1 shadow-inner">
+                                    <label class="has-[:checked]:bg-primary has-[:checked]:text-primary-content flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 transition-all has-[:checked]:shadow-sm">
+                                        <input class="hidden" type="radio" name="date_mode" value="range" checked />
+                                        <i class="fas fa-calendar-range text-xs"></i>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider">แบบช่วงเวลา</span>
                                     </label>
-                                    <label class="bg-base-200/50 border-base-300 hover:border-primary/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 transition-all">
-                                        <input class="radio radio-primary radio-xs" type="radio" name="date_mode" value="specific" />
-                                        <span class="text-[11px] font-bold">ระบุวันที่ (Add)</span>
+                                    <label class="has-[:checked]:bg-primary has-[:checked]:text-primary-content flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 transition-all has-[:checked]:shadow-sm">
+                                        <input class="hidden" type="radio" name="date_mode" value="specific" />
+                                        <i class="fas fa-calendar-day text-xs"></i>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider">แบบระบุวันที่</span>
                                     </label>
                                 </div>
+                            </div>
 
-                                <!-- Range Mode Wrapper -->
-                                <div class="join w-full shadow-sm" id="range_mode_wrapper">
-                                    <input class="input input-bordered join-item focus:input-primary w-full" id="start_date" type="date" name="start_date" />
-                                    <span class="join-item bg-base-200 border-base-300 flex items-center border-y px-4"><i class="fas fa-arrow-right opacity-30"></i></span>
-                                    <input class="input input-bordered join-item focus:input-primary w-full" id="end_date" type="date" name="end_date" />
+                            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                <!-- Range Mode -->
+                                <div class="form-control space-y-2" id="range_mode_wrapper">
+                                    <label class="label pt-0"><span class="label-text text-[11px] font-bold uppercase opacity-50">เลือกช่วงวันที่</span></label>
+                                    <div class="join ring-base-300 focus-within:ring-primary/50 w-full overflow-hidden rounded-xl shadow-sm ring-1 transition-all">
+                                        <div class="join-item bg-base-100 border-base-300 flex items-center border-r px-4">
+                                            <i class="fas fa-calendar-alt text-primary/40"></i>
+                                        </div>
+                                        <input class="input input-ghost join-item focus:bg-base-100 w-full text-sm font-medium" id="start_date" type="date" name="start_date" />
+                                        <div class="join-item bg-base-200 border-base-300 flex items-center border-x px-3">
+                                            <i class="fas fa-long-arrow-right opacity-30"></i>
+                                        </div>
+                                        <input class="input input-ghost join-item focus:bg-base-100 w-full text-sm font-medium" id="end_date" type="date" name="end_date" />
+                                    </div>
                                 </div>
 
-                                <!-- Specific Mode Wrapper -->
-                                <div class="hidden space-y-3" id="specific_mode_wrapper">
-                                    <div class="space-y-3" id="specific_date_list">
-                                        <div class="bg-base-200/30 border-base-200 group relative rounded-xl border p-4">
+                                <!-- Range Time Wrapper (Shared for Range Mode) -->
+                                <div class="form-control space-y-2" id="range_time_container">
+                                    <label class="label pt-0"><span class="label-text text-[11px] font-bold uppercase opacity-50">ช่วงเวลา (ร่วมทุกวัน)</span></label>
+                                    <div class="join ring-base-300 focus-within:ring-primary/50 w-full overflow-hidden rounded-xl shadow-sm ring-1 transition-all">
+                                        <div class="join-item bg-base-100 border-base-300 flex items-center border-r px-4">
+                                            <i class="fas fa-clock text-primary/40"></i>
+                                        </div>
+                                        <input class="input input-ghost join-item focus:bg-base-100 w-full text-sm font-medium" id="start_time" type="time" name="start_time" />
+                                        <div class="join-item bg-base-200 border-base-300 flex items-center border-x px-3">
+                                            <i class="fas fa-ellipsis-v opacity-10"></i>
+                                        </div>
+                                        <input class="input input-ghost join-item focus:bg-base-100 w-full text-sm font-medium" id="end_time" type="time" name="end_time" />
+                                    </div>
+                                    <div class="text-base-content/40 px-1 text-[10px] font-medium italic">
+                                        <i class="fas fa-info-circle mr-1 text-[8px]"></i> ใช้เวลานี้กับทุกวันที่อยู่ในช่วงที่ระบุ
+                                    </div>
+                                </div>
+
+                                <!-- Specific Mode Wrapper (Full width when active) -->
+                                <div class="col-span-full hidden space-y-4" id="specific_mode_wrapper">
+                                    <div class="bg-base-200/30 border-base-200 space-y-3 rounded-2xl border p-4" id="specific_date_list">
+                                        <div class="bg-base-100 border-base-200 hover:border-primary/30 group relative rounded-xl border p-4 shadow-sm transition-all">
                                             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                 <div class="form-control">
-                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">วันที่</span></label>
-                                                    <input class="input input-bordered focus:input-primary h-10 w-full text-sm" type="date" name="specific_date[]" />
+                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold uppercase tracking-wider opacity-50">วันที่</span></label>
+                                                    <div class="relative">
+                                                        <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-20"></i>
+                                                        <input class="input input-bordered focus:input-primary h-10 w-full pl-9 text-sm font-medium" type="date" name="specific_date[]" />
+                                                    </div>
                                                 </div>
                                                 <div class="form-control">
-                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">เวลาเริ่ม</span></label>
-                                                    <input class="input input-bordered focus:input-primary h-10 w-full text-sm" type="time" name="specific_start_time[]" />
+                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold uppercase tracking-wider opacity-50">เวลาเริ่ม</span></label>
+                                                    <div class="relative">
+                                                        <i class="fas fa-hourglass-start absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-20"></i>
+                                                        <input class="input input-bordered focus:input-primary h-10 w-full pl-9 text-sm font-medium" type="time" name="specific_start_time[]" />
+                                                    </div>
                                                 </div>
                                                 <div class="form-control">
-                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">เวลาสิ้นสุด</span></label>
-                                                    <input class="input input-bordered focus:input-primary h-10 w-full text-sm" type="time" name="specific_end_time[]" />
+                                                    <label class="label pt-0"><span class="label-text text-[10px] font-bold uppercase tracking-wider opacity-50">เวลาสิ้นสุด</span></label>
+                                                    <div class="relative">
+                                                        <i class="fas fa-hourglass-end absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-20"></i>
+                                                        <input class="input input-bordered focus:input-primary h-10 w-full pl-9 text-sm font-medium" type="time" name="specific_end_time[]" />
+                                                    </div>
                                                 </div>
                                             </div>
                                             <button class="btn btn-ghost btn-circle btn-xs text-error bg-base-100 absolute -right-2 -top-2 cursor-default opacity-0 shadow-sm transition-all group-hover:opacity-100" type="button">
@@ -121,38 +152,52 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <button class="btn btn-ghost btn-xs text-primary hover:bg-primary/10 mt-1 rounded-full font-bold" type="button" onclick="addSpecificDateLine()">
-                                        <i class="fas fa-plus mr-1"></i> เพิ่มวันที่และเวลา
+                                    <button class="btn btn-outline btn-primary btn-sm bg-base-100 gap-2 rounded-xl font-bold shadow-sm transition-all hover:-translate-y-0.5" type="button" onclick="addSpecificDateLine()">
+                                        <i class="fas fa-plus-circle"></i> เพิ่มวันที่และเวลาฝึกอบรม
                                     </button>
                                 </div>
-                            </div>
-
-                            <div class="form-control" id="range_time_container">
-                                <label class="label"><span class="label-text text-base-content/70 font-bold">ช่วงเวลา <span class="text-error">*</span></span></label>
-                                <div class="join w-full shadow-sm">
-                                    <input class="input input-bordered join-item focus:input-primary w-full" id="start_time" type="time" name="start_time" />
-                                    <span class="join-item bg-base-200 border-base-300 flex items-center border-y px-4"><i class="fas fa-clock opacity-30"></i></span>
-                                    <input class="input input-bordered join-item focus:input-primary w-full" id="end_time" type="time" name="end_time" />
-                                </div>
-                                <div class="mt-2 text-[10px] font-bold italic opacity-40">* ใช้ช่วงเวลานี้ร่วมกับทุกวันที่ระบุในแบบช่วงเวลา</div>
                             </div>
                         </div>
 
                         <!-- Duration -->
                         <div class="form-control">
-                            <label class="label"><span class="label-text text-base-content/70 font-bold">รวมเวลาทั้งหมด (Duration) <span class="text-error">*</span></span></label>
-                            <div class="bg-primary/5 border-primary/10 flex w-fit items-center gap-4 rounded-xl border p-4">
-                                <div class="flex items-center gap-2">
-                                    <input class="input input-bordered w-24 text-center font-bold" id="duration_hours" type="number" name="duration_hours" placeholder="0" />
-                                    <span class="text-primary text-sm font-bold">ชั่วโมง</span>
+                            <label class="label mb-2">
+                                <span class="label-text text-base-content/70 text-xs font-bold uppercase tracking-wider">รวมเวลาทั้งหมด (Total Duration) <span class="text-error">*</span></span>
+                            </label>
+
+                            <div class="bg-primary/5 border-primary/20 ring-primary/5 flex w-fit items-center gap-6 rounded-2xl border p-4 shadow-sm ring-4">
+                                <div class="flex flex-col items-center gap-1">
+                                    <div class="relative">
+                                        <input class="input input-bordered bg-base-100 focus:ring-primary/20 w-24 text-center text-lg font-bold shadow-inner transition-all focus:ring-2" id="duration_hours" type="number" name="duration_hours" placeholder="0" min="0" />
+                                        <div class="badge badge-primary badge-xs absolute -right-2 -top-2">h</div>
+                                    </div>
+                                    <span class="text-primary text-[10px] font-bold uppercase tracking-widest opacity-60">ชั่วโมง</span>
                                 </div>
-                                <div class="divider divider-horizontal mx-0"></div>
-                                <div class="flex items-center gap-2">
-                                    <input class="input input-bordered w-24 text-center font-bold" id="duration_minutes" type="number" name="duration_minutes" placeholder="0" />
-                                    <span class="text-primary text-sm font-bold">นาที</span>
+
+                                <div class="text-primary text-2xl font-light opacity-30">:</div>
+
+                                <div class="flex flex-col items-center gap-1">
+                                    <div class="relative">
+                                        <input class="input input-bordered bg-base-100 focus:ring-primary/20 w-24 text-center text-lg font-bold shadow-inner transition-all focus:ring-2" id="duration_minutes" type="number" name="duration_minutes" placeholder="0" min="0" max="59" />
+                                        <div class="badge badge-secondary badge-xs absolute -right-2 -top-2">m</div>
+                                    </div>
+                                    <span class="text-secondary text-[10px] font-bold uppercase tracking-widest opacity-60">นาที</span>
+                                </div>
+
+                                <div class="divider divider-horizontal mx-0 opacity-20"></div>
+
+                                <div class="flex items-center gap-3 pr-2">
+                                    <div class="bg-primary/10 rounded-full p-3">
+                                        <i class="fas fa-history text-primary transition-all"></i>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[9px] font-black uppercase tracking-widest opacity-40">Auto-Calculate</span>
+                                        <span class="text-primary text-[10px] font-bold italic">เวลาสุทธิ</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -352,23 +397,32 @@
             window.addSpecificDateLine = function() {
                 const container = document.getElementById('specific_date_list');
                 const newLine = document.createElement('div');
-                newLine.className = 'bg-base-200/30 p-4 rounded-xl border border-base-200 group relative';
+                newLine.className = 'bg-base-100 border-base-200 group relative rounded-xl border p-4 shadow-sm transition-all hover:border-primary/30 mt-3';
                 newLine.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="form-control">
-                            <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">วันที่</span></label>
-                            <input class="input input-bordered focus:input-primary h-10 text-sm w-full" type="date" name="specific_date[]" />
+                            <label class="label pt-0"><span class="label-text text-[10px] font-bold uppercase tracking-wider opacity-50">วันที่</span></label>
+                            <div class="relative">
+                                <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-20"></i>
+                                <input class="input input-bordered focus:input-primary h-10 w-full pl-9 text-sm font-medium" type="date" name="specific_date[]" />
+                            </div>
                         </div>
                         <div class="form-control">
-                            <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">เวลาเริ่ม</span></label>
-                            <input class="input input-bordered focus:input-primary h-10 text-sm w-full" type="time" name="specific_start_time[]" />
+                            <label class="label pt-0"><span class="label-text text-[10px] font-bold uppercase tracking-wider opacity-50">เวลาเริ่ม</span></label>
+                             <div class="relative">
+                                <i class="fas fa-hourglass-start absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-20"></i>
+                                <input class="input input-bordered focus:input-primary h-10 w-full pl-9 text-sm font-medium" type="time" name="specific_start_time[]" />
+                            </div>
                         </div>
                         <div class="form-control">
-                            <label class="label pt-0"><span class="label-text text-[10px] font-bold opacity-50">เวลาสิ้นสุด</span></label>
-                            <input class="input input-bordered focus:input-primary h-10 text-sm w-full" type="time" name="specific_end_time[]" />
+                            <label class="label pt-0"><span class="label-text text-[10px] font-bold uppercase tracking-wider opacity-50">เวลาสิ้นสุด</span></label>
+                            <div class="relative">
+                                <i class="fas fa-hourglass-end absolute left-3 top-1/2 -translate-y-1/2 text-xs opacity-20"></i>
+                                <input class="input input-bordered focus:input-primary h-10 w-full pl-9 text-sm font-medium" type="time" name="specific_end_time[]" />
+                            </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-ghost btn-circle btn-xs text-error absolute -top-2 -right-2 bg-base-100 shadow-sm opacity-0 group-hover:opacity-100 transition-all" onclick="this.closest('.group').remove(); calculateDuration();">
+                    <button type="button" class="btn btn-ghost btn-circle btn-xs text-error absolute -top-2 -right-2 bg-base-100 shadow-sm opacity-0 group-hover:opacity-100 transition-all border border-base-200" onclick="this.closest('.group').remove(); calculateDuration();">
                         <i class="fas fa-times text-[10px]"></i>
                     </button>
                 `;
@@ -377,6 +431,7 @@
                     input.addEventListener('change', calculateDuration);
                 });
             }
+
 
             function calculateDuration() {
                 const mode = document.querySelector('input[name="date_mode"]:checked').value;

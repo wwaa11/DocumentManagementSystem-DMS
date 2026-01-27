@@ -1,13 +1,7 @@
 @extends("layouts.app")
 @section("content")
     <div class="mx-auto max-w-5xl">
-        <div class="from-primary/10 to-base-100 rounded-lg bg-gradient-to-r p-6">
-            <h2 class="text-primary mb-2 text-3xl font-bold tracking-tight">
-                <i class="fas fa-file-alt mr-2"></i> เอกสาร แจ้งงาน/สนับสนุนการทำงาน IT
-            </h2>
-            <div class="divider opacity-50"></div>
-            <p class="text-base-content/70">กรอกข้อมูลด้านล่างเพื่อสร้างเอกสารใหม่</p>
-        </div>
+        @include("document.header", ["title" => "แจ้งงาน/สนับสนุนการทำงาน IT", "description" => "กรอกข้อมูลด้านล่างเพื่อสร้างเอกสารใหม่", "icon" => "fas fa-file-alt"])
         <form id="create-form" action="{{ route("document.it.create") }}" method="POST" enctype="multipart/form-data">
             @csrf
             @include("document.approver_create")
