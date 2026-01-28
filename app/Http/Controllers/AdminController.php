@@ -142,7 +142,7 @@ class AdminController extends Controller
                     ->orWhere('name', 'like', "%$search%");
             })
             ->orderBy('role', 'asc')
-            ->paginate(100);
+            ->paginate(30);
 
         return view('admin.roles')->with(compact('users', 'roles', 'search'));
     }

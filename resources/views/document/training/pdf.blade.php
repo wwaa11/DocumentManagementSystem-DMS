@@ -28,12 +28,13 @@
         .header {
             text-align: center;
             margin-bottom: 15px;
+            height: 50px;
         }
 
         .section-title {
             font-weight: bold;
             border-bottom: 1px solid #000;
-            margin-top: 15px;
+            margin-top: 5px;
             margin-bottom: 5px;
             font-size: 14pt;
         }
@@ -79,7 +80,12 @@
 
 <body>
     <div class="header">
-        <h2 style="margin:0; font-size: 18pt;">ใบบันทึกการฝึกอบรมภาคอิสระ</h2>
+        <div style="float: left;">
+            <img src="{{ public_path("images/Vertical Logo.png") }}" alt="Vertical Logo" style="height: 50px;">
+        </div>
+        <div style="float: right;">
+            <h2 style="margin:0; font-size: 18pt;">ใบบันทึกการฝึกอบรมภาคอิสระ</h2>
+        </div>
     </div>
 
     <table class="meta-table">
