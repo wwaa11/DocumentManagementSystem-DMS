@@ -59,7 +59,7 @@
                 <div class="text-xs font-bold uppercase tracking-tighter opacity-40">ชื่อหลักสูตร (Course Title)</div>
                 <div class="text-base-content mt-1 text-lg font-extrabold">{{ $document->title }}</div>
             </div>
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="grid grid-cols-1 gap-6">
                 <div>
                     <div class="text-xs font-bold uppercase tracking-tighter opacity-40">ที่มา (Source)</div>
                     <div class="bg-base-250 mt-1 rounded-lg p-2 text-sm font-bold">{{ $document->detail }}</div>
@@ -198,11 +198,14 @@
         </div>
     </div>
 
+    @include("document.training.management")
+
     <!-- Approval Chain Section -->
     <div class="pt-4">
         <div class="divider my-10 text-[10px] font-bold uppercase tracking-widest opacity-20">Approval Status & History</div>
         @include("document.tasks", ["tasks" => $document->tasks])
     </div>
+
 </div>
 
 @push("scripts")
@@ -233,22 +236,22 @@
                                         <td class="py-4">
                                             ${user.attend_datetime ? 
                                                 `<div class="flex items-center gap-2 font-mono font-bold text-accent">
-                                                                    <i class="fas fa-clock text-[10px] opacity-40"></i>
-                                                                    ${user.attend_datetime}
-                                                                 </div>` : 
+                                                                                                            <i class="fas fa-clock text-[10px] opacity-40"></i>
+                                                                                                            ${user.attend_datetime}
+                                                                                                         </div>` : 
                                                 `<span class="text-error italic text-xs font-medium opacity-50">Not Checked-in</span>`
                                             }
                                         </td>
                                         <td class="pr-8 py-4 text-center">
                                             ${canApprove && isApprove ? 
                                                 `<button class='btn btn-accent btn-xs rounded-full px-4' onclick='approveAttendance("${user.id}", "${user.userid}")'>
-                                                                    <i class="fas fa-check mr-1"></i> อนุมัติ
-                                                                 </button>` : 
+                                                                                                            <i class="fas fa-check mr-1"></i> อนุมัติ
+                                                                                                         </button>` : 
                                                 user.approve_datetime ? 
                                                     `<div class="flex flex-col items-center">
-                                                                        <div class="text-[9px] font-bold opacity-30 tracking-tight uppercase">Approved At</div>
-                                                                        <div class="badge badge-success badge-sm font-bold font-mono text-[10px] py-1 h-auto">${user.approve_datetime}</div>
-                                                                     </div>` : 
+                                                                                                                <div class="text-[9px] font-bold opacity-30 tracking-tight uppercase">Approved At</div>
+                                                                                                                <div class="badge badge-success badge-sm font-bold font-mono text-[10px] py-1 h-auto">${user.approve_datetime}</div>
+                                                                                                             </div>` : 
                                                     `<span class="opacity-10">—</span>`
                                             }
                                         </td>

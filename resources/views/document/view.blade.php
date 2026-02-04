@@ -14,7 +14,7 @@
             <div class="card-body">
                 {{-- action --}}
                 @if ($type == "Training")
-                    @include("document.training.management")
+                    {{-- @include("document.training.management") --}}
                 @elseif ($document->status == "wait_approval")
                     <div class="flex flex-col gap-3">
                         <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>

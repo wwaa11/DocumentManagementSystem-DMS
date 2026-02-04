@@ -337,4 +337,38 @@ class DocumentTrainingController extends Controller
         
         return $pdf->download("Training_{$project->id}.pdf");
     }
+
+    public function cancelProject(Request $request)
+    {
+        $projectId = $request->project_id;
+        $project   = DocumentTraining::find($projectId);
+
+        if (! $project) {
+            return redirect()->route('document.index')->with('error', 'โปรเจกต์ไม่พบ!');
+        }
+        $project->status = 'cancel';
+        $project->save();
+
+        $project->logs()->create([
+            'userid'  => auth()->user()->userid,
+            'action'  => 'cancel_project',
+            'details' => 'ยกเลิกโครงการฝึกอบรม ' . $project->title . ' สำเร็จ!',
+        ]);
+
+        if($project->training_id != null){
+            $response = Http::withHeaders([
+                'Content-Type'  => 'application/json',
+                'Authorization' => 'Bearer ' . env('API_TRAINING'),
+            ])
+                ->withoutVerifying()
+                ->post('https://pr9web.praram9.com/w_hrd/api/cancel-project', ['project_id' => $project->training_id]);
+        }
+
+        $response = [
+            'status'  => 'success',
+            'message' => 'ยกเลิกโครงการฝึกอบรมสำเร็จ!',
+        ];
+
+        return response()->json($response, 200);
+    }
 }
