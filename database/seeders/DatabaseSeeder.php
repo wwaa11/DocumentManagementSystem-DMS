@@ -369,14 +369,14 @@ class DatabaseSeeder extends Seeder
                 'step'          => 2,
                 'task_user'     => 'training_pending',
                 'task_position' => '-',
-                'task_name'     => 'รอสร้างการอบรม',
+                'task_name'     => 'รอสร้างการฝึกอบรมการอบรม',
             ],
             [
                 'document_type' => 'training',
                 'step'          => 3,
                 'task_user'     => 'training_process',
                 'task_position' => '-',
-                'task_name'     => 'ระหว่างการฝึกอบรม',
+                'task_name'     => 'รอปิดการฝึกอบรม',
             ],
         ];
         foreach ($documentTaskList as $task) {

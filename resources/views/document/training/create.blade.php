@@ -240,9 +240,14 @@
                             <i class="fas fa-users text-primary"></i>
                             <span class="text-sm font-bold uppercase tracking-wide">รายชื่อผู้เข้าร่วม (Participants) <span class="text-error">*</span></span>
                         </div>
-                        <button class="btn btn-primary btn-sm pulse-on-hover rounded-full" type="button" onclick="openParticipantModal()">
-                            <i class="fas fa-plus mr-1"></i> เพิ่มผู้เข้าร่วม
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button class="btn btn-outline btn-primary btn-sm pulse-on-hover rounded-full" type="button" onclick="openDepartmentModal()">
+                                <i class="fas fa-building mr-1"></i> เพิ่มจากแผนก
+                            </button>
+                            <button class="btn btn-primary btn-sm pulse-on-hover rounded-full" type="button" onclick="openParticipantModal()">
+                                <i class="fas fa-plus mr-1"></i> เพิ่มผู้เข้าร่วม
+                            </button>
+                        </div>
                     </div>
                     <div class="p-0">
                         <table class="table w-full" id="participant-table">
@@ -272,13 +277,13 @@
                     </div>
                     <div class="p-8">
                         <div class="border-base-200 hover:border-primary/30 hover:bg-primary/5 group cursor-pointer rounded-2xl border-4 border-dashed p-10 text-center transition-all" id="drop-area">
-                            <input class="hidden" id="file_input" type="file" name="document_files[]" multiple>
+                            <input class="hidden" id="file_input" type="file" name="document_files[]" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
                             <div class="bg-base-200 group-hover:bg-primary group-hover:text-primary-content mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full shadow-inner transition-all">
                                 <i class="fas fa-cloud-upload-alt text-2xl"></i>
                             </div>
                             <h4 class="text-lg font-bold">ลากและวางไฟล์ที่นี่</h4>
                             <p class="mt-1 text-sm opacity-50">หรือ <span class="text-primary font-bold">คลิกเพื่อเลือกไฟล์</span> จากเครื่องของคุณ</p>
-                            <div class="mt-4 text-[10px] font-bold uppercase tracking-widest opacity-40">Max 20 Files • PDF, JPG, PNG</div>
+                            <div class="mt-4 text-[10px] font-bold uppercase tracking-widest opacity-40">Max 20 Files • PDF, JPG, PNG, Word , Excel , PPT (100 MB)</div>
                         </div>
                         <div class="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3" id="file_display">
                             {{-- files dynamically inserted here --}}
@@ -347,12 +352,56 @@
             }
 
             function handleFiles(newFiles) {
+                const allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+                const maxFiles = 20;
+                const maxSize = 100 * 1024 * 1024; // 100MB
+
                 newFiles = Array.from(newFiles);
+                let errors = [];
+
                 newFiles.forEach(file => {
+                    const ext = file.name.split('.').pop().toLowerCase();
+
+                    // Validate Extension
+                    if (!allowedExtensions.includes(ext)) {
+                        errors.push(`ไฟล์ <b>${file.name}</b> ประเภทไฟล์ไม่ถูกต้อง`);
+                        return;
+                    }
+
+                    // Validate Max Files
+                    if (files.length >= maxFiles) {
+                        if (!errors.includes('จำกัดจำนวนไฟล์สูงสุด 20 ไฟล์')) {
+                            errors.push('จำกัดจำนวนไฟล์สูงสุด 20 ไฟล์');
+                        }
+                        return;
+                    }
+
+                    // Validate Duplicate
                     if (!files.some(f => f.name === file.name && f.size === file.size)) {
+                        const currentTotalSize = files.reduce((sum, f) => sum + f.size, 0);
+                        if (currentTotalSize + file.size > maxSize) {
+                            if (!errors.includes('ขนาดไฟล์รวมเกิน 100 MB')) {
+                                errors.push('ขนาดไฟล์รวมเกิน 100 MB');
+                            }
+                            return;
+                        }
                         files.push(file);
                     }
                 });
+
+                if (errors.length > 0) {
+                    Swal.fire({
+                        title: 'พบข้อผิดพลาดในการอัปโหลด',
+                        html: `<div class="text-left text-sm opacity-70">${errors.map(e => `• ${e}`).join('<br>')}</div>`,
+                        icon: 'error',
+                        confirmButtonText: 'ตกลง',
+                        buttonsStyling: false,
+                        customClass: {
+                            confirmButton: 'btn btn-primary px-10'
+                        }
+                    });
+                }
+
                 updateFileDisplay();
             }
 
@@ -530,6 +579,10 @@
         }
 
         function addRowToTable(tableId, data, hiddenPrefix) {
+            // Check for duplicates
+            const existing = document.querySelector(`#${tableId} input[name="${hiddenPrefix}_userid[]"][value="${data.userid}"]`);
+            if (existing) return;
+
             const tableBody = document.querySelector(`#${tableId} tbody`);
             const row = document.createElement('tr');
             row.className = 'hover:bg-base-200/20 transition-all';
@@ -737,12 +790,12 @@
                 return;
             }
 
-            // Check total file size (PHP post_max_size is 24MB, so we cap at 20MB)
+            // Check total file size (User requirement: max 100MB)
             const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-            if (totalSize > 20 * 1024 * 1024) {
+            if (totalSize > 100 * 1024 * 1024) {
                 Swal.fire({
                     title: 'ขนาดไฟล์รวมใหญ่เกินไป',
-                    html: `ขนาดไฟล์รวมทั้งหมดคือ <b>${(totalSize / (1024 * 1024)).toFixed(2)} MB</b><br>กรุณาลดขนาดไฟล์รวมให้ไม่เกิน <b>20 MB</b>`,
+                    html: `ขนาดไฟล์รวมทั้งหมดคือ <b>${(totalSize / (1024 * 1024)).toFixed(2)} MB</b><br>กรุณาลดขนาดไฟล์รวมให้ไม่เกิน <b>100 MB</b>`,
                     icon: 'error',
                     confirmButtonText: 'ตกลง',
                     buttonsStyling: false,
@@ -777,6 +830,247 @@
                     document.getElementById('create-form').submit();
                 }
             });
+        }
+
+        // Department Modal
+        async function openDepartmentModal() {
+            const deptsList = @json($departments ?? []);
+
+            if (deptsList.length === 0) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'ไม่มีข้อมูลแผนก',
+                    text: 'ไม่พบข้อมูลแผนกในระบบ'
+                });
+            }
+
+            // Step 1: Select Mode
+            const {
+                value: mode
+            } = await Swal.fire({
+                title: 'เพิ่มผู้เข้าร่วมจากแผนก',
+                text: 'เลือกรูปแบบการดึงข้อมูล',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'เพิ่มทั้งแผนก',
+                denyButtonText: 'เลือกตามตำแหน่ง',
+                showDenyButton: true,
+                cancelButtonText: 'ยกเลิก',
+                customClass: {
+                    confirmButton: 'btn btn-primary px-6 mx-1',
+                    denyButton: 'btn btn-outline btn-primary px-6 mx-1',
+                    cancelButton: 'btn btn-ghost px-6 mx-1',
+                    popup: 'rounded-3xl shadow-2xl border border-base-200'
+                },
+                buttonsStyling: false,
+            });
+
+            if (mode === undefined) return; // Cancel or close
+
+            const isAllMode = mode === true; // confirmButton returns true
+
+            // Step 2: Select Department
+            const deptOptions = {};
+            deptsList.forEach(dept => {
+                deptOptions[dept] = dept;
+            });
+
+            const {
+                value: selectedDept
+            } = await Swal.fire({
+                title: 'เลือกแผนก',
+                input: 'select',
+                inputOptions: deptOptions,
+                inputPlaceholder: 'กรุณาเลือกแผนก',
+                showCancelButton: true,
+                confirmButtonText: isAllMode ? 'ค้นหารายชื่อแผนก' : 'ต่อไป',
+                cancelButtonText: 'ย้อนกลับ',
+                customClass: {
+                    confirmButton: 'btn btn-primary px-10 mx-2',
+                    cancelButton: 'btn btn-ghost px-10 mx-2',
+                    popup: 'rounded-3xl shadow-2xl border border-base-200'
+                },
+                buttonsStyling: false,
+                preConfirm: (value) => {
+                    if (!value) return Swal.showValidationMessage('กรุณาเลือกแผนก');
+                    return value;
+                }
+            });
+
+            if (!selectedDept) {
+                if (selectedDept === "") return; // just closed
+                return openDepartmentModal(); // Go back
+            }
+
+            let selectedPosition = null;
+            if (!isAllMode) {
+                // Step 3: Fetch and Select Position
+                Swal.fire({
+                    title: 'กำลังดึงข้อมูลตำแหน่ง...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                try {
+                    const response = await axios.post('{{ route("user.position") }}', {
+                        department: selectedDept
+                    });
+                    if (response.data.status) {
+                        const positions = response.data.positions || [];
+                        const posOptions = {};
+                        positions.forEach(p => {
+                            if (p) posOptions[p] = p;
+                        });
+
+                        const {
+                            value: pos
+                        } = await Swal.fire({
+                            title: 'เลือกตำแหน่ง',
+                            input: 'select',
+                            inputOptions: posOptions,
+                            inputPlaceholder: 'รายชื่อตำแหน่งในแผนก',
+                            showCancelButton: true,
+                            confirmButtonText: 'ค้นหารายชื่อ',
+                            cancelButtonText: 'ย้อนกลับ',
+                            customClass: {
+                                confirmButton: 'btn btn-primary px-10 mx-2',
+                                cancelButton: 'btn btn-ghost px-10 mx-2',
+                                popup: 'rounded-3xl shadow-2xl border border-base-200'
+                            },
+                            buttonsStyling: false,
+                            preConfirm: (value) => {
+                                if (!value) return Swal.showValidationMessage('กรุณาเลือกตำแหน่ง');
+                                return value;
+                            }
+                        });
+
+                        if (!pos) return; // Cancelled
+                        selectedPosition = pos;
+                    } else {
+                        throw new Error('Positions not found');
+                    }
+                } catch (error) {
+                    return Swal.fire({
+                        icon: 'error',
+                        title: 'ไม่พบข้อมูลตำแหน่ง',
+                        text: 'ไม่สามารถดึงข้อมูลตำแหน่งของแผนกนี้ได้'
+                    });
+                }
+            }
+
+            // Step 4: Fetch Users
+            Swal.fire({
+                title: 'กำลังค้นรายชื่อพนักงาน...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const endpoint = selectedPosition ? '{{ route("user.formDepartmentPosition") }}' : '{{ route("user.formDepartment") }}';
+                const postData = {
+                    department: selectedDept
+                };
+                if (selectedPosition) postData.position = selectedPosition;
+
+                const response = await axios.post(endpoint, postData);
+                if (response.data.status == 1) {
+                    const users = response.data.users || [];
+                    if (users.length === 0) {
+                        return Swal.fire({
+                            icon: 'info',
+                            title: 'ไม่พบพนักงาน',
+                            text: 'ไม่พบพนักงานในเงื่อนไขที่ระบุ'
+                        });
+                    }
+
+                    // Step 5: User Selection Modal
+                    let userHtml = `
+                        <div class="max-h-96 overflow-y-auto mt-4 px-2">
+                            <div class="form-control mb-4">
+                                <div class="bg-base-200 p-3 rounded-xl flex items-center justify-between">
+                                    <span class="text-xs font-bold uppercase opacity-50">เลือกทั้งหมด</span>
+                                    <input type="checkbox" id="swal-select-all" class="checkbox checkbox-primary checkbox-sm">
+                                </div>
+                            </div>
+                            <div class="space-y-2" id="swal-user-list">
+                                ${users.map(u => `
+                                                        <label class="flex items-center gap-4 p-3 bg-base-100 border border-base-200 rounded-xl hover:bg-base-200/50 cursor-pointer transition-all">
+                                                            <input type="checkbox" name="swal-users" value="${u.userid}" data-user='${JSON.stringify(u)}' class="checkbox checkbox-primary checkbox-sm">
+                                                            <div class="flex flex-col text-left overflow-hidden">
+                                                                <span class="text-sm font-bold truncate">${u.name}</span>
+                                                                <span class="text-[10px] opacity-40 uppercase truncate">${u.userid} | ${u.position}</span>
+                                                            </div>
+                                                        </label>
+                                                    `).join('')}
+                            </div>
+                        </div>
+                    `;
+
+                    const {
+                        value: selectedUsers
+                    } = await Swal.fire({
+                        title: 'เลือกรายชื่อผู้เข้าร่วม',
+                        html: userHtml,
+                        width: '32rem',
+                        showCancelButton: true,
+                        confirmButtonText: 'เพิ่มที่เลือก',
+                        cancelButtonText: 'ยกเลิก',
+                        customClass: {
+                            confirmButton: 'btn btn-primary px-10 mx-2',
+                            cancelButton: 'btn btn-ghost px-10 mx-2',
+                            popup: 'rounded-3xl shadow-2xl border border-base-200'
+                        },
+                        buttonsStyling: false,
+                        didOpen: () => {
+                            const selectAll = document.getElementById('swal-select-all');
+                            const userChecks = document.querySelectorAll('input[name="swal-users"]');
+                            selectAll.addEventListener('change', (e) => {
+                                userChecks.forEach(c => c.checked = e.target.checked);
+                            });
+                        },
+                        preConfirm: () => {
+                            const checked = Array.from(document.querySelectorAll('input[name="swal-users"]:checked'));
+                            if (checked.length === 0) return Swal.showValidationMessage('กรุณาเลือกอย่างน้อย 1 รายชื่อ');
+                            return checked.map(c => JSON.parse(c.getAttribute('data-user')));
+                        }
+                    });
+
+                    if (selectedUsers) {
+                        let added = 0;
+                        selectedUsers.forEach(u => {
+                            // Ensure department is passed correctly if it's not in the user object
+                            if (!u.department) u.department = selectedDept;
+
+                            const exists = document.querySelector(`#participant-table input[name="participants_userid[]"][value="${u.userid}"]`);
+                            if (!exists) {
+                                addRowToTable('participant-table', u, 'participants');
+                                added++;
+                            }
+                        });
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'เพิ่มรายชื่อสำเร็จ',
+                            text: `เพิ่มรายชื่อพนักงานจำนวน ${added} คน`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                } else {
+                    throw new Error('API request failed');
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถดึงข้อมูลพนักงานได้'
+                });
+            }
         }
     </script>
 @endpush

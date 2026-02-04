@@ -36,7 +36,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocumentRequest'])->name('document.type.approve.request');
     Route::get('/document/files/{file}', [WebController::class, 'fileShow'])->name('document.files.show');
     Route::get('/document/files/download/{file}', [WebController::class, 'fileDownload'])->name('document.files.download');
+    
+    // Search User , Department , Position
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
+    Route::post('/user/position', [WebController::class, 'userPosition'])->name('user.position');
+    Route::post('/user/getuserFormDepartment', [WebController::class, 'getuserFormDepartment'])->name('user.formDepartment');
+    Route::post('/user/getuserFormDepartmentPosition', [WebController::class, 'getuserFormDepartmentPosition'])->name('user.formDepartmentPosition');
 
     // Create Document IT and User for PAC HC Heartstream Register
     Route::post('/it/create', [DocumentITController::class, 'createDocument'])->name('document.it.create');

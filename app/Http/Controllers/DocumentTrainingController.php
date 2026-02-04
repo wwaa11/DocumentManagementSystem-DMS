@@ -95,7 +95,7 @@ class DocumentTrainingController extends Controller
             'selfApprove'   => false,
             'approver'      => $request['approver'],
         ];
-        $this->helper->createApprover('training', $approverField, $document);
+        $isApprove = $this->helper->createApprover('training', $approverField, $document);
         $this->helper->createFile($request, $document);
         $this->helper->createTask($taskData, $document);
 
@@ -120,18 +120,16 @@ class DocumentTrainingController extends Controller
             $documentTrainingParticipant->save();
         }
 
+        if($isApprove){
+            $this->createProject($document->id);
+        }
+
         return redirect()->route('document.index')->with('success', 'สร้างเอกสารสำเร็จ!');
     }
 
-    public function createProject(Request $request)
+    public function createProject($projectId)
     {
-        $projectId = $request->project_id;
-
         $project = DocumentTraining::find($projectId);
-        if (! $project) {
-            return redirect()->route('document.index')->with('error', 'โปรเจกต์ไม่พบ!');
-        }
-
         $participants = $project->participants()->pluck('participant')->toArray();
         $dates = $project->dates()->get();
         
@@ -172,7 +170,7 @@ class DocumentTrainingController extends Controller
 
             $project->tasks()->where('step', 2)->update([
                 'status'        => 'approve',
-                'task_name'     => 'เสร็จสิ้นการฝึกอบรมเสร็จสิ้น',
+                'task_name'     => 'ระหว่างการฝึกอบรม',
                 'task_user'     => auth()->user()->userid,
                 'task_position' => auth()->user()->position,
                 'date'          => date('Y-m-d H:i:s'),
@@ -195,7 +193,7 @@ class DocumentTrainingController extends Controller
             ];
         }
 
-        return response()->json($response, 200);
+        return $response;
     }
 
     public function getAttendance(Request $request)
@@ -272,16 +270,18 @@ class DocumentTrainingController extends Controller
             return redirect()->route('document.index')->with('error', 'โปรเจกต์ไม่พบ!');
         }
 
-        $project->status = 'complete';
+        $project->status = 'done';
         $project->save();
-
-        $project->tasks()->where('step', 3)->update([
-            'status'        => 'approve',
-            'task_name'     => 'เสร็จสิ้นการฝึกอบรมเสร็จสิ้น',
-            'task_user'     => auth()->user()->userid,
-            'task_position' => auth()->user()->position,
-            'date'          => date('Y-m-d H:i:s'),
-        ]);
+        
+        // Change to waiting for HR form Training Web to stamp to close project
+        // $project->status = 'complete';
+        // $project->tasks()->where('step', 3)->update([
+        //     'status'        => 'approve',
+        //     'task_name'     => 'เสร็จสิ้นการฝึกอบรม',
+        //     'task_user'     => auth()->user()->userid,
+        //     'task_position' => auth()->user()->position,
+        //     'date'          => date('Y-m-d H:i:s'),
+        // ]);
 
         $project->logs()->create([
             'userid'  => auth()->user()->userid,

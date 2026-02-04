@@ -175,6 +175,18 @@ class WebController extends Controller
                 break;
             case 'training':
                 $view = 'document.training.create';
+                $deptResponse = Http::withHeaders(['token' => env('API_AUTH_KEY')])
+                    ->timeout(30)
+                    ->post('http://172.20.1.12/dbstaff/api/get/departments');
+
+                $departments = [];
+                if($deptResponse->successful()){
+                    $deptResponse = $deptResponse->json();
+                    foreach ($deptResponse["departments"] as $key => $value) {
+                        $departments[] = $value['department'];
+                    }
+                }
+                $data = compact('departments');
                 break;
             default:
                 return redirect()->route('document.create');
@@ -192,12 +204,98 @@ class WebController extends Controller
         ])->post('http://172.20.1.12/dbstaff/api/getuser', [
             'userid' => $userid,
         ])->json();
+        
         if (! isset($response['status']) || $response['status'] != 1) {
 
             return ['status' => false];
         }
 
         return response()->json(['status' => true, 'user' => $response['user']]);
+    }
+
+    public function userPosition(Request $request)
+    {
+        $department = $request->input('department');
+        $response = Http::withHeaders([
+            'token' => env('API_AUTH_KEY'),
+        ])->post('http://172.20.1.12/dbstaff/api/get/departments/positions', [
+            'department' => $department,
+        ])->json();
+        
+        if (! isset($response['status']) || $response['status'] != 1) {
+
+            return ['status' => false];
+        }
+
+        $positions = [];
+        foreach ($response['positions'] as $key => $value) {
+            if (isset($value['position'])) {
+                $positions[] = $value['position'];
+            }
+        }
+
+        return response()->json(['status' => true, 'positions' => $positions]);
+    }
+
+    public function getuserFormDepartment(Request $request)
+    {
+        $department = $request->input('department');
+        $response = Http::withHeaders([
+            'token' => env('API_AUTH_KEY'),
+        ])->post('http://172.20.1.12/dbstaff/api/get/departments/users', [
+            'department' => $department,
+        ])->json();
+
+        if (! isset($response['status']) || $response['status'] != 1) {
+            return response()->json(['status' => 0, 'messgae' => 'error', 'users' => []]);
+        }
+
+        $users = [];
+        foreach ($response['users'] as $key => $value) {
+            $users[] = [
+                'userid' => $value['userid'],
+                'name' => $value['name'],
+                'position' => $value['position'],
+            ];
+        }
+
+        return response()->json([
+            'status' => 1,
+            'messgae' => 'success',
+            'users' => $users
+        ]);
+    }
+
+    public function getuserFormDepartmentPosition(Request $request)
+    {
+        $department = $request->input('department');
+        $position = $request->input('position');
+
+        $response = Http::withHeaders([
+            'token' => env('API_AUTH_KEY'),
+        ])->post('http://172.20.1.12/dbstaff/api/get/departments/users/position', [
+            'department' => $department,
+            'position' => $position,
+        ])->json();
+
+        if (! isset($response['status']) || $response['status'] != 1) {
+            return response()->json(['status' => 0, 'messgae' => 'error', 'users' => []]);
+        }
+
+        $users = [];
+        foreach ($response['users'] as $key => $value) {
+            $users[] = [
+                'userid' => $value['userid'],
+                'name' => $value['name'],
+                'position' => $value['position'],
+            ];
+        }
+
+        return response()->json([
+            'status' => 1,
+            'messgae' => 'success',
+            'users' => $users
+        ]);
     }
 
     public function viewDocument($type, $document_id)
@@ -327,6 +425,11 @@ class WebController extends Controller
                     $status_change = 'process';
                 } else {
                     $status_change = 'pending';
+                }
+
+                if($document_type == 'Training'){
+                    $documentTrainingController = new DocumentTrainingController();
+                    $documentTrainingController->createProject($document->id);
                 }
             }
             // case Reject

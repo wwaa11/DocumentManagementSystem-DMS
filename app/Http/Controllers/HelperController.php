@@ -41,8 +41,10 @@ class HelperController extends Controller
 
     public function createApprover($type, $dataField, $approveable)
     {
+
         $approverGetList = DocumentListApprover::where('document_type', $type)->orderBy('step', 'asc')->get();
         $approverList = [];
+        $isApprove = false;
         foreach ($approverGetList as $approver) {
             if ($approver->userid == 'head_of_department') {
                 $islastStep = $approver->step == $approverGetList->count();
@@ -55,6 +57,8 @@ class HelperController extends Controller
                         'status' => 'approve',
                         'approved_at' => date('Y-m-d H:i:s'),
                     ]);
+                    $isApprove = true;
+
                     // Check Last Step and Update Document Status
                     if ($islastStep && $type !== 'user') {
                         if ($approveable->assigned_user_id !== null) {
@@ -79,6 +83,7 @@ class HelperController extends Controller
                             'status' => 'approve',
                             'approved_at' => date('Y-m-d H:i:s'),
                         ]);
+                        $isApprove = true;
 
                         if ($islastStep && $type !== 'user') {
                             if ($approveable->assigned_user_id !== null) {
@@ -113,6 +118,8 @@ class HelperController extends Controller
         }
 
         $approveable->approvers()->saveMany($approverList);
+        
+        return $isApprove;
     }
 
     public function createTask($taskData, $taskable)
