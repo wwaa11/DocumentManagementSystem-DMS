@@ -41,8 +41,9 @@ class DocumentITController extends Controller
             default:
                 break;
         }
+        session()->flash('success', 'สร้างเอกสารสำเร็จ!');
 
-        return redirect()->route('document.index')->with('success', 'สร้างเอกสารสำเร็จ!');
+        return redirect()->route('document.index');
     }
 
     private function setUserFieldData($users, $title)

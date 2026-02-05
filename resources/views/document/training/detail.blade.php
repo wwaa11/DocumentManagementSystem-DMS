@@ -12,11 +12,12 @@
     </div>
 
     <!-- Main Header -->
-    <div class="bg-base-100 border-base-200 relative flex flex-col items-center gap-6 overflow-hidden rounded-2xl border p-6 shadow-sm md:flex-row">
+    <div
+        class="bg-base-100 border-base-200 relative flex flex-col items-center gap-6 overflow-hidden rounded-2xl border p-6 shadow-sm md:flex-row">
         <div class="absolute right-0 top-0 p-4 opacity-5">
             <i class="fas fa-certificate text-9xl"></i>
         </div>
-        <img class="h-16 w-auto" src="{{ asset("images/Side Logo.png") }}" alt="Logo">
+        <img class="h-16 w-auto" src="{{ asset('images/Side Logo.png') }}" alt="Logo">
         <div class="flex-1 text-center md:text-left">
             <h2 class="text-primary text-3xl font-extrabold">ใบบันทึกการฝึกอบรมภาคอิสระ</h2>
             <p class="text-base-content/50 font-medium">Internal Training Record Document</p>
@@ -43,7 +44,7 @@
             <div class="text-[10px] font-bold uppercase tracking-widest opacity-40">วันที่สร้างเอกสาร</div>
             <div class="mt-1 flex items-center gap-2 font-bold">
                 <i class="fas fa-calendar-day text-primary/60 text-xs"></i>
-                {{ $document->created_at->format("d M Y") }}
+                {{ $document->created_at->format('d M Y') }}
             </div>
         </div>
     </div>
@@ -65,23 +66,27 @@
                     <div class="bg-base-250 mt-1 rounded-lg p-2 text-sm font-bold">{{ $document->detail }}</div>
                 </div>
                 <div>
-                    <div class="mb-2 text-xs font-bold uppercase tracking-tighter opacity-40">กำหนดการฝึกอบรม (Schedule)</div>
+                    <div class="mb-2 text-xs font-bold uppercase tracking-tighter opacity-40">กำหนดการฝึกอบรม (Schedule)
+                    </div>
                     <div class="space-y-2">
                         @foreach ($document->dates as $d)
-                            <div class="bg-primary/5 border-primary/10 flex items-center justify-between rounded-lg border px-4 py-2">
+                            <div
+                                class="bg-primary/5 border-primary/10 flex items-center justify-between rounded-lg border px-4 py-2">
                                 <div class="flex items-center gap-2 text-sm font-bold">
                                     <i class="fas fa-calendar-day text-primary opacity-40"></i>
-                                    {{ $d->date->format("d M Y") }}
+                                    {{ $d->date->format('d M Y') }}
                                 </div>
                                 <div class="text-primary flex items-center gap-2 font-mono text-[11px] font-bold">
                                     <i class="fas fa-clock opacity-40"></i>
-                                    {{ \Carbon\Carbon::parse($d->start_time)->format("H:i") }} - {{ \Carbon\Carbon::parse($d->end_time)->format("H:i") }}
+                                    {{ \Carbon\Carbon::parse($d->start_time)->format('H:i') }} -
+                                    {{ \Carbon\Carbon::parse($d->end_time)->format('H:i') }}
                                 </div>
                             </div>
                         @endforeach
                         <div class="border-base-200 mt-4 border-t pt-4">
                             <div class="text-[10px] font-bold uppercase tracking-widest opacity-40">เวลารวมทั้งหมด</div>
-                            <div class="text-primary text-lg font-black">{{ $document->hours }} ชม. {{ $document->minutes }} น.</div>
+                            <div class="text-primary text-lg font-black">{{ $document->hours }} ชม.
+                                {{ $document->minutes }} น.</div>
                         </div>
                     </div>
                 </div>
@@ -96,7 +101,7 @@
         </h3>
         <div class="bg-base-100 border-base-200 rounded-2xl border p-6">
             @if ($document->files->count() > 0)
-                @include("document.files", ["files" => $document->files])
+                @include('document.files', ['files' => $document->files])
             @else
                 <div class="flex flex-col items-center justify-center py-4 italic opacity-30">
                     <i class="fas fa-folder-open mb-2 text-2xl"></i>
@@ -127,7 +132,8 @@
                             <tr class="hover:bg-base-200/20 transition-colors">
                                 <td class="text-secondary py-4 pl-8 font-bold">{{ $mentor->mentor }}</td>
                                 <td class="py-4 font-bold">{{ $mentor->mentor_name }}</td>
-                                <td class="py-4 pr-8 text-sm font-medium opacity-70">{{ $mentor->mentor_position }}</td>
+                                <td class="py-4 pr-8 text-sm font-medium opacity-70">{{ $mentor->mentor_position }}
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -143,7 +149,8 @@
         <div class="bg-accent/5 border-accent/10 flex items-center justify-between border-b px-8 py-4">
             <div class="flex items-center gap-2">
                 <i class="fas fa-users text-accent"></i>
-                <span class="text-accent text-xs font-bold uppercase leading-none tracking-wider">รายชื่อผู้เข้าร่วม และ ประวัติการเช็คอิน (Attendance)</span>
+                <span class="text-accent text-xs font-bold uppercase leading-none tracking-wider">รายชื่อผู้เข้าร่วม และ
+                    ประวัติการเช็คอิน (Attendance)</span>
             </div>
             @if ($document->training_id != null)
                 <span class="badge badge-accent badge-sm animate-pulse font-bold">Live Tracking</span>
@@ -157,7 +164,8 @@
                             <th class="py-4 pl-8 text-xs font-bold uppercase opacity-60">พนักงาน</th>
                             <th class="py-4 text-xs font-bold uppercase opacity-60">ข้อมูลส่วนตัว</th>
                             <th class="py-4 text-xs font-bold uppercase opacity-60">Check-in Time</th>
-                            <th class="py-4 pr-8 text-center text-xs font-bold uppercase opacity-60">Status / Action</th>
+                            <th class="py-4 pr-8 text-center text-xs font-bold uppercase opacity-60">Status / Action
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-base-100 divide-y" id="attendance-table">
@@ -165,7 +173,8 @@
                             <td class="py-12" colspan="4">
                                 <div class="flex flex-col items-center justify-center opacity-30">
                                     <span class="loading loading-spinner loading-lg mb-4"></span>
-                                    <p class="text-sm font-bold uppercase tracking-widest">กำลังดึงข้อมูลการเช็คอิน...</p>
+                                    <p class="text-sm font-bold uppercase tracking-widest">กำลังดึงข้อมูลการเช็คอิน...
+                                    </p>
                                 </div>
                             </td>
                         </tr>
@@ -187,7 +196,8 @@
                                 <td class="text-accent py-4 pl-8 font-bold">{{ $participant->participant }}</td>
                                 <td class="py-4 font-bold">{{ $participant->participant_name }}</td>
                                 <td class="py-4 text-sm opacity-70">{{ $participant->participant_position }}</td>
-                                <td class="py-4 pr-8 text-sm opacity-70">{{ $participant->participant_department }}</td>
+                                <td class="py-4 pr-8 text-sm opacity-70">{{ $participant->participant_department }}
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -198,25 +208,27 @@
         </div>
     </div>
 
-    @include("document.training.management")
+    @include('document.training.management')
 
     <!-- Approval Chain Section -->
     <div class="pt-4">
-        <div class="divider my-10 text-[10px] font-bold uppercase tracking-widest opacity-20">Approval Status & History</div>
-        @include("document.tasks", ["tasks" => $document->tasks])
+        <div class="divider my-10 text-[10px] font-bold uppercase tracking-widest opacity-20">Approval Status & History
+        </div>
+        @include('document.tasks', ['tasks' => $document->tasks])
     </div>
 
 </div>
 
-@push("scripts")
+@push('scripts')
     @if ($document->training_id != null)
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                axios.post("{{ route("document.training.getAttendance") }}", {
+                axios.post("{{ route('document.training.getAttendance') }}", {
                     project_id: '{{ $document->id }}',
                 }).then((response) => {
                     if (response.data.success) {
-                        let isApprove = {{ $document->tasks->where("task_user", auth()->user()->userid)->count() > 0 && $document->status == "pending" ? "true" : "false" }};
+                        let isApprove =
+                            {{ $document->tasks->where('task_user', auth()->user()->userid)->count() > 0 && $document->status == 'pending' ? 'true' : 'false' }};
                         let html = "";
                         for (const date in response.data.transaction) {
                             html += `
@@ -226,7 +238,8 @@
                             `;
                             for (const time in response.data.transaction[date]) {
                                 for (const user of response.data.transaction[date][time]) {
-                                    var canApprove = user.attend_datetime != null && user.approve_datetime == null;
+                                    var canApprove = user.attend_datetime != null && user.approve_datetime ==
+                                        null;
                                     html += `
                                     <tr class="hover:bg-base-200/30 transition-all">
                                         <td class="pl-8 py-4">
@@ -236,22 +249,22 @@
                                         <td class="py-4">
                                             ${user.attend_datetime ? 
                                                 `<div class="flex items-center gap-2 font-mono font-bold text-accent">
-                                                                                                            <i class="fas fa-clock text-[10px] opacity-40"></i>
-                                                                                                            ${user.attend_datetime}
-                                                                                                         </div>` : 
+                                                                                                                                                            <i class="fas fa-clock text-[10px] opacity-40"></i>
+                                                                                                                                                            ${user.attend_datetime}
+                                                                                                                                                         </div>` : 
                                                 `<span class="text-error italic text-xs font-medium opacity-50">Not Checked-in</span>`
                                             }
                                         </td>
                                         <td class="pr-8 py-4 text-center">
                                             ${canApprove && isApprove ? 
                                                 `<button class='btn btn-accent btn-xs rounded-full px-4' onclick='approveAttendance("${user.id}", "${user.userid}")'>
-                                                                                                            <i class="fas fa-check mr-1"></i> อนุมัติ
-                                                                                                         </button>` : 
+                                                                                                                                                            <i class="fas fa-check mr-1"></i> อนุมัติ
+                                                                                                                                                         </button>` : 
                                                 user.approve_datetime ? 
                                                     `<div class="flex flex-col items-center">
-                                                                                                                <div class="text-[9px] font-bold opacity-30 tracking-tight uppercase">Approved At</div>
-                                                                                                                <div class="badge badge-success badge-sm font-bold font-mono text-[10px] py-1 h-auto">${user.approve_datetime}</div>
-                                                                                                             </div>` : 
+                                                                                                                                                                <div class="text-[9px] font-bold opacity-30 tracking-tight uppercase">Approved At</div>
+                                                                                                                                                                <div class="badge badge-success badge-sm font-bold font-mono text-[10px] py-1 h-auto">${user.approve_datetime}</div>
+                                                                                                                                                             </div>` : 
                                                     `<span class="opacity-10">—</span>`
                                             }
                                         </td>
@@ -261,15 +274,16 @@
                             }
                         }
                         if (html === "") {
-                            html = `<tr><td colspan="4" class="py-20 text-center opacity-30 italic">ไม่พบข้อมูลการเช็คอินในระบบหลัก</td></tr>`;
+                            html =
+                                `<tr><td colspan="4" class="py-20 text-center opacity-30 italic">ไม่พบข้อมูลการเช็คอินในระบบหลัก</td></tr>`;
                         }
                         document.querySelector("#attendance-table").innerHTML = html;
                     } else {
                         Swal.fire({
-                            icon: 'error',
+                            position: "top-end",
                             title: response.data.message,
                             showConfirmButton: false,
-                            timer: 1500
+                            timer: 1000
                         });
                     }
                 });
@@ -297,7 +311,7 @@
                                 Swal.showLoading();
                             }
                         });
-                        axios.post("{{ route("document.training.approveAttendance") }}", {
+                        axios.post("{{ route('document.training.approveAttendance') }}", {
                                 id,
                                 userid,
                                 project_id: '{{ $document->id }}'

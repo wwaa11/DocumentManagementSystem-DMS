@@ -99,7 +99,7 @@ Route::group(['middleware' => 'auth'], function () {
     // Training
     Route::post('/training/create', [DocumentTrainingController::class, 'createDocument'])->name('document.training.create');
     Route::post('/training/create-training', [DocumentTrainingController::class, 'createProject'])->name('document.training.createTraining');
-    Route::post('/training/cancel-training', [DocumentTrainingController::class, 'cancelTraining'])->name('document.training.cancelTraining');
+    Route::post('/training/cancel-training', [DocumentTrainingController::class, 'cancelProject'])->name('document.training.cancelTraining');
     Route::post('/training/get-attendance', [DocumentTrainingController::class, 'getAttendance'])->name('document.training.getAttendance');
     Route::post('/training/approve-attendance', [DocumentTrainingController::class, 'approveAttendance'])->name('document.training.approveAttendance');
     Route::post('/training/close-project', [DocumentTrainingController::class, 'closeProject'])->name('document.training.closeProject');

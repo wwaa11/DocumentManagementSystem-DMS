@@ -218,7 +218,7 @@ class DocumentTrainingController extends Controller
         } else {
             $response = [
                 'status'  => 'failed',
-                'message' => 'ดึงข้อมูลการไม่สำเร็จ!',
+                'message' => 'ไม่พบข้อมูลการฝึกอบรม!',
             ];
         }
 
@@ -353,6 +353,14 @@ class DocumentTrainingController extends Controller
             'userid'  => auth()->user()->userid,
             'action'  => 'cancel_project',
             'details' => 'ยกเลิกโครงการฝึกอบรม ' . $project->title . ' สำเร็จ!',
+        ]);
+
+        $project->tasks()->where('step', '>=', 2)->update([
+            'status'        => 'cancel',
+            'task_name'     => 'ยกเลิกโครงการฝึกอบรม',
+            'task_user'     => auth()->user()->userid,
+            'task_position' => auth()->user()->position,
+            'date'          => date('Y-m-d H:i:s'),
         ]);
 
         if($project->training_id != null){
