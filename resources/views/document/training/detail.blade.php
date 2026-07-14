@@ -1,10 +1,7 @@
 <div class="card-body space-y-8 p-8">
     <!-- Action Header -->
     <div class="flex items-center justify-between">
-        <button class="btn btn-ghost btn-sm hover:bg-base-200 gap-2 transition-all" onclick="window.history.back()">
-            <i class="fas fa-arrow-left"></i>
-            ย้อนกลับ
-        </button>
+        <x-ui.back-button variant="button" />
         <div class="badge badge-lg badge-primary gap-2 py-4 font-bold uppercase tracking-widest">
             <i class="fas fa-graduation-cap"></i>
             DMS Training
@@ -73,6 +70,9 @@
                             <div
                                 class="bg-primary/5 border-primary/10 flex items-center justify-between rounded-lg border px-4 py-2">
                                 <div class="flex items-center gap-2 text-sm font-bold">
+                                    @if ($document->status == 'pending' && $d->canEdit())
+                                        <button class="btn btn-primary btn-xs">แก้ไข</button>
+                                    @endif
                                     <i class="fas fa-calendar-day text-primary opacity-40"></i>
                                     {{ $d->date->format('d M Y') }}
                                 </div>
@@ -223,72 +223,132 @@
     @if ($document->training_id != null)
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                axios.post("{{ route('document.training.getAttendance') }}", {
-                    project_id: '{{ $document->id }}',
-                }).then((response) => {
-                    if (response.data.success) {
-                        let isApprove =
-                            {{ $document->tasks->where('task_user', auth()->user()->userid)->count() > 0 && $document->status == 'pending' ? 'true' : 'false' }};
-                        let html = "";
-                        for (const date in response.data.transaction) {
-                            html += `
-                                <tr class="bg-base-300">
-                                    <td colspan="4" class="pl-8 py-2 text-[10px] font-black uppercase tracking-widest text-base-content/60">Session Date: ${date}</td>
-                                </tr>
-                            `;
-                            for (const time in response.data.transaction[date]) {
-                                for (const user of response.data.transaction[date][time]) {
-                                    var canApprove = user.attend_datetime != null && user.approve_datetime ==
-                                        null;
-                                    html += `
-                                    <tr class="hover:bg-base-200/30 transition-all">
-                                        <td class="pl-8 py-4">
-                                            <div class="badge badge-neutral badge-sm font-bold font-mono">${user.userid}</div>
-                                        </td>
-                                        <td class="py-4 font-bold">${user.name}</td>
-                                        <td class="py-4">
-                                            ${user.attend_datetime ? 
-                                                `<div class="flex items-center gap-2 font-mono font-bold text-accent">
-                                                                                                                                                            <i class="fas fa-clock text-[10px] opacity-40"></i>
-                                                                                                                                                            ${user.attend_datetime}
-                                                                                                                                                         </div>` : 
-                                                `<span class="text-error italic text-xs font-medium opacity-50">Not Checked-in</span>`
-                                            }
-                                        </td>
-                                        <td class="pr-8 py-4 text-center">
-                                            ${canApprove && isApprove ? 
-                                                `<button class='btn btn-accent btn-xs rounded-full px-4' onclick='approveAttendance("${user.id}", "${user.userid}")'>
-                                                                                                                                                            <i class="fas fa-check mr-1"></i> อนุมัติ
-                                                                                                                                                         </button>` : 
-                                                user.approve_datetime ? 
-                                                    `<div class="flex flex-col items-center">
-                                                                                                                                                                <div class="text-[9px] font-bold opacity-30 tracking-tight uppercase">Approved At</div>
-                                                                                                                                                                <div class="badge badge-success badge-sm font-bold font-mono text-[10px] py-1 h-auto">${user.approve_datetime}</div>
-                                                                                                                                                             </div>` : 
-                                                    `<span class="opacity-10">—</span>`
-                                            }
-                                        </td>
-                                    </tr>
-                                    `;
-                                }
-                            }
-                        }
-                        if (html === "") {
-                            html =
-                                `<tr><td colspan="4" class="py-20 text-center opacity-30 italic">ไม่พบข้อมูลการเช็คอินในระบบหลัก</td></tr>`;
-                        }
-                        document.querySelector("#attendance-table").innerHTML = html;
-                    } else {
-                        Swal.fire({
-                            position: "top-end",
-                            title: response.data.message,
-                            showConfirmButton: false,
-                            timer: 1000
-                        });
-                    }
-                });
+                fetchAttendanceData();
             });
 
+            /**
+             * Fetch attendance data from the server.
+             */
+            function fetchAttendanceData() {
+                const attendanceTable = document.querySelector("#attendance-table");
+                const projectId = '{{ $document->id }}';
+                const isApprovable =
+                    {{ $document->tasks->where('task_user', auth()->user()->userid)->count() > 0 && $document->status == 'pending' ? 'true' : 'false' }};
+
+                axios.post("{{ route('document.training.getAttendance') }}", {
+                        project_id: projectId,
+                    })
+                    .then((response) => {
+                        if (response.data.success) {
+                            renderAttendanceTable(response.data.transaction, isApprovable);
+                        } else {
+                            handleApiError(response.data.message);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Attendance Error:", error);
+                        handleApiError("Failed to fetch attendance records. Please try again later.");
+                    });
+            }
+
+            /**
+             * Renders the attendance table rows.
+             */
+            function renderAttendanceTable(transactions, isApprovable) {
+                const container = document.querySelector("#attendance-table");
+                let html = "";
+
+                if (!transactions || Object.keys(transactions).length === 0) {
+                    container.innerHTML =
+                        `<tr><td colspan="4" class="py-20 text-center opacity-30 italic">ไม่พบข้อมูลการเช็คอินในระบบหลัก</td></tr>`;
+                    return;
+                }
+
+                for (const date in transactions) {
+                    html += `
+                        <tr class="bg-base-300">
+                            <td colspan="4" class="pl-8 py-2 text-[10px] font-black uppercase tracking-widest text-base-content/60">
+                                Session Date: ${date}
+                            </td>
+                        </tr>
+                    `;
+
+                    for (const time in transactions[date]) {
+                        transactions[date][time].forEach(user => {
+                            html += generateUserRow(user, isApprovable);
+                        });
+                    }
+                }
+
+                container.innerHTML = html;
+            }
+
+            /**
+             * Generates a single user row in the table.
+             */
+            function generateUserRow(user, isApprovable) {
+                const canApprove = user.attend_datetime != null && user.approve_datetime == null;
+                const statusHtml = generateStatusHtml(user, canApprove, isApprovable);
+                const timeHtml = user.attend_datetime ?
+                    `<div class="flex items-center gap-2 font-mono font-bold text-accent">
+                        <i class="fas fa-clock text-[10px] opacity-40"></i>
+                        ${user.attend_datetime}
+                    </div>` :
+                    `<span class="text-error italic text-xs font-medium opacity-50">Not Checked-in</span>`;
+
+                return `
+                    <tr class="hover:bg-base-200/30 transition-all">
+                        <td class="pl-8 py-4">
+                            <div class="badge badge-neutral badge-sm font-bold font-mono">${user.userid}</div>
+                        </td>
+                        <td class="py-4 font-bold">${user.name}</td>
+                        <td class="py-4">${timeHtml}</td>
+                        <td class="pr-8 py-4 text-center">${statusHtml}</td>
+                    </tr>
+                `;
+            }
+
+            /**
+             * Generates the status/action column HTML.
+             */
+            function generateStatusHtml(user, canApprove, isApprovable) {
+                if (canApprove && isApprovable) {
+                    return `
+                        <button class='btn btn-primary btn-xs rounded-full px-4' onclick='approveAttendance("${user.id}", "${user.userid}")'>
+                            <i class="fas fa-check mr-1"></i> อนุมัติ
+                        </button>`;
+                }
+
+                if (user.approve_datetime) {
+                    return `
+                        <div class="flex flex-col items-center">
+                            <div class="text-[9px] font-bold opacity-30 tracking-tight uppercase">Approved At</div>
+                            <div class="badge badge-primary badge-sm font-bold font-mono text-[10px] py-1 h-auto">
+                                ${user.approve_datetime}
+                            </div>
+                        </div>`;
+                }
+
+                return `<span class="opacity-10">—</span>`;
+            }
+
+            /**
+             * Specialized error handler for API responses.
+             */
+            function handleApiError(message) {
+                Swal.fire({
+                    position: "top-end",
+                    icon: "error",
+                    title: "System Notification",
+                    text: message,
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+
+            /**
+             * Handles the approval logic with confirmation.
+             */
             function approveAttendance(id, userid) {
                 Swal.fire({
                     title: 'ยืนยันการอนุมัติเข้าร่วม?',
@@ -307,10 +367,9 @@
                         Swal.fire({
                             title: 'กำลังอนุมัติ...',
                             allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
+                            didOpen: () => Swal.showLoading()
                         });
+
                         axios.post("{{ route('document.training.approveAttendance') }}", {
                                 id,
                                 userid,
@@ -325,13 +384,12 @@
                                         timer: 1500
                                     }).then(() => window.location.reload());
                                 } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: response.data.message,
-                                        showConfirmButton: false,
-                                        timer: 1500
-                                    });
+                                    handleApiError(response.data.message);
                                 }
+                            })
+                            .catch((error) => {
+                                console.error("Approval Error:", error);
+                                handleApiError("Failed to process approval. Please contact administrator.");
                             });
                     }
                 });

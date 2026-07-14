@@ -3,6 +3,8 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DocumentITController;
+use App\Http\Controllers\DocumentMediaController;
+use App\Http\Controllers\DocumentPurchaseController;
 use App\Http\Controllers\DocumentTrainingController;
 use App\Http\Controllers\DocumentUserController;
 use App\Http\Controllers\WebController;
@@ -21,7 +23,9 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/approver/list', [AdminController::class, 'ApproverList'])->name('approvers.list');
         Route::post('/approver/getuser', [AdminController::class, 'ApproverGetUser'])->name('approvers.getuser');
         Route::post('/approver/update', [AdminController::class, 'ApproverUpdate'])->name('approvers.update');
+    });
 
+    Route::prefix('admin')->middleware(['auth', 'role-manager'])->group(function () {
         Route::get('/role/list', [AdminController::class, 'RoleList'])->name('roles.list');
         Route::post('/role/update', [AdminController::class, 'RoleUpdate'])->name('roles.update');
     });
@@ -36,7 +40,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocumentRequest'])->name('document.type.approve.request');
     Route::get('/document/files/{file}', [WebController::class, 'fileShow'])->name('document.files.show');
     Route::get('/document/files/download/{file}', [WebController::class, 'fileDownload'])->name('document.files.download');
-    
+
     // Search User , Department , Position
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
     Route::post('/user/position', [WebController::class, 'userPosition'])->name('user.position');
@@ -46,6 +50,41 @@ Route::group(['middleware' => 'auth'], function () {
     // Create Document IT and User for PAC HC Heartstream Register
     Route::post('/it/create', [DocumentITController::class, 'createDocument'])->name('document.it.create');
     Route::post('/it/return', [DocumentITController::class, 'borrowReturn'])->name('document.it.borrowlist.return');
+    Route::post('/purchase/create', [DocumentPurchaseController::class, 'createDocument'])->name('document.purchase.create');
+    Route::post('/media/create', [DocumentMediaController::class, 'createDocument'])->name('document.media.create');
+    Route::prefix('media')->middleware(['auth', 'media'])->group(function () {
+        Route::get('/admin/approvelist', [DocumentMediaController::class, 'adminApproveDocuments'])->name('admin.media.approvelist');
+        Route::get('/admin/newdocument', [DocumentMediaController::class, 'adminNewDocuments'])->name('admin.media.newlist');
+        Route::get('/admin/mydocument', [DocumentMediaController::class, 'adminMyDocuments'])->name('admin.media.mylist');
+        Route::get('/admin/queuedocument', [DocumentMediaController::class, 'adminQueueDocuments'])->name('admin.media.queuelist');
+        Route::get('/admin/alldocument', [DocumentMediaController::class, 'adminAllDocuments'])->name('admin.media.alllist');
+        Route::get('/admin/view/{document_id}/{action}', [DocumentMediaController::class, 'adminViewDocument'])->name('admin.media.view');
+        Route::get('/admin/count', [DocumentMediaController::class, 'adminDocumentCount'])->name('admin.media.count');
+        Route::get('/admin/reportlist', [DocumentMediaController::class, 'adminReportDocuments'])->name('admin.media.reportlist');
+        Route::post('/admin/accept', [DocumentMediaController::class, 'acceptDocument'])->name('admin.media.accept');
+        Route::post('/admin/cancel', [DocumentMediaController::class, 'cancelDocument'])->name('admin.media.cancel');
+        Route::post('/admin/canceljob', [DocumentMediaController::class, 'cancelJob'])->name('admin.media.canceljob');
+        Route::post('/admin/markfinish', [DocumentMediaController::class, 'markFinish'])->name('admin.media.markfinish');
+        Route::post('/admin/process', [DocumentMediaController::class, 'processDocument'])->name('admin.media.process');
+        Route::post('/admin/complete', [DocumentMediaController::class, 'completeDocument'])->name('admin.media.complete');
+        Route::post('/admin/completeall', [DocumentMediaController::class, 'completeAllDocument'])->name('admin.media.completeall');
+    });
+    Route::prefix('purchase')->middleware(['auth', 'purchase'])->group(function () {
+        Route::get('/admin/approvelist', [DocumentPurchaseController::class, 'adminApproveDocuments'])->name('admin.purchase.approvelist');
+        Route::get('/admin/headlist', [DocumentPurchaseController::class, 'adminHeadDocuments'])->name('admin.purchase.headlist');
+        Route::get('/admin/newdocument', [DocumentPurchaseController::class, 'adminNewDocuments'])->name('admin.purchase.newlist');
+        Route::get('/admin/mydocument', [DocumentPurchaseController::class, 'adminMyDocuments'])->name('admin.purchase.mylist');
+        Route::get('/admin/alldocument', [DocumentPurchaseController::class, 'adminAllDocuments'])->name('admin.purchase.alllist');
+        Route::get('/admin/view/{document_id}/{action}', [DocumentPurchaseController::class, 'adminViewDocument'])->name('admin.purchase.view');
+        Route::get('/admin/count', [DocumentPurchaseController::class, 'adminDocumentCount'])->name('admin.purchase.count');
+        Route::get('/admin/reportlist', [DocumentPurchaseController::class, 'adminReportDocuments'])->name('admin.purchase.reportlist');
+        Route::post('/admin/accept', [DocumentPurchaseController::class, 'acceptDocument'])->name('admin.purchase.accept');
+        Route::post('/admin/cancel', [DocumentPurchaseController::class, 'cancelDocument'])->name('admin.purchase.cancel');
+        Route::post('/admin/canceljob', [DocumentPurchaseController::class, 'cancelJob'])->name('admin.purchase.canceljob');
+        Route::post('/admin/process', [DocumentPurchaseController::class, 'processDocument'])->name('admin.purchase.process');
+        Route::post('/admin/complete', [DocumentPurchaseController::class, 'completeDocument'])->name('admin.purchase.complete');
+        Route::post('/admin/completeall', [DocumentPurchaseController::class, 'completeAllDocument'])->name('admin.purchase.completeall');
+    });
     // IT Document
     Route::prefix('it')->middleware(['auth', 'it'])->group(function () {
         // Page Documents

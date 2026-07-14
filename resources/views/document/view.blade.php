@@ -1,43 +1,45 @@
-@extends("layouts.app")
-@section("content")
+@extends('layouts.app')
+@section('content')
     <div class="justify-center gap-3 lg:flex">
         <div class="card bg-base-100 mb-4 shadow-xl">
-            @if ($type == "IT" || $type == "BORROW")
-                @include("document.it.detail")
-            @elseif ($type == "USER")
-                @include("document.user.detail")
-            @elseif ($type == "Training")
-                @include("document.training.detail")
+            @if ($type == 'IT' || $type == 'BORROW')
+                @include('document.it.detail')
+            @elseif ($type == 'USER')
+                @include('document.user.detail')
+            @elseif ($type == 'Training')
+                @include('document.training.detail')
+            @elseif ($type == 'PURCHASE')
+                @include('document.purchase.detail')
+            @elseif ($type == 'MEDIA')
+                @include('document.media.detail')
             @endif
         </div>
         <div class="card bg-base-100 mb-4 shadow-xl">
             <div class="card-body">
-                {{-- action --}}
-                @if ($type == "Training")
-                    {{-- @include("document.training.management") --}}
-                @elseif ($document->status == "wait_approval")
+                @if ($type == 'Training')
+                    {{-- @include('document.training.management') --}}
+                @elseif ($document->status == 'wait_approval')
                     <div class="flex flex-col gap-3">
                         <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>
                         <div class="divider"></div>
                     </div>
-                @elseif($document->status == "pending")
+                @elseif ($document->status == 'pending')
                     <div class="flex flex-col gap-3">
                         <button class="btn-soft btn-neutral w-full">ใบงานอยู่ระหว่างดำเนินการ<br>ไม่สามาถยกเลิกใบงานได้</button>
                         <div class="divider"></div>
                     </div>
                 @endif
 
-                {{-- log --}}
-                @if ($type == "USER")
-                    @include("document.user.logs", ["logs" => $document->getAllDocuments()])
+                @if ($type == 'USER')
+                    @include('document.user.logs', ['logs' => $document->getAllDocuments()])
                 @else
-                    @include("document.logs", ["logs" => $document->logs])
+                    <x-document.activity-logs :logs="$document->logs" />
                 @endif
             </div>
         </div>
     </div>
 @endsection
-@push("scripts")
+@push('scripts')
     <script>
         async function cancelDocument() {
             const result = await Swal.fire({
@@ -64,11 +66,11 @@
                 });
             }
             if (result.isConfirmed && result.value) {
-                axios.post("{{ route("document.type.cancel", [$type, $document->id]) }}", {
-                    type: '{{ $document->document_tag["document_tag"] }}',
+                axios.post('{{ route('document.type.cancel', [$type, $document->id]) }}', {
+                    type: '{{ $document->document_tag['document_tag'] }}',
                     reason: result.value
                 }).then((response) => {
-                    if (response.data.status == "success") {
+                    if (response.data.status == 'success') {
                         Swal.fire({
                             icon: 'success',
                             title: 'ยกเลิกใบงานสำเร็จ',

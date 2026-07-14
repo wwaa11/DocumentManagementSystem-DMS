@@ -7,6 +7,7 @@
     <title>{{ config("app.name", "Laravel") }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
+    <link rel="icon" href="{{ asset('images/icon.ico') }}" type="image/x-icon">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
     <script src="https://kit.fontawesome.com/a20e89230f.js" crossorigin="anonymous"></script>
     @vite(["resources/css/app.css", "resources/js/app.js"])
@@ -36,6 +37,13 @@
                             <span class="fa fa-sign-in"></span>
                             Login
                         </button>
+                        <hr class="my-3 w-80 mx-auto border-gray-300">
+                        <div class="flex justify-center">
+                            <a href="http://172.20.1.12/w_dms" target="_blank" class="btn btn-warning w-full">
+                                <span class="fa fa-external-link-alt"></span>
+                                ระบบเว็บเดิม
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>

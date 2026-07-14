@@ -2,13 +2,16 @@
 @section("content")
     <div class="mx-auto max-w-5xl pb-10">
         <!-- Header Section -->
-        @include("document.header", ["title" => "ใบบันทึกการฝึกอบรมภาคอิสระ", "description" => "กรอกข้อมูลหลักสูตรและรายละเอียดผู้เข้าร่วมเพื่อขออนุมัติจัดฝึกอบรม", "icon" => "fas fa-graduation-cap"])
+        <x-document.page-header
+            title="ใบบันทึกการฝึกอบรมภาคอิสระ"
+            description="กรอกข้อมูลหลักสูตรและรายละเอียดผู้เข้าร่วมเพื่อขออนุมัติจัดฝึกอบรม"
+            icon="fas fa-graduation-cap"
+        />
 
-        <form class="space-y-8" id="create-form" action="{{ route("document.training.create") }}" method="POST" enctype="multipart/form-data">
+        <form class="space-y-8" id="create-form" action="{{ route('document.training.create') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            <!-- Approver Selection -->
-            @include("document.approver_create")
+            <x-document.approver-form />
 
             <!-- Training Details Card -->
             <div class="card bg-base-100 border-base-200 border shadow-xl">

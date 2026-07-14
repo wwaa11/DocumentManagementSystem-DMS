@@ -8,6 +8,10 @@
                 @include("document.user.detail")
             @elseif ($type == "Training")
                 @include("document.training.detail")
+            @elseif ($type == "PURCHASE")
+                @include("document.purchase.detail")
+            @elseif ($type == "MEDIA")
+                @include("document.media.detail")
             @endif
         </div>
         <div class="card bg-base-100 mb-4 shadow-xl">
@@ -15,10 +19,10 @@
                 <button class="btn btn-primary w-full" type="button" onclick="approveDocument()">Approve</button>
                 <button class="btn btn-error w-full" type="button" onclick="rejectDocument()">Reject</button>
                 <div class="divider"></div>
-                @if ($type == "IT" || $type == "BORROW")
-                    @include("document.logs", ["logs" => $document->logs])
-                @elseif ($type == "USER")
-                    @include("document.user.logs", ["logs" => $document->getAllDocuments()])
+                @if ($type == 'IT' || $type == 'BORROW' || $type == 'PURCHASE' || $type == 'Training' || $type == 'MEDIA')
+                    <x-document.activity-logs :logs="$document->logs" />
+                @elseif ($type == 'USER')
+                    @include('document.user.logs', ['logs' => $document->getAllDocuments()])
                 @endif
             </div>
         </div>

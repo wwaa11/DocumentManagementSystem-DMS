@@ -1,51 +1,50 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\StaffApiClient;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
+use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    public function Login()
-    {
+    public function __construct(private StaffApiClient $staffApi) {}
 
+    public function Login(): View
+    {
         return view('layouts.login');
     }
 
-    public function LoginRequest(Request $req)
+    public function LoginRequest(Request $req): JsonResponse
     {
-        $userid   = $req->userid;
-        $password = $req->password;
-        $data     = [
-            'status'  => 'failed',
+        $userid = $req->userid;
+        $data = [
+            'status' => 'failed',
             'message' => null,
         ];
 
-        if (env('APP_ENV') == 'local') {
-            $data['status']  = 'success';
+        if (config('app.env') == 'local') {
+            $data['status'] = 'success';
             $data['message'] = 'เข้าสู่ระบบสำเร็จ';
 
             $userData = User::where('userid', $userid)->first();
             if ($userData == null) {
-                $response = Http::withHeaders(['token' => env('API_AUTH_KEY')])
-                    ->timeout(30)
-                    ->post('http://172.20.1.12/dbstaff/api/getuser', [
-                        'userid' => $req->userid,
-                    ]);
+                $response = $this->staffApi->getUser($userid);
 
                 if ($response->successful()) {
                     $responseData = $response->json();
                     if ($responseData['status'] == 1) {
-                        $userData             = new User();
-                        $userData->userid     = $userid;
-                        $userData->name       = $responseData['user']['name'];
-                        $userData->position   = $responseData['user']['position'];
+                        $userData = new User;
+                        $userData->userid = $userid;
+                        $userData->name = $responseData['user']['name'];
+                        $userData->position = $responseData['user']['position'];
                         $userData->department = $responseData['user']['department'];
-                        $userData->division   = $responseData['user']['division'];
-                        $userData->email      = $responseData['user']['email'];
-                        $userData->role       = $this->setRoles($responseData['user']['department'], $responseData['user']['division']);
+                        $userData->division = $responseData['user']['division'];
+                        $userData->email = $responseData['user']['email'];
+                        $userData->role = $this->setRoles($responseData['user']['department'], $responseData['user']['division']);
                         $userData->save();
                     }
                 }
@@ -56,24 +55,20 @@ class AuthController extends Controller
         }
 
         try {
-            $response = Http::withHeaders(['token' => env('API_AUTH_KEY')])
-                ->timeout(30)
-                ->post('http://172.20.1.12/dbstaff/api/auth', [
-                    'userid'   => $req->userid,
-                    'password' => $req->password,
-                ]);
+            $response = $this->staffApi->authenticate($userid, (string) $req->password);
 
             if (! $response->successful()) {
                 $data['message'] = 'ไม่สามารถเชื่อมต่อกับระบบได้ กรุณาลองใหม่อีกครั้ง';
+
                 return response()->json($data, 200);
             }
             $responseData = $response->json();
 
             if (! isset($responseData['status'])) {
                 $data['message'] = 'ข้อมูลที่ได้รับจากระบบไม่ถูกต้อง';
+
                 return response()->json($data, 200);
             }
-
         } catch (\Exception $e) {
             $data['message'] = 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง';
 
@@ -85,50 +80,54 @@ class AuthController extends Controller
         if ($responseData['status'] == 1) {
             $userData = User::where('userid', $req->userid)->first();
             if (! $userData) {
-                $userData         = new User();
+                $userData = new User;
                 $userData->userid = $userid;
-                $userData->role       = $this->setRoles($responseData['user']['department'], $responseData['user']['division']);
+                $userData->role = $this->setRoles($responseData['user']['department'], $responseData['user']['division']);
             }
-            $userData->name       = $responseData['user']['name'];
-            $userData->position   = $responseData['user']['position'];
+            $userData->name = $responseData['user']['name'];
+            $userData->position = $responseData['user']['position'];
             $userData->department = $responseData['user']['department'];
-            $userData->division   = $responseData['user']['division'];
-            $userData->email      = $responseData['user']['email'];
+            $userData->division = $responseData['user']['division'];
+            $userData->email = $responseData['user']['email'];
             $userData->save();
 
             Auth::login($userData);
 
-            $data['status']  = 'success';
+            $data['status'] = 'success';
             $data['message'] = 'เข้าสู่ระบบสำเร็จ';
         }
 
         return response()->json($data, 200);
     }
 
-    private function setRoles($department, $division)
+    private function setRoles(string $department, string $division): string
     {
-        $role = 'user';
-
         if ($division == 'ฝ่ายเทคโนโลยีสารสนเทศ') {
-            $role = 'it';
-        } elseif ($department == 'แผนกห้องปฏิบัติการ') {
-            $role = 'lab';
-        } elseif ($department == 'แผนกเอกซเรย์') {
-            $role = 'pac';
-        } elseif ($department == 'แผนก Contact Center') {
-            $role = 'heartstream';
-        } elseif ($department == 'แผนกRegistration') {
-            $role = 'register';
-        } elseif ($department == 'แผนกสื่อสารแบรนด์และสื่อสารการตลาด') {
-            $role = 'media';
-        } elseif ($division == 'ฝ่ายจัดซื้อ') {
-            $role = 'purchase';
+            return 'it';
+        }
+        if ($department == 'แผนกห้องปฏิบัติการ') {
+            return 'lab';
+        }
+        if ($department == 'แผนกเอกซเรย์') {
+            return 'pac';
+        }
+        if ($department == 'แผนก Contact Center') {
+            return 'heartstream';
+        }
+        if ($department == 'แผนกRegistration') {
+            return 'register';
+        }
+        if ($department == 'แผนกสื่อสารแบรนด์และสื่อสารการตลาด') {
+            return 'media';
+        }
+        if ($division == 'ฝ่ายจัดซื้อ') {
+            return 'purchase';
         }
 
-        return $role;
+        return 'user';
     }
 
-    public function LogoutRequest(Request $request)
+    public function LogoutRequest(Request $request): JsonResponse
     {
         Auth::logout();
 
@@ -136,7 +135,7 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => 'ออกจากระบบสำเร็จ',
         ], 200);
     }

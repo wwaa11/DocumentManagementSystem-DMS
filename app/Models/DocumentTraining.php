@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,15 @@ class DocumentTraining extends Model
 
     protected $fillable = [
         'status',
+        'hrapprove',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'hrapprove' => 'datetime',
+        ];
+    }
 
     public function dates()
     {
@@ -24,7 +33,7 @@ class DocumentTraining extends Model
     {
         return [
             'document_tag' => 'Training',
-            'colour'       => 'secondary',
+            'colour' => 'secondary',
         ];
     }
 

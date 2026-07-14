@@ -1,53 +1,23 @@
 <section class="mt-6 hidden" id="borrow-section">
     <div class="mb-6">
-        <h4 class="card-title text-primary mb-4 flex items-center text-xl">
-            <i class="fas fa-list-alt mr-2"></i> ประเภทของงานที่ต้องการแจ้ง
-        </h4>
+        <x-ui.section-title icon="fas fa-list-alt" tag="h4">ประเภทของงานที่ต้องการแจ้ง</x-ui.section-title>
         <div class="flex flex-col gap-3">
-            <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="borrow_notebook">
-                <div class="flex items-center">
-                    <input class="radio radio-primary mr-3" id="borrow_notebook" value="Notebook" name="borrow_type" type="radio" onchange="selectBorrowType('Notebook')" />
-                    <div>
-                        <h4 class="font-medium">Notebook</h4>
-                    </div>
-                </div>
-            </label>
-
-            <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="borrow_computer">
-                <div class="flex items-center">
-                    <input class="radio radio-primary mr-3" id="borrow_computer" value="Computer" name="borrow_type" type="radio" onchange="selectBorrowType('Computer')" />
-                    <div>
-                        <h4 class="font-medium">Computer</h4>
-                    </div>
-                </div>
-            </label>
-
-            <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="borrow_printer">
-                <div class="flex items-center">
-                    <input class="radio radio-primary mr-3" id="borrow_printer" value="Printer" name="borrow_type" type="radio" onchange="selectBorrowType('Printer')" />
-                    <div>
-                        <h4 class="font-medium">Printer</h4>
-                    </div>
-                </div>
-            </label>
-
-            <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="borrow_projector">
-                <div class="flex items-center">
-                    <input class="radio radio-primary mr-3" id="borrow_projector" value="Projector" name="borrow_type" type="radio" onchange="selectBorrowType('Projector')" />
-                    <div>
-                        <h4 class="font-medium">Projector</h4>
-                    </div>
-                </div>
-            </label>
-
-            <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="borrow_ipad_tablet">
-                <div class="flex items-center">
-                    <input class="radio radio-primary mr-3" id="borrow_ipad_tablet" value="Ipad/Tablet" name="borrow_type" type="radio" onchange="selectBorrowType('Ipad/Tablet')" />
-                    <div>
-                        <h4 class="font-medium">Ipad/Tablet</h4>
-                    </div>
-                </div>
-            </label>
+            @foreach ([
+                'Notebook' => 'Notebook',
+                'Computer' => 'Computer',
+                'Printer' => 'Printer',
+                'Projector' => 'Projector',
+                'Ipad/Tablet' => 'Ipad/Tablet',
+            ] as $value => $label)
+                <x-ui.radio-option
+                    :id="'borrow_'.Str::slug($value, '_')"
+                    name="borrow_type"
+                    :value="$value"
+                    :onchange="'selectBorrowType(\''.$value.'\')'"
+                >
+                    {{ $label }}
+                </x-ui.radio-option>
+            @endforeach
 
             <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="borrow_other">
                 <div class="flex items-center">
@@ -61,9 +31,9 @@
         </div>
     </div>
 
-    <h4 class="card-title text-accent mb-4 flex items-center text-xl">
-        <i class="fas fa-calendar-alt mr-2"></i> วันที่คาดว่าจะคืนอุปกรณ์
-    </h4>
+    <x-ui.section-title icon="fas fa-calendar-alt" tag="h4" class="text-accent">
+        วันที่คาดว่าจะคืนอุปกรณ์
+    </x-ui.section-title>
     <input class="input input-bordered input-accent mt-1 w-full" id="return_date" name="return_date" type="date" />
 
     <label class="label mt-6">
@@ -72,10 +42,9 @@
     </label>
     <textarea class="textarea textarea-bordered h-24 w-full" id="borrow_detail" name="borrow_detail" placeholder="รายละเอียดเพิ่มเติม"></textarea>
 </section>
-@push("scripts")
+@push('scripts')
     <script>
         function selectBorrowType(type) {
-            // Hide all fieldsets first
             $('#borrow_other_text').prop('disabled', true);
             $('#send_to_it_admin').addClass('hidden');
 
@@ -84,7 +53,6 @@
             } else {
                 $('input[name="isHardware"]').val(true);
             }
-
 
             if (type === 'OTHER') {
                 $('#other_request_fieldset').removeClass('hidden');

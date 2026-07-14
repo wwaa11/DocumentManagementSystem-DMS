@@ -1,42 +1,24 @@
 <div class="card-body">
-    <button class="text-accent w-24 cursor-pointer" onclick="window.history.back()"> <i class="fas fa-arrow-left"></i> ย้อนกลับ</button>
-    <div class="flex items-center">
-        <img class="mr-4 h-auto w-36" src="{{ asset("images/Side Logo.png") }}" alt="Side Logo">
-        <div class="flex-1 text-end">
-            <h2 class="text-2xl font-bold">QF-ITD-09/Rev.3 (15-06-66)</h2>
-            <p class="text-sm text-gray-500">ประเภทเอกสาร: {{ $document->document_type_name }}</p>
-        </div>
-    </div>
+    <x-ui.back-button />
+    <x-document.detail-masthead :document-type-name="$document->document_type_name" />
     <div class="divider"></div>
-    <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-            <p><strong>เรื่อง:</strong>
-                @if (is_array($document->title))
-                    @foreach ($document->title as $title)
-                        {{ $title }} <br>
-                    @endforeach
-                @else
-                    {{ $document->title }}
-                @endif
-            </p>
-            <p><strong>วันที่:</strong> {{ $document->created_at->format("d/m/Y") }}</p>
-        </div>
-        <div>
-            <p><strong>ผู้ขอ:</strong> {{ $document->creator->name }}</p>
-            <p><strong>แผนก:</strong> {{ $document->creator->department }}</p>
-            <p><strong>เบอร์โทร:</strong> {{ $document->document_phone }}</p>
-        </div>
-    </div>
+    <x-document.meta-grid
+        :title="$document->title"
+        :created-at="$document->created_at"
+        :requester-name="$document->creator->name"
+        :department="$document->creator->department"
+        :phone="$document->document_phone"
+    />
     @if ($document->files->count() > 0)
-        @include("document.files", ["files" => $document->files])
+        <x-document.files-list :files="$document->files" />
         <div class="divider"></div>
     @endif
     <strong>รายละเอียด</strong>
     <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail !!}</p>
     @foreach ($document->getAllDocuments() as $doc)
-        @foreach ($doc->logs->where("action", "process") as $key => $log)
+        @foreach ($doc->logs->where('action', 'process') as $log)
             <p class="border-accent rounded-md border p-4">{{ $log->details }}
-            <div class="text-end text-xs text-gray-500">{{ $log->user->name }} {{ $log->created_at->format("d/m/Y H:i:s") }}</div>
+            <div class="text-end text-xs text-gray-500">{{ $log->user->name }} {{ $log->created_at->format('d/m/Y H:i:s') }}</div>
             </p>
         @endforeach
     @endforeach
@@ -49,7 +31,7 @@
                     {{ $doc->document_number }}
                 </div>
                 <div>
-                    {{ $doc->document_tag["document_tag"] }}
+                    {{ $doc->document_tag['document_tag'] }}
                 </div>
                 <div>
                     <i class="fas fa-caret-down" id="caret-{{ $key }}"></i>
@@ -59,14 +41,14 @@
                 <ul class="steps steps-vertical">
                     @foreach ($doc->tasks as $task)
                         @php
-                            $stepClass = "";
-                            $icon = "fa-question";
-                            if ($task->status == "approve") {
-                                $stepClass = "step-success";
-                                $icon = "fa-check";
-                            } elseif ($task->status == "cancel" || $task->status == "reject") {
-                                $stepClass = "step-error";
-                                $icon = "fa-times";
+                            $stepClass = '';
+                            $icon = 'fa-question';
+                            if ($task->status == 'approve') {
+                                $stepClass = 'step-success';
+                                $icon = 'fa-check';
+                            } elseif ($task->status == 'cancel' || $task->status == 'reject') {
+                                $stepClass = 'step-error';
+                                $icon = 'fa-times';
                             }
                         @endphp
                         <li class="step {{ $stepClass }}">
@@ -74,7 +56,7 @@
                             <div class="flex flex-col text-start">
                                 <span class="fw-bold text-lg">{{ $task->task_name }}</span>
                                 <span class="text-xs">{{ $task->task_user }} {{ $task->user->name ?? null }} ({{ $task->task_position }})</span>
-                                <span class="text-xs">{{ $task->date ? date("d/m/Y H:i", strtotime($task->date)) : null }}</span>
+                                <span class="text-xs">{{ $task->date ? date('d/m/Y H:i', strtotime($task->date)) : null }}</span>
                             </div>
                         </li>
                     @endforeach
@@ -83,12 +65,12 @@
         </div>
     @endforeach
 </div>
-@push("scripts")
+@push('scripts')
     <script>
         function toggleBody(id) {
-            document.getElementById(id).classList.toggle("hidden");
-            document.getElementById("caret-" + id.split("-")[1]).classList.toggle("fa-caret-down");
-            document.getElementById("caret-" + id.split("-")[1]).classList.toggle("fa-caret-up");
+            document.getElementById(id).classList.toggle('hidden');
+            document.getElementById('caret-' + id.split('-')[1]).classList.toggle('fa-caret-down');
+            document.getElementById('caret-' + id.split('-')[1]).classList.toggle('fa-caret-up');
         }
     </script>
 @endpush

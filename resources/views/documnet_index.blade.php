@@ -89,6 +89,10 @@
                                 </option>
                                 <option value="Training" {{ request('document_tag') == 'Training' ? 'selected' : '' }}>
                                     Training</option>
+                                <option value="PURCHASE" {{ request('document_tag') == 'PURCHASE' ? 'selected' : '' }}>
+                                    PURCHASE</option>
+                                <option value="MEDIA" {{ request('document_tag') == 'MEDIA' ? 'selected' : '' }}>
+                                    MEDIA</option>
                             </select>
                         </div>
 
@@ -141,135 +145,81 @@
                 </div>
             </div>
         </form>
-        <p class="text-base-content/50 text-sm">
-            แสดง {{ $documents->firstItem() }} ถึง {{ $documents->lastItem() }} จาก {{ $documents->total() }} รายการ
-        </p>
-        <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
-            <table class="table w-full">
-                <thead>
-                    <tr>
-                        <th>หมายเลขเอกสาร</th>
-                        <th>ประเภทเอกสาร</th>
-                        <th>รายละเอียด</th>
-                        <th>สถานะ</th>
-                        <th>วันที่สร้าง</th>
-                        <th class="text-center">#</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($documents as $document)
-                        <tr class="hover:bg-base-300">
-                            <td class="flex flex-col gap-1">
-                                <div class="join">
-                                    <div
-                                        class="join-item badge badge-soft badge-{{ $document['document_tag']['colour'] }}">
-                                        {{ $document['document_tag']['document_tag'] }}</div>
-                                    @if ($document['flag'] == 'approve')
-                                        <div
-                                            class="join-item badge badge-soft badge-{{ $document['document_tag']['colour'] }}">
-                                            เอกสารที่ต้องอนุมัติ</div>
-                                    @elseif($document['flag'] == 'my')
-                                        <div
-                                            class="join-item badge badge-soft badge-{{ $document['document_tag']['colour'] }}">
-                                            เอกสารของฉัน</div>
-                                    @elseif($document['flag'] == 'dept')
-                                        <div
-                                            class="join-item badge badge-soft badge-{{ $document['document_tag']['colour'] }}">
-                                            เอกสารที่จากแผนก</div>
-                                    @endif
-                                </div>
-                                @if ($document['document_number'])
-                                    <div class="badge badge-soft badge-{{ $document['document_tag']['colour'] }}">
-                                        {{ $document['document_number'] }}
-                                    </div>
-                                @endif
-                            </td>
-                            <td class="w-64">
-                                <div class="text-sm">{{ $document['document_type_name'] }}</div>
-                                <div>
-                                    @if (is_array($document['title']))
-                                        @foreach ($document['title'] as $title)
-                                            {{ $title }} <br>
-                                        @endforeach
-                                    @else
-                                        {{ $document['title'] }}
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="max-w-xs overflow-hidden truncate text-ellipsis whitespace-nowrap">
-                                {!! $document['detail'] !!}</td>
-                            <td>
-                                @php
-                                    switch ($document['status']) {
-                                        case 'wait_approval':
-                                            $text = 'รออนุมัติจากหน่วยงาน';
-                                            $class = 'badge-soft badge-warning';
-                                            break;
-                                        case 'not_approval':
-                                            $text = 'หน่วยงานไม่อนุมัติ';
-                                            $class = 'badge-soft badge-error';
-                                            break;
-                                        case 'cancel':
-                                            $text = 'ผู้ขอยกเลิกเอกสาร';
-                                            $class = 'badge-soft badge-error';
-                                            break;
-                                        case 'pending':
-                                            $text = 'รอการดำเนินการ';
-                                            $class = 'badge-soft badge-warning';
-                                            break;
-                                        case 'reject':
-                                            $text = 'ยกเลิกเอกสาร';
-                                            $class = 'badge-soft badge-error';
-                                            break;
-                                        case 'process':
-                                            $text = 'กำลังดำเนินการ';
-                                            $class = 'badge-soft badge-warning';
-                                            break;
-                                        case 'done':
-                                            $text = 'เอกสารรออนุมัติ';
-                                            $class = 'badge-soft badge-secondary';
-                                            break;
-                                        case 'complete':
-                                            $text = 'เอกสารเสร็จสมบูรณ์';
-                                            $class = 'badge-soft badge-success';
-                                            break;
-                                        case 'borrow_approve':
-                                            $text = 'รออนุมัติการยืมอุปกรณ์';
-                                            $class = 'badge-soft badge-secondary';
-                                            break;
-                                        case 'borrow':
-                                            $text = 'อุปกรณ์อยู่ระหว่างการยืม';
-                                            $class = 'badge-soft badge-neutral';
-                                            break;
-                                        default:
-                                            $text = '';
-                                            $class = '';
-                                    }
-                                @endphp
-                                <div class="badge {{ $class }}">{{ $text }}</div>
-                            <td>
-                                <div class="text-base-content/50 text-sm">
-                                    {{ $document['created_at']->format('d/m/Y H:i') }}
-                                </div>
-                            </td>
-                            <td>
-                                @if ($document['flag'] == 'approve')
-                                    <a class="btn btn-sm btn-accent"
-                                        href="{{ route('document.type.approve', ['document_type' => $document['document_tag']['document_tag'], 'document_id' => $document['id']]) }}">อนุมัติ</a>
-                                @else
-                                    <a class="btn btn-sm btn-primary"
-                                        href="{{ route('document.type.view', ['document_type' => $document['document_tag']['document_tag'], 'document_id' => $document['id']]) }}">ดูเอกสาร</a>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="divider"></div>
-        <div class="flex justify-end">
-            {{ $documents->links() }}
-        </div>
+
+        @if ($pendingApprovals->isNotEmpty())
+            <div class="mb-8">
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-warning text-xl font-bold">
+                        <i class="fas fa-clipboard-check mr-2"></i>เอกสารที่ต้องอนุมัติ
+                        <span class="badge badge-warning badge-sm ml-2">{{ $pendingApprovals->count() }}</span>
+                    </h2>
+                </div>
+                <div class="border-warning/30 bg-base-100 overflow-x-auto rounded-lg border-2">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>หมายเลขเอกสาร</th>
+                                <th>ประเภทเอกสาร</th>
+                                <th>รายละเอียด</th>
+                                <th>สถานะ</th>
+                                <th>วันที่สร้าง</th>
+                                <th class="text-center">#</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($pendingApprovals as $document)
+                                @include('document.partials.index-row', ['document' => $document])
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
+
+        @if (request('flag') !== 'approve')
+            <div>
+                <div class="mb-3 flex items-center justify-between">
+                    <h2 class="text-primary text-xl font-bold">
+                        <i class="fas fa-folder-open mr-2"></i>
+                        {{ request('flag') === 'my' ? 'เอกสารของฉัน' : 'เอกสารของฉัน / เอกสารทั้งหมด' }}
+                    </h2>
+                </div>
+                <p class="text-base-content/50 mb-2 text-sm">
+                    แสดง {{ $documents->firstItem() ?? 0 }} ถึง {{ $documents->lastItem() ?? 0 }} จาก {{ $documents->total() }} รายการ
+                </p>
+                <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
+                    <table class="table w-full">
+                        <thead>
+                            <tr>
+                                <th>หมายเลขเอกสาร</th>
+                                <th>ประเภทเอกสาร</th>
+                                <th>รายละเอียด</th>
+                                <th>สถานะ</th>
+                                <th>วันที่สร้าง</th>
+                                <th class="text-center">#</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($documents as $document)
+                                @include('document.partials.index-row', ['document' => $document])
+                            @empty
+                                <tr>
+                                    <td class="text-base-content/50 py-8 text-center" colspan="6">ไม่พบเอกสาร</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="divider"></div>
+                <div class="flex justify-end">
+                    {{ $documents->links() }}
+                </div>
+            </div>
+        @elseif ($pendingApprovals->isEmpty())
+            <div class="border-base-content/5 bg-base-100 rounded-lg border p-8 text-center">
+                <p class="text-base-content/50">ไม่มีเอกสารที่ต้องอนุมัติ</p>
+            </div>
+        @endif
     </div>
 @endsection
 @push('scripts')

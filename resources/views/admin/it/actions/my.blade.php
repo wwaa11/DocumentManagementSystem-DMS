@@ -6,13 +6,7 @@
         <legend class="fieldset-legend">รายละเอียดการดำเนินงาน</legend>
         <textarea class="textarea textarea-primary w-full" id="detail" name="detail" rows="8" placeholder="รายละเอียดการทำงาน...."></textarea>
         <p class="label">แนบไฟล์ (ถ้ามี)</p>
-        <div class="border-base-300 hover:border-primary cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-all" id="drop-area">
-            <input class="hidden" id="file_input" type="file" name="document_files[]" multiple>
-            <p class="text-base-content/70"><i class="fas fa-cloud-upload-alt mr-2"></i> ลากและวางไฟล์ที่นี่ หรือ <span class="text-primary font-bold">คลิกเพื่อเลือกไฟล์</span></p>
-        </div>
-        <div class="mt-4 flex-col gap-2" id="file_display">
-            {{-- display file in this div with remove file button --}}
-        </div>
+        <x-form.file-dropzone />
         <p class="label">ส่งต่องาน <span class="text-error">*กรณีมีการระบุ ใบงานจะถูกส่งต่อไปยังผู้ใช้งานนี้</span></p>
         <select class="select select-primary mb-2 w-full" name="transfer_userid">
             <option value="" selected>ใบงานนี้ดำเนินการเรียบร้อย</option>
@@ -28,109 +22,6 @@
 <div class="divider"></div>
 <button class="btn btn-dash btn-error" onclick="cancelDocument()" type="button">ยกเลิกการเอกสารนี้</button>
 @push("scripts")
-    <script>
-        let files = []; // To store selected files, accessible globally within this script block
-        let fileInput; // Declare fileInput in a higher scope
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropArea = document.getElementById('drop-area');
-            fileInput = document.getElementById('file_input'); // Assign to the higher-scoped variable
-            const fileDisplay = document.getElementById('file_display');
-
-            // Prevent default drag behaviors
-            ;
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-                document.body.addEventListener(eventName, preventDefaults, false);
-            });
-
-            // Highlight drop area when item is dragged over it
-            ;
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, highlight, false);
-            });
-
-            ;
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, unhighlight, false);
-            });
-
-            // Handle dropped files
-            dropArea.addEventListener('drop', handleDrop, false);
-
-            // Handle file input change
-            fileInput.addEventListener('change', function() {
-                handleFiles(this.files);
-            });
-
-            // Handle click on drop area to open file input
-            dropArea.addEventListener('click', function() {
-                fileInput.click();
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            function highlight() {
-                dropArea.classList.add('border-primary');
-                dropArea.classList.remove('border-base-300');
-            }
-
-            function unhighlight() {
-                dropArea.classList.remove('border-primary');
-                dropArea.classList.add('border-base-300');
-            }
-
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const newFiles = dt.files;
-                handleFiles(newFiles);
-            }
-
-            function handleFiles(newFiles) {
-                newFiles = Array.from(newFiles);
-                newFiles.forEach(file => {
-                    if (!files.some(existingFile => existingFile.name === file.name && existingFile.size === file.size)) {
-                        files.push(file);
-                    }
-                });
-                updateFileDisplay();
-            }
-
-            function updateFileDisplay() {
-                fileDisplay.innerHTML = ''; // Clear current display
-                files.forEach((file, index) => {
-                    const fileElement = document.createElement('div');
-                    fileElement.className = 'flex items-center gap-2 bg-base-200 p-2 rounded-md mb-2';
-                    fileElement.innerHTML = `
-                                            <span class="text-sm">${file.name}</span>
-                                            <button type="button" class="remove-file-btn text-error hover:text-error-focus" data-index="${index}">
-                                                <i class="fas fa-times-circle"></i>
-                                            </button>
-                                        `;
-                    fileDisplay.appendChild(fileElement);
-                });
-                updateFileInput();
-            }
-
-            function updateFileInput() {
-                const dataTransfer = new DataTransfer();
-                files.forEach(file => dataTransfer.items.add(file));
-                fileInput.files = dataTransfer.files;
-            }
-
-            // Handle remove file button click
-            fileDisplay.addEventListener('click', function(e) {
-                if (e.target.closest('.remove-file-btn')) {
-                    const indexToRemove = parseInt(e.target.closest('.remove-file-btn').dataset.index);
-                    files.splice(indexToRemove, 1); // Remove file from array
-                    updateFileDisplay();
-                }
-            });
-        });
-    </script>
     <script>
         function submitForm() {
             const detail = $('#detail').val();

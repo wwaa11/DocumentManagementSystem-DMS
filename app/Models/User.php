@@ -1,9 +1,7 @@
 <?php
+
 namespace App\Models;
 
-use App\Models\DocumentBorrow;
-use App\Models\DocumentIT;
-use App\Models\DocumentUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -19,6 +17,8 @@ class User extends Authenticatable
         'position',
         'department',
         'division',
+        'email',
+        'role',
     ];
 
     protected $hidden = [
@@ -34,34 +34,45 @@ class User extends Authenticatable
     {
         $count = [];
         $dataList = [
-            "it" => [
+            'it' => [
                 'type' => 'it',
                 'route' => 'admin.it.count',
             ],
-            "pac" => [
+            'pac' => [
                 'type' => 'pac',
                 'route' => 'admin.user.count',
             ],
-            "lab" => [
+            'lab' => [
                 'type' => 'lab',
                 'route' => 'admin.user.count',
             ],
-            "heartstream" => [
+            'heartstream' => [
                 'type' => 'heartstream',
                 'route' => 'admin.user.count',
             ],
-            "register" => [
+            'register' => [
                 'type' => 'register',
                 'route' => 'admin.user.count',
+            ],
+            'purchase' => [
+                'type' => 'purchase',
+                'route' => 'admin.purchase.count',
+            ],
+            'media' => [
+                'type' => 'media',
+                'route' => 'admin.media.count',
             ],
         ];
 
         foreach ($listArray as $value) {
-            $count[] = $dataList[$value];
+            if (array_key_exists($value, $dataList)) {
+                $count[] = $dataList[$value];
+            }
         }
 
         return $count;
     }
+
     private function menuList($listArray)
     {
         $menu = [];
@@ -103,7 +114,7 @@ class User extends Authenticatable
                     'id' => 'approve',
                     'link' => 'admin.it.approvelist',
                     'count' => true,
-                ]
+                ],
             ],
             'it-hardware' => [
                 [
@@ -119,7 +130,7 @@ class User extends Authenticatable
                     'id' => 'hardware',
                     'link' => 'admin.it.hardwarelist',
                     'count' => true,
-                ]
+                ],
             ],
             'it' => [
                 [
@@ -164,14 +175,129 @@ class User extends Authenticatable
                     'link' => 'admin.it.reportlist',
                     'count' => false,
                 ],
-            ]
+            ],
+            'purchase-approve' => [
+                [
+                    'title' => 'Approve Purchase',
+                    'type' => 'purchase',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Approve Jobs',
+                    'type' => 'purchase',
+                    'id' => 'approve',
+                    'link' => 'admin.purchase.approvelist',
+                    'count' => true,
+                ],
+            ],
+            'purchase-head' => [
+                [
+                    'title' => 'Purchase Head',
+                    'type' => 'purchase',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Head Approve Jobs',
+                    'type' => 'purchase',
+                    'id' => 'head',
+                    'link' => 'admin.purchase.headlist',
+                    'count' => true,
+                ],
+            ],
+            'purchase' => [
+                [
+                    'title' => 'Purchase',
+                    'type' => 'purchase',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'New Jobs',
+                    'type' => 'purchase',
+                    'id' => 'new',
+                    'link' => 'admin.purchase.newlist',
+                    'count' => true,
+                ],
+                [
+                    'title' => 'My Jobs',
+                    'type' => 'purchase',
+                    'id' => 'my',
+                    'link' => 'admin.purchase.mylist',
+                    'count' => true,
+                ],
+                [
+                    'title' => 'All Jobs',
+                    'type' => 'purchase',
+                    'id' => 'all',
+                    'link' => 'admin.purchase.alllist',
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Report',
+                    'type' => 'purchase',
+                    'id' => 'report',
+                    'link' => 'admin.purchase.reportlist',
+                    'count' => false,
+                ],
+            ],
+            'media-head' => [
+                [
+                    'title' => 'Approve Media',
+                    'type' => 'media',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Approve Jobs',
+                    'type' => 'media',
+                    'id' => 'approve',
+                    'link' => 'admin.media.approvelist',
+                    'count' => true,
+                ],
+            ],
+            'media' => [
+                [
+                    'title' => 'Media',
+                    'type' => 'media',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Queue',
+                    'type' => 'media',
+                    'id' => 'queue',
+                    'link' => 'admin.media.queuelist',
+                    'count' => true,
+                ],
+                [
+                    'title' => 'All Jobs',
+                    'type' => 'media',
+                    'id' => 'all',
+                    'link' => 'admin.media.alllist',
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Report',
+                    'type' => 'media',
+                    'id' => 'report',
+                    'link' => 'admin.media.reportlist',
+                    'count' => false,
+                ],
+            ],
         ];
 
         $userMenu = ['pac', 'lab', 'heartstream', 'register'];
         foreach ($userMenu as $type) {
-            $menulist[$type . '-approve'] = [
+            $menulist[$type.'-approve'] = [
                 [
-                    'title' => 'Approve ' . strtoupper($type),
+                    'title' => 'Approve '.strtoupper($type),
                     'type' => $type,
                     'id' => 'title',
                     'link' => null,
@@ -223,7 +349,31 @@ class User extends Authenticatable
                 ],
             ];
         }
-        ;
+
+        $roleManagerMenus = [
+            'it-approve',
+            'purchase-approve',
+            'purchase-head',
+            'media-head',
+            'pac-approve',
+            'lab-approve',
+            'heartstream-approve',
+            'register-approve',
+        ];
+
+        foreach ($roleManagerMenus as $menuKey) {
+            if (! isset($menulist[$menuKey])) {
+                continue;
+            }
+
+            $menulist[$menuKey][] = [
+                'title' => 'Roles',
+                'type' => 'role',
+                'id' => 'role',
+                'link' => 'roles.list',
+                'count' => false,
+            ];
+        }
 
         foreach ($listArray as $value) {
             if (array_key_exists($value, $menulist)) {
@@ -234,15 +384,48 @@ class User extends Authenticatable
         return $menu;
     }
 
+    /**
+     * @return array<int, array{key: string, label: string, menus: array<int, array<string, mixed>>, counts: array<int, array<string, string>>}>
+     */
+    private function menuGroups(array $groups): array
+    {
+        $result = [];
+
+        foreach ($groups as $group) {
+            $result[] = [
+                'key' => $group['key'],
+                'label' => $group['label'],
+                'menus' => $this->menuList($group['menus']),
+                'counts' => $this->countList($group['counts'] ?? []),
+            ];
+        }
+
+        return $result;
+    }
+
     public function getMenuAttribute()
     {
-        if ($this->role == 'dev') {
-            $count = $this->countList(['it', 'pac', 'lab', 'heartstream', 'register']);
-            $menu = $this->menuList(['admin', 'it-approve', 'it-hardware', 'it', 'pac-approve', 'pac', 'lab-approve', 'lab', 'heartstream-approve', 'heartstream', 'register-approve', 'register']);
-        } elseif ($this->role == 'admin') {
-            $count = $this->countList(['it']);
-            $menu = $this->menuList(['admin', 'it']);
-        } elseif ($this->role == 'it') {
+        if (in_array($this->role, ['admin', 'dev'], true)) {
+            return [
+                'count' => [],
+                'lists' => [],
+                'groups' => $this->menuGroups([
+                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['admin'], 'counts' => []],
+                    ['key' => 'it', 'label' => 'IT', 'menus' => ['it-approve', 'it-hardware', 'it'], 'counts' => ['it']],
+                    ['key' => 'purchase', 'label' => 'Purchase', 'menus' => ['purchase-approve', 'purchase-head', 'purchase'], 'counts' => ['purchase']],
+                    ['key' => 'media', 'label' => 'Media', 'menus' => ['media-head', 'media'], 'counts' => ['media']],
+                    ['key' => 'pac', 'label' => 'PAC', 'menus' => ['pac-approve', 'pac'], 'counts' => ['pac']],
+                    ['key' => 'lab', 'label' => 'LAB', 'menus' => ['lab-approve', 'lab'], 'counts' => ['lab']],
+                    ['key' => 'heartstream', 'label' => 'Heartstream', 'menus' => ['heartstream-approve', 'heartstream'], 'counts' => ['heartstream']],
+                    ['key' => 'register', 'label' => 'Register', 'menus' => ['register-approve', 'register'], 'counts' => ['register']],
+                ]),
+            ];
+        }
+
+        $count = [];
+        $menu = [];
+
+        if ($this->role == 'it') {
             $count = $this->countList(['it']);
             $menu = $this->menuList(['it']);
         } elseif ($this->role == 'it-approve') {
@@ -275,11 +458,27 @@ class User extends Authenticatable
         } elseif ($this->role == 'register-approve') {
             $count = $this->countList(['register']);
             $menu = $this->menuList(['register-approve', 'register']);
+        } elseif ($this->role == 'purchase') {
+            $count = $this->countList(['purchase']);
+            $menu = $this->menuList(['purchase']);
+        } elseif ($this->role == 'purchase-approve') {
+            $count = $this->countList(['purchase']);
+            $menu = $this->menuList(['purchase-approve', 'purchase']);
+        } elseif ($this->role == 'purchase-head') {
+            $count = $this->countList(['purchase']);
+            $menu = $this->menuList(['purchase-head', 'purchase']);
+        } elseif ($this->role == 'media') {
+            $count = $this->countList(['media']);
+            $menu = $this->menuList(['media']);
+        } elseif ($this->role == 'media-head') {
+            $count = $this->countList(['media']);
+            $menu = $this->menuList(['media-head', 'media']);
         }
 
         return [
             'count' => $count,
             'lists' => $menu,
+            'groups' => [],
         ];
     }
 
@@ -290,14 +489,14 @@ class User extends Authenticatable
             return session('user_approver');
         }
 
-        // If not in session, fetch from API
         $response = Http::withHeaders([
-            'token' => env('API_AUTH_KEY'),
-        ])->post('http://172.20.1.12/dbstaff/api/getapprover', [
-                    'userid' => auth()->user()->userid,
-                ])->json();
+            'token' => config('services.staff.token'),
+        ])->timeout((int) config('services.staff.timeout', 30))
+            ->post(rtrim((string) config('services.staff.base_url'), '/').'/getapprover', [
+                'userid' => auth()->user()->userid,
+            ])->json();
 
-        if (!isset($response['status']) || $response['status'] != 1) {
+        if (! isset($response['status']) || $response['status'] != 1) {
             $result = (object) ['status' => false];
         } else {
             $result = (object) ['status' => true, 'approver' => (object) $response['approver']];
@@ -369,6 +568,30 @@ class User extends Authenticatable
                 'created_at',
             );
 
+        $purchases = DocumentPurchase::where('requester', $userId)
+            ->select(
+                'id',
+                'requester',
+                'document_number',
+                'type',
+                'title',
+                'detail',
+                'status',
+                'created_at',
+            );
+
+        $medias = DocumentMedia::where('requester', $userId)
+            ->select(
+                'id',
+                'requester',
+                'document_number',
+                'type',
+                'title',
+                'detail',
+                'status',
+                'created_at',
+            );
+
         $document = [];
         foreach ($its->get() as $item) {
             $document[] = $item;
@@ -382,6 +605,12 @@ class User extends Authenticatable
         foreach ($trainings->get() as $item) {
             $document[] = $item;
         }
+        foreach ($purchases->get() as $item) {
+            $document[] = $item;
+        }
+        foreach ($medias->get() as $item) {
+            $document[] = $item;
+        }
 
         // sort by created_at
         usort($document, function ($a, $b) {
@@ -390,5 +619,4 @@ class User extends Authenticatable
 
         return $document;
     }
-
 }

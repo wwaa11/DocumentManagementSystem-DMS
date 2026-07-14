@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -24,7 +25,7 @@ class SecurityHeaders
 
         $csp = trim(preg_replace('/\s\s+/', ' ', $csp));
 
-        if (env('APP_ENV') === 'production') { // Using config instead of direct env()
+        if (config('app.env') === 'production') {
             $response->headers->set('Referrer-Policy', 'no-referrer-when-downgrade');
             $response->headers->set('X-Frame-Options', 'DENY');
             $response->headers->set('X-XSS-Protection', '1; mode=block');

@@ -35,4 +35,23 @@ return [
         ],
     ],
 
+    'staff' => [
+        'token' => env('API_AUTH_KEY'),
+        'base_url' => env('API_STAFF_URL', 'http://172.20.1.12/dbstaff/api'),
+        'timeout' => 30,
+    ],
+
+    'training' => [
+        'token' => env('API_TRAINING'),
+        'base_url' => env('API_TRAINING_URL', 'https://pr9web.praram9.com/w_hrd/api'),
+    ],
+
+    'email_api' => [
+        'key' => env('API_EMAIL'),
+        'url' => env('API_EMAIL_URL', 'http://172.20.1.12:8086/api/email/local/send'),
+        'username' => env('API_EMAIL_USERNAME', 'pr9autosendmail@praram9.com'),
+        'password' => env('API_EMAIL_PASSWORD'),
+        'display_name' => env('API_EMAIL_DISPLAY_NAME', 'DMS'),
+    ],
+
 ];

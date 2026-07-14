@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DocumentTrainingDate extends Model
 {
@@ -17,13 +19,20 @@ class DocumentTrainingDate extends Model
         'date' => 'date',
     ];
 
-    function getDateStringAttribute()
+    public function getDateStringAttribute(): string
     {
         return $this->date->format('Y-m-d');
     }
 
-    public function training()
+    public function training(): BelongsTo
     {
         return $this->belongsTo(DocumentTraining::class, 'document_training_id');
+    }
+
+    public function canEdit(): bool
+    {
+        $trainingDate = Carbon::parse($this->date_string.' '.$this->start_time);
+
+        return $trainingDate->diffInMinutes(now(), false) < -60;
     }
 }

@@ -3,50 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Models\Document;
-use App\Models\DocumentBorrow;
-use App\Models\DocumentIT;
-use App\Models\DocumentTraining;
-use App\Models\DocumentUser;
 use App\Models\File;
 use App\Models\User;
+use App\Services\DocumentResolver;
+use App\Services\DocumentWorkflowService;
+use App\Services\StaffApiClient;
+use App\Services\Training\DocumentTrainingService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class WebController extends Controller
 {
-    private $helper;
-
-    public function __construct()
-    {
+    public function __construct(
+        private DocumentWorkflowService $workflow,
+        private DocumentResolver $documentResolver,
+        private StaffApiClient $staffApi,
+        private DocumentTrainingService $documentTrainingService,
+    ) {
         mb_internal_encoding('UTF-8');
-        $this->helper = new HelperController;
     }
 
-    private function getDocument($document_type, $document_id)
-    {
-        switch ($document_type) {
-            case 'IT':
-                $document = DocumentIT::find($document_id);
-                break;
-            case 'USER':
-                $document = DocumentUser::find($document_id);
-                break;
-            case 'BORROW':
-                $document = DocumentBorrow::find($document_id);
-                break;
-            case 'Training':
-                $document = DocumentTraining::find($document_id);
-                break;
-            default:
-                $document = null;
-                break;
-        }
-
-        return $document;
-    }
-
-    public function fileShow(File $file)
+    public function fileShow(File $file): StreamedResponse|BinaryFileResponse|Response
     {
         $path = $file->stored_path;
 
@@ -57,7 +40,7 @@ class WebController extends Controller
         return Storage::disk('public')->response($path, $file->original_filename);
     }
 
-    public function fileDownload(File $file)
+    public function fileDownload(File $file): StreamedResponse|BinaryFileResponse|Response
     {
         $path = $file->stored_path;
 
@@ -68,12 +51,12 @@ class WebController extends Controller
         return Storage::disk('public')->download($path, $file->original_filename);
     }
 
-    // Index
-    public function myDocument(Request $request)
+    public function myDocument(Request $request): View
     {
         $my_documents = auth()->user()->getMyDocuments();
         $approveDocuments = auth()->user()->getApproveDocument();
         $documents = [];
+
         foreach ($approveDocuments as $item) {
             $documentData = $item->document;
             $document_id = $documentData->document_tag['document_tag'].$documentData->id;
@@ -90,6 +73,7 @@ class WebController extends Controller
                 'created_at' => $documentData->created_at,
             ];
         }
+
         foreach ($my_documents as $item) {
             $document_id = $item->document_tag['document_tag'].$item->id;
             if (! isset($documents[$document_id])) {
@@ -108,23 +92,18 @@ class WebController extends Controller
             }
         }
 
-        // Apply filters
         $documents = collect($documents)->filter(function ($document) use ($request) {
             $documentNumber = $request->input('document_number');
             $detail = $request->input('detail');
-            $flag = $request->input('flag');
             $document_tag = $request->input('document_tag');
             $status = $request->input('status');
             $createdAtStart = $request->input('created_at_start');
             $createdAtEnd = $request->input('created_at_end');
 
-            if ($documentNumber && ! str_contains(strtolower($document['document_number']), strtolower($documentNumber))) {
+            if ($documentNumber && ! str_contains(strtolower($document['document_number'] ?? ''), strtolower($documentNumber))) {
                 return false;
             }
             if ($detail && ! str_contains(strtolower($document['detail']), strtolower($detail))) {
-                return false;
-            }
-            if ($flag && $document['flag'] !== $flag) {
                 return false;
             }
             if ($document_tag && ! str_contains(strtolower($document['document_tag']['document_tag']), strtolower($document_tag))) {
@@ -141,27 +120,48 @@ class WebController extends Controller
             }
 
             return true;
-        })->sortByDesc('flag')->sortByDesc('created_at')->toArray();
+        });
 
-        $paginatedDocuments = $this->helper->paginateCollection($documents, 10, $request);
+        $flag = $request->input('flag');
+        $pendingApprovals = $documents
+            ->where('flag', 'approve')
+            ->sortByDesc('created_at')
+            ->values();
+        $otherDocuments = $documents
+            ->where('flag', '!=', 'approve')
+            ->sortByDesc('created_at')
+            ->values();
 
-        return view('documnet_index', ['documents' => $paginatedDocuments]);
+        if ($flag === 'approve') {
+            $otherDocuments = collect();
+        } elseif ($flag === 'my') {
+            $pendingApprovals = collect();
+            $otherDocuments = $otherDocuments->where('flag', 'my')->values();
+        }
+
+        $paginatedDocuments = $this->workflow->paginateCollection($otherDocuments->all(), 10, $request);
+
+        return view('documnet_index', [
+            'documents' => $paginatedDocuments,
+            'pendingApprovals' => $pendingApprovals,
+        ]);
     }
 
-    public function createDocument()
+    public function createDocument(): View
     {
         $document = Document::get();
 
         return view('document_create', compact('document'));
     }
 
-    public function createDocumentByType($document_type)
+    public function createDocumentByType(string $document_type): View|RedirectResponse
     {
         $data = [];
+
         switch ($document_type) {
             case 'it':
                 $view = 'document.it.create';
-                $it_admins = User::whereIN('role', ['dev', 'admin', 'it'])->get();
+                $it_admins = User::whereIN('role', ['admin', 'it'])->get();
                 $data = compact('it_admins');
                 break;
             case 'media':
@@ -175,14 +175,10 @@ class WebController extends Controller
                 break;
             case 'training':
                 $view = 'document.training.create';
-                $deptResponse = Http::withHeaders(['token' => env('API_AUTH_KEY')])
-                    ->timeout(30)
-                    ->post('http://172.20.1.12/dbstaff/api/get/departments');
-
+                $deptResponse = $this->staffApi->getDepartments();
                 $departments = [];
-                if($deptResponse->successful()){
-                    $deptResponse = $deptResponse->json();
-                    foreach ($deptResponse["departments"] as $key => $value) {
+                if ($deptResponse->successful()) {
+                    foreach ($deptResponse->json()['departments'] as $value) {
                         $departments[] = $value['department'];
                     }
                 }
@@ -190,45 +186,32 @@ class WebController extends Controller
                 break;
             default:
                 return redirect()->route('document.create');
-                break;
         }
 
         return view($view, $data);
     }
 
-    public function userSearch(Request $request)
+    public function userSearch(Request $request): array|JsonResponse
     {
-        $userid = $request->input('userid');
-        $response = Http::withHeaders([
-            'token' => env('API_AUTH_KEY'),
-        ])->post('http://172.20.1.12/dbstaff/api/getuser', [
-            'userid' => $userid,
-        ])->json();
-        
-        if (! isset($response['status']) || $response['status'] != 1) {
+        $response = $this->staffApi->getUser((string) $request->input('userid'))->json();
 
+        if (! isset($response['status']) || $response['status'] != 1) {
             return ['status' => false];
         }
 
         return response()->json(['status' => true, 'user' => $response['user']]);
     }
 
-    public function userPosition(Request $request)
+    public function userPosition(Request $request): array|JsonResponse
     {
-        $department = $request->input('department');
-        $response = Http::withHeaders([
-            'token' => env('API_AUTH_KEY'),
-        ])->post('http://172.20.1.12/dbstaff/api/get/departments/positions', [
-            'department' => $department,
-        ])->json();
-        
-        if (! isset($response['status']) || $response['status'] != 1) {
+        $response = $this->staffApi->getDepartmentPositions((string) $request->input('department'))->json();
 
+        if (! isset($response['status']) || $response['status'] != 1) {
             return ['status' => false];
         }
 
         $positions = [];
-        foreach ($response['positions'] as $key => $value) {
+        foreach ($response['positions'] as $value) {
             if (isset($value['position'])) {
                 $positions[] = $value['position'];
             }
@@ -237,21 +220,16 @@ class WebController extends Controller
         return response()->json(['status' => true, 'positions' => $positions]);
     }
 
-    public function getuserFormDepartment(Request $request)
+    public function getuserFormDepartment(Request $request): JsonResponse
     {
-        $department = $request->input('department');
-        $response = Http::withHeaders([
-            'token' => env('API_AUTH_KEY'),
-        ])->post('http://172.20.1.12/dbstaff/api/get/departments/users', [
-            'department' => $department,
-        ])->json();
+        $response = $this->staffApi->getDepartmentUsers((string) $request->input('department'))->json();
 
         if (! isset($response['status']) || $response['status'] != 1) {
             return response()->json(['status' => 0, 'messgae' => 'error', 'users' => []]);
         }
 
         $users = [];
-        foreach ($response['users'] as $key => $value) {
+        foreach ($response['users'] as $value) {
             $users[] = [
                 'userid' => $value['userid'],
                 'name' => $value['name'],
@@ -262,28 +240,23 @@ class WebController extends Controller
         return response()->json([
             'status' => 1,
             'messgae' => 'success',
-            'users' => $users
+            'users' => $users,
         ]);
     }
 
-    public function getuserFormDepartmentPosition(Request $request)
+    public function getuserFormDepartmentPosition(Request $request): JsonResponse
     {
-        $department = $request->input('department');
-        $position = $request->input('position');
-
-        $response = Http::withHeaders([
-            'token' => env('API_AUTH_KEY'),
-        ])->post('http://172.20.1.12/dbstaff/api/get/departments/users/position', [
-            'department' => $department,
-            'position' => $position,
-        ])->json();
+        $response = $this->staffApi->getDepartmentUsersByPosition(
+            (string) $request->input('department'),
+            (string) $request->input('position'),
+        )->json();
 
         if (! isset($response['status']) || $response['status'] != 1) {
             return response()->json(['status' => 0, 'messgae' => 'error', 'users' => []]);
         }
 
         $users = [];
-        foreach ($response['users'] as $key => $value) {
+        foreach ($response['users'] as $value) {
             $users[] = [
                 'userid' => $value['userid'],
                 'name' => $value['name'],
@@ -294,37 +267,35 @@ class WebController extends Controller
         return response()->json([
             'status' => 1,
             'messgae' => 'success',
-            'users' => $users
+            'users' => $users,
         ]);
     }
 
-    public function viewDocument($type, $document_id)
+    public function viewDocument(string $type, int|string $document_id): View|RedirectResponse
     {
-        $document = $this->getDocument($type, $document_id);
+        $document = $this->documentResolver->resolve($type, $document_id);
         if (! $document) {
-
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
         return view('document.view', compact('document', 'type'));
     }
 
-    public function cancelDocument(Request $request, $document_type, $document_id)
+    public function cancelDocument(Request $request, string $document_type, int|string $document_id): JsonResponse|RedirectResponse
     {
-        $document = $this->getDocument($document_type, $document_id);
+        $document = $this->documentResolver->resolve($document_type, $document_id);
         if (! $document) {
-
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
         if ($request->type == 'USER') {
             $document->approvers()->update(['status' => 'cancel']);
 
-            foreach ($document->getAllDocuments() as $document) {
-                $document->status = 'cancel';
-                $document->save();
-                $document->tasks()->update(['status' => 'cancel', 'task_name' => 'ยกเลิกเอกสาร']);
-                $document->logs()->create([
+            foreach ($document->getAllDocuments() as $subDocument) {
+                $subDocument->status = 'cancel';
+                $subDocument->save();
+                $subDocument->tasks()->update(['status' => 'cancel', 'task_name' => 'ยกเลิกเอกสาร']);
+                $subDocument->logs()->create([
                     'userid' => auth()->user()->userid,
                     'action' => 'cancel',
                     'details' => 'ยกเลิกเอกสาร '.$request->input('reason'),
@@ -346,25 +317,21 @@ class WebController extends Controller
         return response()->json(['status' => 'success']);
     }
 
-    public function approveDocument($type, $document_id)
+    public function approveDocument(string $type, int|string $document_id): View|RedirectResponse
     {
-        $document = $this->getDocument($type, $document_id);
+        $document = $this->documentResolver->resolve($type, $document_id);
         if (! $document) {
-
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
         $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
         if (! $approveList) {
-
             return redirect()->route('document.index')->with('error', 'ไม่มีสิทธิ์อนุมัติเอกสารนี้');
         }
 
-        // Check if the previous step is approved
         if ($approveList->step > 1) {
             $previousStep = $document->approvers()->where('step', $approveList->step - 1)->first();
             if (! $previousStep || $previousStep->status !== 'approve') {
-
                 return redirect()->route('document.index')->with('error', 'ผู้อนุมัติขั้นก่อนหน้า สำหรับเอกสารนี้ยังไม่ถูกอนุมัติ');
             }
         }
@@ -372,33 +339,28 @@ class WebController extends Controller
         return view('document.approve', compact('document', 'type'));
     }
 
-    public function approveDocumentRequest(Request $request, $document_type, $document_id)
+    public function approveDocumentRequest(Request $request, string $document_type, int|string $document_id): JsonResponse|RedirectResponse
     {
-        $document = $this->getDocument($document_type, $document_id);
+        $document = $this->documentResolver->resolve($document_type, $document_id);
         if (! $document) {
-
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
-        // Case User Document have multiple sub document
         if ($document_type == 'USER') {
             $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
             $approveList->status = $request->status;
             $approveList->save();
 
-            foreach ($document->getAllDocuments() as $document) {
-                // case Approve
+            foreach ($document->getAllDocuments() as $subDocument) {
                 if ($request->status == 'approve') {
                     $status_change = 'pending';
-                }
-                // case Reject
-                elseif ($request->status == 'reject') {
+                } elseif ($request->status == 'reject') {
                     $status_change = 'not_approval';
                 }
-                $document->status = $status_change;
-                $document->save();
+                $subDocument->status = $status_change;
+                $subDocument->save();
 
-                $document->tasks()->where('step', $approveList->step)->update([
+                $subDocument->tasks()->where('step', $approveList->step)->update([
                     'status' => $request->status,
                     'task_name' => $request->status == 'approve' ? 'อนุมัติ' : 'ไม่อนุมัติ',
                     'task_user' => auth()->user()->userid,
@@ -406,15 +368,13 @@ class WebController extends Controller
                     'date' => date('Y-m-d H:i:s'),
                 ]);
 
-                $document->logs()->create([
+                $subDocument->logs()->create([
                     'userid' => auth()->user()->userid,
                     'action' => $request->status,
                     'details' => $request->status == 'approve' ? 'อนุมัติเอกสาร' : $request->reason,
                 ]);
             }
-        }
-        // Other Document dont have sub document
-        else {
+        } else {
             $approveList = $document->approvers()->where('userid', auth()->user()->userid)->where('status', 'wait')->first();
             $approveList->status = $request->status;
             $approveList->save();
@@ -427,13 +387,10 @@ class WebController extends Controller
                     $status_change = 'pending';
                 }
 
-                if($document_type == 'Training'){
-                    $documentTrainingController = new DocumentTrainingController();
-                    $documentTrainingController->createProject($document->id);
+                if ($document_type == 'Training') {
+                    $this->documentTrainingService->createProject($document->id);
                 }
-            }
-            // case Reject
-            elseif ($request->status == 'reject') {
+            } elseif ($request->status == 'reject') {
                 $status_change = 'not_approval';
             }
             $document->status = $status_change;

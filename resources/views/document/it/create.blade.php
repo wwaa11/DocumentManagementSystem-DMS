@@ -1,20 +1,15 @@
-@extends("layouts.app")
-@section("content")
+@extends('layouts.app')
+@section('content')
     <div class="mx-auto max-w-5xl">
-        @include("document.header", ["title" => "แจ้งงาน/สนับสนุนการทำงาน IT", "description" => "กรอกข้อมูลด้านล่างเพื่อสร้างเอกสารใหม่", "icon" => "fas fa-file-alt"])
-        <form id="create-form" action="{{ route("document.it.create") }}" method="POST" enctype="multipart/form-data">
+        <x-document.page-header
+            title="แจ้งงาน/สนับสนุนการทำงาน IT"
+            description="กรอกข้อมูลด้านล่างเพื่อสร้างเอกสารใหม่"
+            icon="fas fa-file-alt"
+        />
+        <form id="create-form" action="{{ route('document.it.create') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @include("document.approver_create")
-
-            @if ($errors->any())
-                <div class="alert alert-error" role="alert">
-                    <span class="fas fa-exclamation-triangle mr-2"></span>
-                    <span>มีข้อผิดพลาดในการสร้างเอกสาร</span>
-                </div>
-                @foreach ($errors->all() as $error)
-                    <div>- {{ $error }}</div>
-                @endforeach
-            @endif
+            <x-document.approver-form />
+            <x-ui.validation-errors />
 
             <input type="hidden" name="main_document_type" value="false" />
             <input type="hidden" name="createIT" value="false" />
@@ -29,67 +24,53 @@
             <input id="documentCode" type="hidden" name="documentCode" value="">
 
             <div class="card bg-base-100 mb-8 p-6 shadow-xl">
-                <!-- Document Type Selection -->
-                <h3 class="card-title text-primary mb-4 flex items-center text-xl">
-                    <i class="fas fa-file-alt text-primary mr-2"></i>ประเภทเอกสาร
-                </h3>
+                <x-ui.section-title icon="fas fa-file-alt">ประเภทเอกสาร</x-ui.section-title>
                 <div class="flex flex-col gap-3">
-                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="type-user">
-                        <div class="flex items-center">
-                            <input class="radio radio-primary mr-3" id="type-user" type="radio" name="document_type" value="user" onchange="selectDocType('user')" />
-                            <div>
-                                <h4 class="font-medium">ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม</h4>
-                                <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
-                            </div>
-                        </div>
-                    </label>
+                    <x-ui.radio-option
+                        id="type-user"
+                        name="document_type"
+                        value="user"
+                        onchange="selectDocType('user')"
+                        hint="*ต้องการขออนุมัติจากแผนก"
+                    >
+                        ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม
+                    </x-ui.radio-option>
 
-                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="type-support">
-                        <div class="flex items-center">
-                            <input class="radio radio-primary mr-3" id="type-support" type="radio" name="document_type" value="support" onchange="selectDocType('support')" />
-                            <div>
-                                <h4 class="font-medium">ขอแจ้งงาน/สนับสนุนการทำงาน</h4>
-                            </div>
-                        </div>
-                    </label>
+                    <x-ui.radio-option
+                        id="type-support"
+                        name="document_type"
+                        value="support"
+                        onchange="selectDocType('support')"
+                    >
+                        ขอแจ้งงาน/สนับสนุนการทำงาน
+                    </x-ui.radio-option>
 
-                    <label class="bg-base-100 hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="type-borrow">
-                        <div class="flex items-center">
-                            <input class="radio radio-primary mr-3" id="type-borrow" type="radio" name="document_type" value="borrow" onchange="selectDocType('borrow')" />
-                            <div>
-                                <h4 class="font-medium">ขอยืมอุปกรณ์</h4>
-                            </div>
-                        </div>
-                    </label>
+                    <x-ui.radio-option
+                        id="type-borrow"
+                        name="document_type"
+                        value="borrow"
+                        onchange="selectDocType('borrow')"
+                    >
+                        ขอยืมอุปกรณ์
+                    </x-ui.radio-option>
                 </div>
 
-                @include("document.it.create-user")
-
-                @include("document.it.create-support")
-
-                @include("document.it.create-borrow")
+                @include('document.it.create-user')
+                @include('document.it.create-support')
+                @include('document.it.create-borrow')
 
                 <div class="hidden" id="document-addtional-info">
                     <div class="divider"></div>
 
-                    <h3 class="card-title text-primary mb-2 flex items-center text-xl">
-                        <div>
-                            <i class="fas fa-paperclip text-primary mr-2"></i>เอกสารแนบ (ถ้ามี)
-                            <div class="text-accent text-xs">* ใส่เอกสารแนบได้ไม่เกิน 20 ไฟล์</div>
-                        </div>
-                    </h3>
-                    <div class="border-base-300 hover:border-primary cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-all" id="drop-area">
-                        <input class="hidden" id="file_input" type="file" name="document_files[]" multiple>
-                        <p class="text-base-content/70"><i class="fas fa-cloud-upload-alt mr-2"></i> ลากและวางไฟล์ที่นี่ หรือ <span class="text-primary font-bold">คลิกเพื่อเลือกไฟล์</span></p>
-                    </div>
-                    <div class="mt-4 flex flex-wrap gap-2" id="file_display">
-                        {{-- display file in this div with remove file button --}}
-                    </div>
+                    <x-ui.section-title icon="fas fa-paperclip" class="mb-2">
+                        เอกสารแนบ (ถ้ามี)
+                    </x-ui.section-title>
+                    <x-form.file-dropzone hint="* ใส่เอกสารแนบได้ไม่เกิน 20 ไฟล์" />
 
                     <div id="send_to_it_admin">
-                        <h3 class="card-title text-primary mb-2 mt-3 flex items-center text-xl">
-                            <i class="fas fa-user-shield text-primary mr-2"></i>ส่งถึงแผนก IT
-                        </h3>
+                        <x-ui.section-title icon="fas fa-user-shield" class="mb-2 mt-3">
+                            ส่งถึงแผนก IT
+                        </x-ui.section-title>
                         <select class="select select-bordered w-full" name="document_admin">
                             <option selected disabled>โปรดระบุ</option>
                             @foreach ($it_admins as $it_admin)
@@ -98,9 +79,9 @@
                         </select>
                     </div>
 
-                    <h3 class="card-title text-primary mb-2 mt-6 flex items-center text-xl">
-                        <i class="fas fa-phone-alt text-primary mr-2"></i>เบอร์โทรศัพท์ภายในติดต่อกลับ
-                    </h3>
+                    <x-ui.section-title icon="fas fa-phone-alt" class="mb-2 mt-6">
+                        เบอร์โทรศัพท์ภายในติดต่อกลับ
+                    </x-ui.section-title>
                     <input class="input input-bordered w-full" id="document_phone" name="document_phone" type="text" placeholder="เบอร์โทรศัพท์ภายในติดต่อกลับ" />
 
                     <div class="mt-6 flex justify-center">
@@ -113,115 +94,11 @@
         </form>
     </div>
 @endsection
-@push("scripts")
-    <script>
-        let files = []; // To store selected files, accessible globally within this script block
-        let fileInput; // Declare fileInput in a higher scope
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropArea = document.getElementById('drop-area');
-            fileInput = document.getElementById('file_input'); // Assign to the higher-scoped variable
-            const fileDisplay = document.getElementById('file_display');
-
-            // Prevent default drag behaviors
-            ;
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-                document.body.addEventListener(eventName, preventDefaults, false);
-            });
-
-            // Highlight drop area when item is dragged over it
-            ;
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, highlight, false);
-            });
-
-            ;
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, unhighlight, false);
-            });
-
-            // Handle dropped files
-            dropArea.addEventListener('drop', handleDrop, false);
-
-            // Handle file input change
-            fileInput.addEventListener('change', function() {
-                handleFiles(this.files);
-            });
-
-            // Handle click on drop area to open file input
-            dropArea.addEventListener('click', function() {
-                fileInput.click();
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            function highlight() {
-                dropArea.classList.add('border-primary');
-                dropArea.classList.remove('border-base-300');
-            }
-
-            function unhighlight() {
-                dropArea.classList.remove('border-primary');
-                dropArea.classList.add('border-base-300');
-            }
-
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const newFiles = dt.files;
-                handleFiles(newFiles);
-            }
-
-            function handleFiles(newFiles) {
-                newFiles = Array.from(newFiles);
-                newFiles.forEach(file => {
-                    if (!files.some(existingFile => existingFile.name === file.name && existingFile.size === file.size)) {
-                        files.push(file);
-                    }
-                });
-                updateFileDisplay();
-            }
-
-            function updateFileDisplay() {
-                fileDisplay.innerHTML = ''; // Clear current display
-                files.forEach((file, index) => {
-                    const fileElement = document.createElement('div');
-                    fileElement.className = 'flex items-center gap-2 bg-base-200 p-2 rounded-md';
-                    fileElement.innerHTML = `
-                                            <span class="text-sm">${file.name}</span>
-                                            <button type="button" class="remove-file-btn text-error hover:text-error-focus" data-index="${index}">
-                                                <i class="fas fa-times-circle"></i>
-                                            </button>
-                                        `;
-                    fileDisplay.appendChild(fileElement);
-                });
-                updateFileInput();
-            }
-
-            function updateFileInput() {
-                const dataTransfer = new DataTransfer();
-                files.forEach(file => dataTransfer.items.add(file));
-                fileInput.files = dataTransfer.files;
-            }
-
-            // Handle remove file button click
-            fileDisplay.addEventListener('click', function(e) {
-                if (e.target.closest('.remove-file-btn')) {
-                    const indexToRemove = parseInt(e.target.closest('.remove-file-btn').dataset.index);
-                    files.splice(indexToRemove, 1); // Remove file from array
-                    updateFileDisplay();
-                }
-            });
-        });
-    </script>
+@push('scripts')
     <script>
         function selectDocType(document_type) {
             if (document_type === 'user') {
                 $('#send_to_it_admin').addClass('hidden');
-
                 $('#type-user').prop('checked', true);
                 $('#user-section').removeClass('hidden');
                 $('#support-section').addClass('hidden');
@@ -237,7 +114,6 @@
                 $('input[name="createBorrow"]').val('false');
             } else if (document_type === 'support') {
                 $('#send_to_it_admin').removeClass('hidden');
-
                 $('#type-support').prop('checked', true);
                 $('#user-section').addClass('hidden');
                 $('#support-section').removeClass('hidden');
@@ -250,10 +126,8 @@
                 $('input[name="createHeartStream"]').val('false');
                 $('input[name="createRegister"]').val('false');
                 $('input[name="createBorrow"]').val('false');
-
             } else if (document_type === 'borrow') {
                 $('#send_to_it_admin').removeClass('hidden');
-
                 $('#type-borrow').prop('checked', true);
                 $('#user-section').addClass('hidden');
                 $('#support-section').addClass('hidden');
@@ -280,7 +154,6 @@
         function submitForm() {
             event.preventDefault();
 
-            // Detect type correctly
             const type = $('input[name="document_type"]:checked').val();
             if (!type) {
                 Swal.fire({
@@ -288,9 +161,7 @@
                     title: 'กรุณาเลือกประเภทเอกสาร',
                     confirmButtonText: 'ตกลง',
                     buttonsStyling: false,
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
+                    customClass: { confirmButton: 'btn btn-primary' },
                 });
                 return;
             }
@@ -298,13 +169,11 @@
             let isValid = true;
             let errorMessage = '';
 
-            // Common validation: Phone
             if (!$('#document_phone').val()) {
                 isValid = false;
                 errorMessage = 'กรุณาระบุเบอร์โทรศัพท์ภายใน';
             }
 
-            // Validation per type
             if (isValid) {
                 if (type === 'user') {
                     const title = $('input[name="title"]:checked').val();
@@ -385,9 +254,7 @@
                     text: errorMessage,
                     confirmButtonText: 'ตกลง',
                     buttonsStyling: false,
-                    customClass: {
-                        confirmButton: 'btn btn-primary'
-                    },
+                    customClass: { confirmButton: 'btn btn-primary' },
                 });
                 return;
             }
@@ -408,17 +275,9 @@
                     Swal.fire({
                         title: 'กำลังสร้างเอกสาร...',
                         allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
+                        didOpen: () => Swal.showLoading()
                     });
-                    const form = document.getElementById('create-form');
-                    if (fileInput) {
-                        const dataTransfer = new DataTransfer();
-                        files.forEach(file => dataTransfer.items.add(file));
-                        fileInput.files = dataTransfer.files;
-                    }
-                    form.submit();
+                    document.getElementById('create-form').submit();
                 }
             });
         }

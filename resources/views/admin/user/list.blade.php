@@ -1,46 +1,43 @@
-@extends("layouts.app")
-@section("content")
-    <div class="mx-8">
-        <h1 class="text-primary text-2xl font-bold">รายการเอกสาร </h1>
-        <span class="countdown font-mono text-sm">Refesh in <span class="bg-base-300 mx-2 rounded-md px-2" id="countdown" style="--value:30;"></span> seconds</span>
-        <div class="divider"></div>
-        @if ($action == "approve")
+@extends('layouts.app')
+@section('content')
+    <x-admin.list-header>
+        @if ($action == 'approve')
             <div class="mb-3 text-end">
                 <button class="btn btn-primary" type="button" onclick="approveAllDocuments()">อนุมัติเอกสารทั้งหมด</button>
             </div>
-        @elseif($action == "all")
+        @elseif ($action == 'all')
             <div class="border-base-content/5 bg-base-100 mb-4 overflow-hidden rounded-lg border">
                 <div class="border-base-content/5 bg-base-200/30 border-b px-4 py-3">
-                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-5" action="{{ route("admin.user.alllist", ["type" => $type]) }}" method="GET">
+                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-5" action="{{ route('admin.user.alllist', ['type' => $type]) }}" method="GET">
                         <div class="form-control col-span-1 md:col-span-2">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ค้นหา</span></label>
-                            <input class="input input-bordered input-sm w-full" type="text" name="search" value="{{ $search ?? "" }}" placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด...">
+                            <input class="input input-bordered input-sm w-full" type="text" name="search" value="{{ $search ?? '' }}" placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด...">
                         </div>
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">สถานะ</span></label>
                             <select class="select select-bordered select-sm w-full" name="status">
                                 <option value="">ทั้งหมด</option>
-                                <option value="wait_approval" {{ isset($status) && $status == "wait_approval" ? "selected" : "" }}>รออนุมัติจากหน่วยงาน</option>
-                                <option value="pending" {{ isset($status) && $status == "pending" ? "selected" : "" }}>รอการดำเนินการ</option>
-                                <option value="process" {{ isset($status) && $status == "process" ? "selected" : "" }}>กำลังดำเนินการ</option>
-                                <option value="done" {{ isset($status) && $status == "done" ? "selected" : "" }}>เอกสารรออนุมัติ</option>
-                                <option value="complete" {{ isset($status) && $status == "complete" ? "selected" : "" }}>เสร็จสมบูรณ์</option>
-                                <option value="reject" {{ isset($status) && $status == "reject" ? "selected" : "" }}>ยกเลิกเอกสาร</option>
+                                <option value="wait_approval" {{ isset($status) && $status == 'wait_approval' ? 'selected' : '' }}>รออนุมัติจากหน่วยงาน</option>
+                                <option value="pending" {{ isset($status) && $status == 'pending' ? 'selected' : '' }}>รอการดำเนินการ</option>
+                                <option value="process" {{ isset($status) && $status == 'process' ? 'selected' : '' }}>กำลังดำเนินการ</option>
+                                <option value="done" {{ isset($status) && $status == 'done' ? 'selected' : '' }}>เอกสารรออนุมัติ</option>
+                                <option value="complete" {{ isset($status) && $status == 'complete' ? 'selected' : '' }}>เสร็จสมบูรณ์</option>
+                                <option value="reject" {{ isset($status) && $status == 'reject' ? 'selected' : '' }}>ยกเลิกเอกสาร</option>
                             </select>
                         </div>
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่เริ่ม</span></label>
-                            <input class="input input-bordered input-sm w-full" type="date" name="start_date" value="{{ $start_date ?? "" }}">
+                            <input class="input input-bordered input-sm w-full" type="date" name="start_date" value="{{ $start_date ?? '' }}">
                         </div>
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่สิ้นสุด</span></label>
-                            <input class="input input-bordered input-sm w-full" type="date" name="end_date" value="{{ $end_date ?? "" }}">
+                            <input class="input input-bordered input-sm w-full" type="date" name="end_date" value="{{ $end_date ?? '' }}">
                         </div>
                         <div class="col-span-1 flex justify-end gap-2 md:col-span-5">
                             <button class="btn btn-primary btn-sm px-8" type="submit">
                                 <i class="fas fa-search mr-1"></i> ค้นหา
                             </button>
-                            <a class="btn btn-ghost btn-sm border-base-content/20 px-8" href="{{ route("admin.user.alllist", ["type" => $type]) }}">
+                            <a class="btn btn-ghost btn-sm border-base-content/20 px-8" href="{{ route('admin.user.alllist', ['type' => $type]) }}">
                                 <i class="fas fa-redo mr-1"></i> ล้างค่า
                             </a>
                         </div>
@@ -150,7 +147,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </x-admin.list-header>
 @endsection
 @push("scripts")
     @if ($action == "new")

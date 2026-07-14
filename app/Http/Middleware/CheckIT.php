@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -15,7 +16,7 @@ class CheckIT
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $checkRoleList = in_array(Auth::user()->role, ['dev', 'admin', 'it', 'it-approve', 'it-hardware']);
+        $checkRoleList = in_array(Auth::user()->role, ['admin', 'dev', 'it', 'it-approve', 'it-hardware'], true);
         if (Auth::check() && $checkRoleList) {
             return $next($request);
         }
