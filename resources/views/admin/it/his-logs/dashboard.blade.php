@@ -29,19 +29,19 @@
                     </div>
                     <h1 class="text-primary text-3xl font-bold tracking-tight sm:text-4xl">HIS Log Dashboard</h1>
                     <p class="text-base-content/65 mt-2 text-sm leading-relaxed sm:text-base">
-                        ภาพรวมเคสปัญหา HIS — กรองช่วงเวลา ดูสถานะ และนำเข้าข้อมูลจาก Excel
+                        ภาพรวมเคสปัญหา HIS — กรองช่วงเวลา ดูสถานะและสถิติ
                     </p>
                     <div class="mt-5 flex flex-wrap gap-2">
                         <a class="btn btn-primary btn-sm gap-2" href="{{ route('admin.it.hislogs.create') }}">
                             <i class="fas fa-plus"></i> สร้าง HIS Log
                         </a>
-                        <a class="btn btn-ghost btn-sm border-base-content/15 gap-2" href="{{ asset('HIS_Log_Dashboard.xlsx') }}" download>
-                            <i class="fas fa-download"></i> ไฟล์ตัวอย่าง
+                        <a class="btn btn-ghost btn-sm border-base-content/15 gap-2" href="{{ route('admin.it.hislogs.index') }}">
+                            <i class="fas fa-list"></i> All Logs
                         </a>
                     </div>
                 </div>
 
-                <div class="grid w-full gap-3 sm:grid-cols-2 xl:max-w-xl">
+                <div class="w-full xl:max-w-sm">
                     <form class="bg-base-100/90 border-base-200 rounded-xl border p-4 shadow-sm backdrop-blur" action="{{ route('admin.it.hislogs.dashboard') }}" method="GET">
                         <div class="mb-3 flex items-center gap-2">
                             <span class="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-lg">
@@ -68,23 +68,6 @@
                                 <i class="fas fa-undo"></i>
                             </a>
                         </div>
-                    </form>
-
-                    <form class="bg-base-100/90 border-base-200 rounded-xl border p-4 shadow-sm backdrop-blur" action="{{ route('admin.it.hislogs.import') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="mb-3 flex items-center gap-2">
-                            <span class="bg-success/10 text-success flex h-8 w-8 items-center justify-center rounded-lg">
-                                <i class="fas fa-file-excel text-sm"></i>
-                            </span>
-                            <div>
-                                <p class="text-sm font-semibold">Import Excel</p>
-                                <p class="text-base-content/50 text-xs">ชีต HIS_Log ตามไฟล์ตัวอย่าง</p>
-                            </div>
-                        </div>
-                        <input class="file-input file-input-bordered file-input-sm w-full" type="file" name="excel_file" accept=".xlsx,.xls" required aria-label="เลือกไฟล์ Excel">
-                        <button class="btn btn-success btn-sm mt-3 w-full gap-2 text-success-content" type="submit">
-                            <i class="fas fa-cloud-upload-alt"></i> นำเข้าข้อมูล
-                        </button>
                     </form>
                 </div>
             </div>
@@ -249,131 +232,57 @@
                     </div>
                 </div>
             </article>
-        </section>
 
-        {{-- Table --}}
-        <section class="card bg-base-100 border-base-200/80 mt-6 border shadow-md">
-            <div class="card-body gap-4 p-5 sm:p-6">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h2 class="text-base font-bold">รายการ HIS Logs</h2>
-                        <p class="text-base-content/50 text-xs">
-                            แสดง {{ $logs->firstItem() ?? 0 }}–{{ $logs->lastItem() ?? 0 }} จาก {{ number_format($logs->total()) }} รายการ
-                        </p>
+            <article class="card bg-base-100 border-base-200/80 border shadow-md">
+                <div class="card-body p-5 sm:p-6">
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-bold">Top ผู้รับเรื่อง</h2>
+                            <p class="text-base-content/50 text-xs">ผู้รับเรื่องที่มีเคสสูงสุด</p>
+                        </div>
+                        <span class="bg-sky-500/10 text-sky-700 rounded-lg px-2.5 py-1 text-xs font-medium">
+                            <i class="fas fa-user-check mr-1"></i> Receiver
+                        </span>
                     </div>
-                    <a class="btn btn-primary btn-sm gap-2 self-start" href="{{ route('admin.it.hislogs.create') }}">
-                        <i class="fas fa-plus"></i> สร้างใหม่
-                    </a>
-                </div>
-
-                <div class="border-base-200 overflow-x-auto rounded-xl border">
-                    <table class="table">
-                        <thead class="bg-base-200/60 text-base-content/70">
-                            <tr class="text-xs uppercase tracking-wide">
-                                <th>วันที่ / เวลา</th>
-                                <th>Shift</th>
-                                <th>ผู้แจ้ง/แผนก</th>
-                                <th>Module</th>
-                                <th>Issue</th>
-                                <th>ผู้รับเรื่อง</th>
-                                <th>ผู้แก้ไข</th>
-                                <th>สถานะ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($logs as $log)
-                                @php
-                                    $statusClass = match ($log->status) {
-                                        'Closed' => 'badge-success',
-                                        'In Progress' => 'badge-warning',
-                                        default => 'badge-info',
-                                    };
-                                    $shiftClass = match ($log->shift) {
-                                        'เช้า' => 'badge-info',
-                                        'บ่าย' => 'badge-warning',
-                                        default => 'badge-secondary',
-                                    };
-                                @endphp
-                                <tr class="hover:bg-base-200/40 transition-colors">
-                                    <td>
-                                        <div class="font-medium">{{ $log->reported_at?->format('d/m/Y') }}</div>
-                                        <div class="text-base-content/50 text-xs">
-                                            {{ $log->time ? \Illuminate\Support\Str::of($log->time)->substr(0, 5) : '-' }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge {{ $shiftClass }} badge-soft badge-sm">{{ $log->shift }}</span>
-                                    </td>
-                                    <td class="max-w-40 truncate font-medium" title="{{ $log->reporter }}">{{ $log->reporter }}</td>
-                                    <td>
-                                        <span class="badge badge-ghost badge-sm font-medium">{{ $log->module }}</span>
-                                    </td>
-                                    <td>
-                                        @if (! empty($log->issues))
-                                            <div class="flex max-w-48 flex-wrap gap-1">
-                                                @foreach ($log->issues as $issue)
-                                                    <span class="badge badge-outline badge-sm">{{ $issue }}</span>
-                                                @endforeach
-                                            </div>
-                                        @else
-                                            <span class="text-base-content/40 text-sm">—</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $log->receiver }}</td>
-                                    <td>{{ $log->fixer ?: '—' }}</td>
-                                    <td>
-                                        <span class="badge {{ $statusClass }} badge-sm gap-1">
-                                            @if ($log->status === 'Closed')
-                                                <i class="fas fa-check text-[10px]"></i>
-                                            @elseif ($log->status === 'In Progress')
-                                                <i class="fas fa-spinner text-[10px]"></i>
-                                            @else
-                                                <i class="fas fa-circle text-[8px]"></i>
-                                            @endif
-                                            {{ $log->status }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td class="py-16" colspan="8">
-                                        <div class="flex flex-col items-center justify-center gap-3 text-center">
-                                            <span class="bg-base-200 text-base-content/40 flex h-16 w-16 items-center justify-center rounded-2xl">
-                                                <i class="fas fa-inbox text-2xl"></i>
-                                            </span>
-                                            <div>
-                                                <p class="font-semibold">ยังไม่มีข้อมูล HIS Log</p>
-                                                <p class="text-base-content/50 mt-1 text-sm">สร้างรายการใหม่ หรือนำเข้าจากไฟล์ Excel</p>
-                                            </div>
-                                            <a class="btn btn-primary btn-sm gap-2" href="{{ route('admin.it.hislogs.create') }}">
-                                                <i class="fas fa-plus"></i> สร้าง HIS Log
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                @if ($logs->hasPages())
-                    <div class="flex justify-end">
-                        {{ $logs->links() }}
+                    <div class="mt-1 h-72 w-full">
+                        <canvas id="receiverChart"></canvas>
                     </div>
-                @endif
-            </div>
+                </div>
+            </article>
+
+            <article class="card bg-base-100 border-base-200/80 border shadow-md">
+                <div class="card-body p-5 sm:p-6">
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-bold">Top ผู้แก้ไข</h2>
+                            <p class="text-base-content/50 text-xs">ผู้แก้ไขที่มีเคสสูงสุด</p>
+                        </div>
+                        <span class="bg-emerald-500/10 text-emerald-700 rounded-lg px-2.5 py-1 text-xs font-medium">
+                            <i class="fas fa-user-cog mr-1"></i> Fixer
+                        </span>
+                    </div>
+                    <div class="mt-1 h-72 w-full">
+                        <canvas id="fixerChart"></canvas>
+                    </div>
+                </div>
+            </article>
         </section>
     </div>
 @endsection
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            Chart.register(ChartDataLabels);
+
             const statusCounts = @json($stats['status_counts']);
             const shiftCounts = @json($stats['shift_counts']);
             const moduleCounts = @json($stats['top_modules']);
             const issueCounts = @json($stats['top_issues']);
+            const receiverCounts = @json($stats['top_receivers']);
+            const fixerCounts = @json($stats['top_fixers']);
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             const chartDefaults = {
@@ -385,6 +294,36 @@
             const softGrid = {
                 color: 'rgba(148, 163, 184, 0.18)',
                 drawBorder: false,
+            };
+
+            const barValueLabels = {
+                color: '#334155',
+                font: { weight: '600', size: 11 },
+                formatter: (value) => (value > 0 ? value : ''),
+                display: (context) => (context.dataset.data[context.dataIndex] || 0) > 0,
+                clamp: true,
+                clip: false,
+            };
+
+            const verticalBarLabels = {
+                ...barValueLabels,
+                anchor: 'end',
+                align: 'top',
+                offset: 2,
+            };
+
+            const horizontalBarLabels = {
+                ...barValueLabels,
+                anchor: 'end',
+                align: 'end',
+                offset: 4,
+            };
+
+            const doughnutValueLabels = {
+                color: '#0f172a',
+                font: { weight: '600', size: 11 },
+                formatter: (value) => (value > 0 ? value : ''),
+                display: (context) => (context.dataset.data[context.dataIndex] || 0) > 0,
             };
 
             new Chart(document.getElementById('statusChart'), {
@@ -413,6 +352,7 @@
                                 boxWidth: 8,
                             },
                         },
+                        datalabels: doughnutValueLabels,
                     },
                 },
             });
@@ -437,6 +377,7 @@
                         legend: {
                             display: false,
                         },
+                        datalabels: doughnutValueLabels,
                     },
                 },
             });
@@ -462,9 +403,11 @@
                 },
                 options: {
                     ...chartDefaults,
+                    layout: { padding: { top: 18 } },
                     scales: {
                         y: {
                             beginAtZero: true,
+                            grace: '10%',
                             ticks: { precision: 0 },
                             grid: softGrid,
                         },
@@ -480,6 +423,7 @@
                                 label: (context) => ` ${context.parsed.y} เคส`,
                             },
                         },
+                        datalabels: verticalBarLabels,
                     },
                 },
             });
@@ -504,9 +448,11 @@
                 options: {
                     ...chartDefaults,
                     indexAxis: 'y',
+                    layout: { padding: { right: 28 } },
                     scales: {
                         x: {
                             beginAtZero: true,
+                            grace: '12%',
                             ticks: { precision: 0 },
                             grid: softGrid,
                         },
@@ -521,9 +467,66 @@
                                 label: (context) => ` ${context.parsed.x} เคส`,
                             },
                         },
+                        datalabels: horizontalBarLabels,
                     },
                 },
             });
+
+            const createPeopleChart = (elementId, counts, colors) => {
+                const hasData = Object.keys(counts).length > 0;
+
+                new Chart(document.getElementById(elementId), {
+                    type: 'bar',
+                    data: {
+                        labels: hasData ? Object.keys(counts) : ['ไม่มีข้อมูล'],
+                        datasets: [{
+                            label: 'จำนวนเคส',
+                            data: hasData ? Object.values(counts) : [0],
+                            backgroundColor: hasData
+                                ? Object.keys(counts).map((_, index) => colors[index % colors.length])
+                                : ['#cbd5e1'],
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            maxBarThickness: 28,
+                        }],
+                    },
+                    options: {
+                        ...chartDefaults,
+                        indexAxis: 'y',
+                        layout: { padding: { right: 28 } },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grace: '12%',
+                                ticks: { precision: 0 },
+                                grid: softGrid,
+                            },
+                            y: {
+                                grid: { display: false },
+                            },
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => ` ${context.parsed.x} เคส`,
+                                },
+                            },
+                            datalabels: horizontalBarLabels,
+                        },
+                    },
+                });
+            };
+
+            createPeopleChart('receiverChart', receiverCounts, [
+                '#0ea5e9', '#38bdf8', '#7dd3fc', '#0284c7', '#0369a1',
+                '#67e8f9', '#22d3ee', '#06b6d4', '#0891b2', '#155e75',
+            ]);
+
+            createPeopleChart('fixerChart', fixerCounts, [
+                '#10b981', '#34d399', '#6ee7b7', '#059669', '#047857',
+                '#a7f3d0', '#4ade80', '#22c55e', '#16a34a', '#15803d',
+            ]);
         });
     </script>
 @endpush

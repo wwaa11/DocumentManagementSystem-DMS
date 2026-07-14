@@ -7,6 +7,7 @@ use App\Http\Requests\IT\StoreHisLogRequest;
 use App\Models\HisLog;
 use App\Models\User;
 use App\Services\IT\HisLogService;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use ReflectionMethod;
 use Tests\TestCase;
@@ -77,9 +78,13 @@ class HisLogTest extends TestCase
         $links = collect($user->menu['lists'])->pluck('link')->filter()->values()->all();
 
         $this->assertContains('admin.it.hislogs.create', $links);
+        $this->assertContains('admin.it.hislogs.index', $links);
         $this->assertContains('admin.it.hislogs.dashboard', $links);
         $this->assertTrue(collect($user->menu['lists'])->contains(
             fn (array $item): bool => ($item['title'] ?? null) === 'HIS Logs' && ($item['link'] ?? null) === null
+        ));
+        $this->assertTrue(collect($user->menu['lists'])->contains(
+            fn (array $item): bool => ($item['title'] ?? null) === 'All Logs' && ($item['link'] ?? null) === 'admin.it.hislogs.index'
         ));
     }
 
@@ -118,5 +123,32 @@ class HisLogTest extends TestCase
         $this->assertContains('Patient Info', HisLog::moduleOptions());
         $this->assertContains('Log In', HisLog::issueOptions());
         $this->assertSame(['Open', 'In Progress', 'Closed'], HisLog::statusOptions());
+    }
+
+    public function test_edit_and_update_routes_are_registered(): void
+    {
+        $this->assertTrue(Route::has('admin.it.hislogs.index'));
+        $this->assertTrue(Route::has('admin.it.hislogs.edit'));
+        $this->assertTrue(Route::has('admin.it.hislogs.update'));
+        $this->assertSame(
+            url('/it/admin/his-logs'),
+            route('admin.it.hislogs.index')
+        );
+        $this->assertSame(
+            url('/it/admin/his-logs/1/edit'),
+            route('admin.it.hislogs.edit', ['hisLog' => 1])
+        );
+    }
+
+    public function test_top_named_counts_skips_blank_values(): void
+    {
+        $service = app(HisLogService::class);
+        $method = new ReflectionMethod(HisLogService::class, 'topNamedCounts');
+        $method->setAccessible(true);
+
+        /** @var array<string, int> $counts */
+        $counts = $method->invoke($service, collect(['เปิ้ล', '', '  ', 'ก้อย', 'เปิ้ล', null]), 10);
+
+        $this->assertSame(['เปิ้ล' => 2, 'ก้อย' => 1], $counts);
     }
 }

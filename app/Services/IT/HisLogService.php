@@ -22,6 +22,7 @@ class HisLogService
         $user = Auth::user();
 
         return view('admin.it.his-logs.create', [
+            'hisLog' => null,
             'receiver' => $user->name,
             'modules' => HisLog::moduleOptions(),
             'issues' => HisLog::issueOptions(),
@@ -55,6 +56,63 @@ class HisLogService
             ->with('success', 'บันทึก HIS Log สำเร็จ!');
     }
 
+    public function editForm(HisLog $hisLog): View
+    {
+        return view('admin.it.his-logs.create', [
+            'hisLog' => $hisLog,
+            'receiver' => $hisLog->receiver,
+            'modules' => HisLog::moduleOptions(),
+            'issues' => HisLog::issueOptions(),
+            'statuses' => HisLog::statusOptions(),
+        ]);
+    }
+
+    public function update(StoreHisLogRequest $request, HisLog $hisLog): RedirectResponse
+    {
+        $time = $this->normalizeTime($request->string('time')->toString());
+
+        $hisLog->update([
+            'reported_at' => $request->date('reported_at'),
+            'reporter' => $request->string('reporter')->toString(),
+            'module' => $request->string('module')->toString(),
+            'issues' => $request->input('issues', []),
+            'problem_detail' => $request->input('problem_detail'),
+            'fixer' => $request->input('fixer'),
+            'root_cause' => $request->input('root_cause'),
+            'status' => $request->string('status')->toString(),
+            'time' => $time,
+            'shift' => HisLog::resolveShiftFromTime($time),
+        ]);
+
+        return redirect()
+            ->route('admin.it.hislogs.index')
+            ->with('success', 'อัปเดต HIS Log สำเร็จ!');
+    }
+
+    public function index(Request $request): View
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        $query = HisLog::query()->orderByDesc('reported_at')->orderByDesc('time');
+
+        if ($startDate) {
+            $query->whereDate('reported_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('reported_at', '<=', $endDate);
+        }
+
+        $logs = $query->paginate(20)->withQueryString();
+
+        return view('admin.it.his-logs.index', [
+            'logs' => $logs,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ]);
+    }
+
     public function dashboard(Request $request): View
     {
         $startDate = $request->input('start_date');
@@ -70,16 +128,12 @@ class HisLogService
             $query->whereDate('reported_at', '<=', $endDate);
         }
 
-        $logs = (clone $query)->paginate(20)->withQueryString();
-        $stats = $this->buildDashboardStats(clone $query);
+        $stats = $this->buildDashboardStats($query);
 
         return view('admin.it.his-logs.dashboard', [
-            'logs' => $logs,
             'stats' => $stats,
             'start_date' => $startDate,
             'end_date' => $endDate,
-            'modules' => HisLog::moduleOptions(),
-            'statuses' => HisLog::statusOptions(),
         ]);
     }
 
@@ -89,7 +143,7 @@ class HisLogService
 
         if ($path === false || $path === null) {
             return redirect()
-                ->route('admin.it.hislogs.dashboard')
+                ->route('admin.it.hislogs.index')
                 ->with('error', 'ไม่สามารถอ่านไฟล์ Excel ได้');
         }
 
@@ -109,12 +163,12 @@ class HisLogService
             }
         } catch (RuntimeException $exception) {
             return redirect()
-                ->route('admin.it.hislogs.dashboard')
+                ->route('admin.it.hislogs.index')
                 ->with('error', $exception->getMessage());
         }
 
         return redirect()
-            ->route('admin.it.hislogs.dashboard')
+            ->route('admin.it.hislogs.index')
             ->with('success', "นำเข้าข้อมูลสำเร็จ {$imported} รายการ");
     }
 
@@ -126,12 +180,14 @@ class HisLogService
      *     status_counts: array<string, int>,
      *     top_modules: array<string, int>,
      *     top_issues: array<string, int>,
-     *     shift_counts: array<string, int>
+     *     shift_counts: array<string, int>,
+     *     top_receivers: array<string, int>,
+     *     top_fixers: array<string, int>
      * }
      */
     public function buildDashboardStats($query): array
     {
-        $records = $query->get(['module', 'issues', 'status', 'shift']);
+        $records = $query->get(['module', 'issues', 'status', 'shift', 'receiver', 'fixer']);
         $total = $records->count();
         $closed = $records->where('status', 'Closed')->count();
 
@@ -169,7 +225,26 @@ class HisLogService
             'top_modules' => $moduleCounts,
             'top_issues' => $issueCounts,
             'shift_counts' => $shiftCounts,
+            'top_receivers' => $this->topNamedCounts($records->pluck('receiver'), 10),
+            'top_fixers' => $this->topNamedCounts($records->pluck('fixer'), 10),
         ];
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, mixed>  $values
+     * @return array<string, int>
+     */
+    private function topNamedCounts($values, int $limit): array
+    {
+        $counts = $values
+            ->map(fn ($value) => is_string($value) ? trim($value) : '')
+            ->filter(fn (string $value): bool => $value !== '')
+            ->countBy()
+            ->sortDesc()
+            ->take($limit)
+            ->all();
+
+        return $counts;
     }
 
     /**

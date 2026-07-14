@@ -1,5 +1,14 @@
 @extends('layouts.app')
 
+@php
+    $isEdit = $hisLog !== null;
+    $defaultReportedAt = $isEdit ? $hisLog->reported_at?->toDateString() : now()->toDateString();
+    $defaultTime = $isEdit
+        ? ($hisLog->time ? \Illuminate\Support\Str::of($hisLog->time)->substr(0, 5)->toString() : now()->format('H:i'))
+        : now()->format('H:i');
+    $selectedIssues = old('issues', $isEdit ? ($hisLog->issues ?? []) : []);
+@endphp
+
 @section('content')
     <div class="mx-auto max-w-5xl pb-8">
         <div class="page-hero mb-4">
@@ -7,14 +16,23 @@
             <div class="relative">
                 <p class="text-primary/70 mb-1 text-xs font-semibold tracking-wide uppercase">HIS Logs</p>
                 <h2 class="text-primary text-3xl font-bold tracking-tight">
-                    <i class="fas fa-notes-medical mr-2"></i> สร้าง HIS Log
+                    <i class="fas {{ $isEdit ? 'fa-edit' : 'fa-notes-medical' }} mr-2"></i>
+                    {{ $isEdit ? 'แก้ไข HIS Log' : 'สร้าง HIS Log' }}
                 </h2>
-                <p class="text-base-content/65 mt-2 text-sm">บันทึกเคสปัญหา HIS สำหรับทีม IT</p>
+                <p class="text-base-content/65 mt-2 text-sm">
+                    {{ $isEdit ? 'แก้ไขรายละเอียดเคสปัญหา HIS' : 'บันทึกเคสปัญหา HIS สำหรับทีม IT' }}
+                </p>
             </div>
         </div>
 
-        <form action="{{ route('admin.it.hislogs.store') }}" method="POST">
+        <form
+            action="{{ $isEdit ? route('admin.it.hislogs.update', $hisLog) : route('admin.it.hislogs.store') }}"
+            method="POST"
+        >
             @csrf
+            @if ($isEdit)
+                @method('PUT')
+            @endif
             <x-ui.validation-errors />
 
             <div class="page-surface mb-6 p-6">
@@ -28,7 +46,7 @@
                             id="reported_at"
                             name="reported_at"
                             type="date"
-                            value="{{ old('reported_at', now()->toDateString()) }}"
+                            value="{{ old('reported_at', $defaultReportedAt) }}"
                             required
                         >
                     </div>
@@ -42,7 +60,7 @@
                             id="time"
                             name="time"
                             type="time"
-                            value="{{ old('time', now()->format('H:i')) }}"
+                            value="{{ old('time', $defaultTime) }}"
                             required
                             onchange="updateShiftPreview()"
                         >
@@ -64,7 +82,7 @@
                             name="reporter"
                             type="text"
                             placeholder="เช่น ก้อย / Eye"
-                            value="{{ old('reporter') }}"
+                            value="{{ old('reporter', $isEdit ? $hisLog->reporter : '') }}"
                             required
                         >
                     </div>
@@ -74,9 +92,16 @@
                             <span class="label-text font-semibold">Module <span class="text-error">*</span></span>
                         </label>
                         <select class="select select-bordered w-full" id="module" name="module" required>
-                            <option value="" disabled {{ old('module') ? '' : 'selected' }}>โปรดเลือก Module</option>
+                            <option value="" disabled {{ old('module', $isEdit ? $hisLog->module : null) ? '' : 'selected' }}>
+                                โปรดเลือก Module
+                            </option>
                             @foreach ($modules as $module)
-                                <option value="{{ $module }}" @selected(old('module') === $module)>{{ $module }}</option>
+                                <option
+                                    value="{{ $module }}"
+                                    @selected(old('module', $isEdit ? $hisLog->module : null) === $module)
+                                >
+                                    {{ $module }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -87,7 +112,12 @@
                         </label>
                         <select class="select select-bordered w-full" id="status" name="status" required>
                             @foreach ($statuses as $status)
-                                <option value="{{ $status }}" @selected(old('status', 'Open') === $status)>{{ $status }}</option>
+                                <option
+                                    value="{{ $status }}"
+                                    @selected(old('status', $isEdit ? $hisLog->status : 'Open') === $status)
+                                >
+                                    {{ $status }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -104,7 +134,7 @@
                                         type="checkbox"
                                         name="issues[]"
                                         value="{{ $issue }}"
-                                        @checked(collect(old('issues', []))->contains($issue))
+                                        @checked(collect($selectedIssues)->contains($issue))
                                     >
                                     <span>{{ $issue }}</span>
                                 </label>
@@ -122,7 +152,7 @@
                             name="problem_detail"
                             rows="3"
                             placeholder="อธิบายปัญหาที่พบ"
-                        >{{ old('problem_detail') }}</textarea>
+                        >{{ old('problem_detail', $isEdit ? $hisLog->problem_detail : '') }}</textarea>
                     </div>
 
                     <div class="form-control">
@@ -137,7 +167,9 @@
                             readonly
                         >
                         <label class="label">
-                            <span class="label-text-alt text-base-content/60">กำหนดอัตโนมัติจากผู้ใช้งานที่เข้าสู่ระบบ</span>
+                            <span class="label-text-alt text-base-content/60">
+                                {{ $isEdit ? 'คงค่าผู้รับเรื่องเดิมของการบันทึก' : 'กำหนดอัตโนมัติจากผู้ใช้งานที่เข้าสู่ระบบ' }}
+                            </span>
                         </label>
                     </div>
 
@@ -151,7 +183,7 @@
                             name="fixer"
                             type="text"
                             placeholder="ชื่อผู้แก้ไข"
-                            value="{{ old('fixer') }}"
+                            value="{{ old('fixer', $isEdit ? $hisLog->fixer : '') }}"
                         >
                     </div>
 
@@ -165,14 +197,14 @@
                             name="root_cause"
                             rows="3"
                             placeholder="วิธีแก้ไขหรือสาเหตุหลัก"
-                        >{{ old('root_cause') }}</textarea>
+                        >{{ old('root_cause', $isEdit ? $hisLog->root_cause : '') }}</textarea>
                     </div>
                 </div>
 
                 <div class="mt-8 flex justify-end gap-3">
-                    <a class="btn btn-ghost" href="{{ route('admin.it.hislogs.dashboard') }}">ไปที่ Dashboard</a>
+                    <a class="btn btn-ghost" href="{{ route('admin.it.hislogs.index') }}">ไปที่ All Logs</a>
                     <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-save mr-2"></i> บันทึก
+                        <i class="fas fa-save mr-2"></i> {{ $isEdit ? 'บันทึกการแก้ไข' : 'บันทึก' }}
                     </button>
                 </div>
             </div>

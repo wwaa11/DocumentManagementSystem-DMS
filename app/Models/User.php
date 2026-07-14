@@ -190,6 +190,13 @@ class User extends Authenticatable
                     'count' => false,
                 ],
                 [
+                    'title' => 'All Logs',
+                    'type' => 'it-hislog',
+                    'id' => 'hislog-index',
+                    'link' => 'admin.it.hislogs.index',
+                    'count' => false,
+                ],
+                [
                     'title' => 'HIS Log Dashboard',
                     'type' => 'it-hislog',
                     'id' => 'hislog-dashboard',

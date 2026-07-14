@@ -116,10 +116,13 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/reportlist', [DocumentITController::class, 'adminReportDocuments'])->name('admin.it.reportlist');
 
         // HIS Logs
+        Route::get('/admin/his-logs', [HisLogController::class, 'index'])->name('admin.it.hislogs.index');
         Route::get('/admin/his-logs/create', [HisLogController::class, 'create'])->name('admin.it.hislogs.create');
         Route::post('/admin/his-logs', [HisLogController::class, 'store'])->name('admin.it.hislogs.store');
         Route::get('/admin/his-logs/dashboard', [HisLogController::class, 'dashboard'])->name('admin.it.hislogs.dashboard');
         Route::post('/admin/his-logs/import', [HisLogController::class, 'import'])->name('admin.it.hislogs.import');
+        Route::get('/admin/his-logs/{hisLog}/edit', [HisLogController::class, 'edit'])->name('admin.it.hislogs.edit');
+        Route::put('/admin/his-logs/{hisLog}', [HisLogController::class, 'update'])->name('admin.it.hislogs.update');
     });
     // HC , Heart Stream, PAC, Register
     Route::prefix('user')->middleware(['auth', 'user'])->group(function () {
