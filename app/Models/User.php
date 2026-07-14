@@ -175,6 +175,27 @@ class User extends Authenticatable
                     'link' => 'admin.it.reportlist',
                     'count' => false,
                 ],
+                [
+                    'title' => 'HIS Logs',
+                    'type' => 'it',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'สร้าง HIS Log',
+                    'type' => 'it-hislog',
+                    'id' => 'hislog-create',
+                    'link' => 'admin.it.hislogs.create',
+                    'count' => false,
+                ],
+                [
+                    'title' => 'HIS Log Dashboard',
+                    'type' => 'it-hislog',
+                    'id' => 'hislog-dashboard',
+                    'link' => 'admin.it.hislogs.dashboard',
+                    'count' => false,
+                ],
             ],
             'purchase-approve' => [
                 [

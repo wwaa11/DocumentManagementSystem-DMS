@@ -47,7 +47,7 @@
                         <div>การดำเนินการจากแผนก IT</div>
                         <div class="py-3">{{ $item->details }}</div>
                         <div class="flex justify-between text-xs">
-                            <div>{{ $item->user->name }}</div>
+                            <div>{{ $item->user->name ?? $item->userid }}</div>
                             <div>{{ $item->created_at->format('d/m/Y H:i:s') }}</div>
                         </div>
                     </div>

@@ -1,160 +1,130 @@
 @extends('layouts.app')
+
 @section('content')
-    <div class="hidden">
-        {{-- temp CSS load --}}
-        <div class="badge badge-primary">Primary</div>
-        <div class="badge badge-secondary">Secondary</div>
-        <div class="badge badge-accent">Accent</div>
-        <div class="badge badge-neutral">Neutral</div>
-        <div class="badge badge-info">Info</div>
-        <div class="badge badge-success">Success</div>
-        <div class="badge badge-warning">Warning</div>
-        <div class="badge badge-error">Error</div>
-        <div class="badge badge-outline badge-primary">Primary</div>
-        <div class="badge badge-outline badge-secondary">Secondary</div>
-        <div class="badge badge-outline badge-accent">Accent</div>
-        <div class="badge badge-outline badge-info">Info</div>
-        <div class="badge badge-outline badge-success">Success</div>
-        <div class="badge badge-outline badge-warning">Warning</div>
-        <div class="badge badge-outline badge-error">Error</div>
-    </div>
-    <div class="mx-8">
-        <h1 class="text-primary text-2xl font-bold">เอกสารทั้งหมด <span class="float-end"><a
-                    class="btn btn-soft btn-primary" href="{{ route('document.create') }}"><i
-                        class="fa fa-plus"></i>สร้างเอกสารใหม่</a></span></h1>
-        <span class="countdown font-mono text-sm">Refesh in <span class="bg-base-300 mx-2 rounded-md px-2" id="countdown"
-                style="--value:30;"></span> seconds</span>
-        <div class="divider"></div>
-        <form class="mb-4" action="{{ route('document.index') }}" method="GET">
-            <div class="flex flex-row flex-wrap gap-6 rounded-lg p-3">
-                <label class="label cursor-pointer gap-2">
-                    <input class="radio radio-primary" onchange="this.form.submit()" type="radio" name="flag"
-                        value="" {{ request('flag') == '' ? 'checked' : '' }}>
-                    <span class="label-text">เอกสารทั้งหมด</span>
-                </label>
-                <label class="label cursor-pointer gap-2">
-                    <input class="radio radio-primary" onchange="this.form.submit()" type="radio" name="flag"
-                        value="my" {{ request('flag') == 'my' ? 'checked' : '' }}>
-                    <span class="label-text">เอกสารของฉัน</span>
-                </label>
-                <label class="label cursor-pointer gap-2">
-                    <input class="radio radio-primary" onchange="this.form.submit()" type="radio" name="flag"
-                        value="approve" {{ request('flag') == 'approve' ? 'checked' : '' }}>
-                    <span class="label-text">เอกสารที่ต้องอนุมัติ</span>
-                </label>
+    <div class="space-y-5">
+        <section class="page-hero">
+            <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-primary/10 blur-2xl"></div>
+            <div class="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <p class="text-primary/70 mb-1 text-xs font-semibold tracking-wide uppercase">Documents</p>
+                    <h1 class="text-primary text-3xl font-bold tracking-tight">เอกสารทั้งหมด</h1>
+                    <p class="text-base-content/55 mt-2 flex flex-wrap items-center gap-2 text-sm">
+                        <span class="inline-flex items-center gap-2">
+                            <i class="fas fa-sync-alt text-xs"></i>
+                            รีเฟรชใน
+                            <span class="countdown font-mono">
+                                <span class="bg-base-100/80 border-base-200 rounded-md border px-2 py-0.5" id="countdown" style="--value:30;"></span>
+                            </span>
+                            วินาที
+                        </span>
+                    </p>
+                </div>
+                <a class="btn btn-primary gap-2 self-start" href="{{ route('document.create') }}">
+                    <i class="fas fa-plus"></i>
+                    สร้างเอกสารใหม่
+                </a>
             </div>
-            <div class="bg-base-200 rounded-box p-4 shadow-sm">
+        </section>
 
-                <div class="flex flex-row flex-wrap items-center gap-4">
-                    <div class="flex flex-1 flex-row gap-2">
-                        <input class="input input-bordered flex-1" type="text" name="document_number"
-                            placeholder="Search Document Number" value="{{ request('document_number') }}">
-                        <input class="input input-bordered flex-1" type="text" name="detail"
-                            placeholder="Search Details/Keywords" value="{{ request('detail') }}">
+        <form class="space-y-4" action="{{ route('document.index') }}" method="GET">
+            <div class="page-surface flex flex-wrap gap-2 p-2">
+                @php
+                    $flags = [
+                        '' => 'เอกสารทั้งหมด',
+                        'my' => 'เอกสารของฉัน',
+                        'approve' => 'รออนุมัติ',
+                    ];
+                @endphp
+                @foreach ($flags as $value => $label)
+                    <label class="cursor-pointer">
+                        <input
+                            class="peer hidden"
+                            onchange="this.form.submit()"
+                            type="radio"
+                            name="flag"
+                            value="{{ $value }}"
+                            {{ request('flag', '') == $value ? 'checked' : '' }}
+                        >
+                        <span class="peer-checked:bg-primary peer-checked:text-primary-content hover:bg-base-200 inline-flex rounded-xl px-4 py-2 text-sm font-medium transition">
+                            {{ $label }}
+                        </span>
+                    </label>
+                @endforeach
+            </div>
+
+            <div class="filter-panel">
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <div class="grid flex-1 gap-2 md:grid-cols-2">
+                        <input class="input input-bordered w-full" type="text" name="document_number" placeholder="ค้นหาเลขที่เอกสาร" value="{{ request('document_number') }}">
+                        <input class="input input-bordered w-full" type="text" name="detail" placeholder="ค้นหารายละเอียด / คำสำคัญ" value="{{ request('detail') }}">
                     </div>
-
                     <div class="flex gap-2">
-                        <button class="btn btn-primary" type="submit">
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Search
+                        <button class="btn btn-primary gap-2" type="submit">
+                            <i class="fas fa-search"></i>
+                            ค้นหา
                         </button>
-
-                        <label class="btn btn-outline btn-secondary" for="filter_toggle">
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                            </svg>
-                            Filters
+                        <label class="btn btn-outline gap-2" for="filter_toggle">
+                            <i class="fas fa-sliders-h"></i>
+                            ตัวกรอง
                         </label>
                     </div>
-
-
                 </div>
 
                 <input class="peer hidden" id="filter_toggle" type="checkbox" />
-                <div class="border-base-300 mt-6 hidden flex-col gap-6 border-t pt-6 peer-checked:flex">
-
+                <div class="border-base-200 mt-4 hidden flex-col gap-4 border-t pt-4 peer-checked:flex">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                         <div class="form-control">
-                            <label class="label"><span class="label-text font-bold">ประเภทเอกสาร</span></label>
+                            <label class="label py-1"><span class="label-text text-xs font-semibold">ประเภทเอกสาร</span></label>
                             <select class="select select-bordered w-full" name="document_tag">
                                 <option value="">ทั้งหมด</option>
-                                <option value="IT" {{ request('document_tag') == 'IT' ? 'selected' : '' }}>IT</option>
-                                <option value="USER" {{ request('document_tag') == 'USER' ? 'selected' : '' }}>USER
-                                </option>
-                                <option value="Training" {{ request('document_tag') == 'Training' ? 'selected' : '' }}>
-                                    Training</option>
-                                <option value="PURCHASE" {{ request('document_tag') == 'PURCHASE' ? 'selected' : '' }}>
-                                    PURCHASE</option>
-                                <option value="MEDIA" {{ request('document_tag') == 'MEDIA' ? 'selected' : '' }}>
-                                    MEDIA</option>
+                                <option value="IT" @selected(request('document_tag') == 'IT')>IT</option>
+                                <option value="USER" @selected(request('document_tag') == 'USER')>USER</option>
+                                <option value="Training" @selected(request('document_tag') == 'Training')>Training</option>
+                                <option value="PURCHASE" @selected(request('document_tag') == 'PURCHASE')>PURCHASE</option>
+                                <option value="MEDIA" @selected(request('document_tag') == 'MEDIA')>MEDIA</option>
                             </select>
                         </div>
-
                         <div class="form-control">
-                            <label class="label"><span class="label-text font-bold">สถานะเอกสาร</span></label>
+                            <label class="label py-1"><span class="label-text text-xs font-semibold">สถานะเอกสาร</span></label>
                             <select class="select select-bordered w-full" name="status">
                                 <option value="">ทั้งหมด</option>
-                                <option value="wait_approval"
-                                    {{ request('status') == 'wait_approval' ? 'selected' : '' }}>รออนุมัติจากหัวหน้าแผนก
-                                </option>
-                                <option value="not_approval" {{ request('status') == 'not_approval' ? 'selected' : '' }}>
-                                    เอกสารที่ไม่อนุมัติ</option>
-                                <option value="cancel" {{ request('status') == 'cancel' ? 'selected' : '' }}>
-                                    เอกสารที่ถูกยกเลิก</option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>
-                                    รอดำเนินการจากหน่วยงาน</option>
-                                <option value="borrow_approve"
-                                    {{ request('status') == 'borrow_approve' ? 'selected' : '' }}>รออนุมัติการยืมอุปกรณ์
-                                </option>
-                                <option value="borrow" {{ request('status') == 'borrow' ? 'selected' : '' }}>
-                                    อุปกรณ์อยู่ระหว่างการยืม</option>
-                                <option value="reject" {{ request('status') == 'reject' ? 'selected' : '' }}>
-                                    เอกสารที่ถูกปฏิเสธจากหน่วยงาน</option>
-                                <option value="process" {{ request('status') == 'process' ? 'selected' : '' }}>
-                                    เอกสารที่กำลังดำเนินการ</option>
-                                <option value="done" {{ request('status') == 'done' ? 'selected' : '' }}>
-                                    เอกสารที่รออนุมัติ</option>
-                                <option value="complete" {{ request('status') == 'complete' ? 'selected' : '' }}>
-                                    เอกสารที่เสร็จสมบูรณ์</option>
+                                <option value="wait_approval" @selected(request('status') == 'wait_approval')>รออนุมัติจากหัวหน้าแผนก</option>
+                                <option value="not_approval" @selected(request('status') == 'not_approval')>เอกสารที่ไม่อนุมัติ</option>
+                                <option value="cancel" @selected(request('status') == 'cancel')>เอกสารที่ถูกยกเลิก</option>
+                                <option value="pending" @selected(request('status') == 'pending')>รอดำเนินการจากหน่วยงาน</option>
+                                <option value="borrow_approve" @selected(request('status') == 'borrow_approve')>รออนุมัติการยืมอุปกรณ์</option>
+                                <option value="borrow" @selected(request('status') == 'borrow')>อุปกรณ์อยู่ระหว่างการยืม</option>
+                                <option value="reject" @selected(request('status') == 'reject')>เอกสารที่ถูกปฏิเสธจากหน่วยงาน</option>
+                                <option value="process" @selected(request('status') == 'process')>เอกสารที่กำลังดำเนินการ</option>
+                                <option value="done" @selected(request('status') == 'done')>เอกสารที่รออนุมัติ</option>
+                                <option value="complete" @selected(request('status') == 'complete')>เอกสารที่เสร็จสมบูรณ์</option>
                             </select>
                         </div>
-
                         <div class="form-control">
-                            <label class="label"><span class="label-text font-bold">ช่วงวันที่สร้าง</span></label>
+                            <label class="label py-1"><span class="label-text text-xs font-semibold">ช่วงวันที่สร้าง</span></label>
                             <div class="join w-full">
-                                <input class="join-item input input-bordered w-1/2" type="date"
-                                    name="created_at_start" value="{{ request('created_at_start') }}">
-                                <input class="join-item input input-bordered w-1/2" type="date" name="created_at_end"
-                                    value="{{ request('created_at_end') }}">
+                                <input class="join-item input input-bordered w-1/2" type="date" name="created_at_start" value="{{ request('created_at_start') }}">
+                                <input class="join-item input input-bordered w-1/2" type="date" name="created_at_end" value="{{ request('created_at_end') }}">
                             </div>
                         </div>
                     </div>
-
-
-
                     <div class="flex justify-end gap-2">
-                        <a class="btn btn-ghost" href="{{ route('document.index') }}">Clear All Filters</a>
-                        <button class="btn btn-primary px-8" type="submit">Apply Advanced Filters</button>
+                        <a class="btn btn-ghost btn-sm" href="{{ route('document.index') }}">ล้างตัวกรอง</a>
+                        <button class="btn btn-primary btn-sm px-6" type="submit">ใช้ตัวกรอง</button>
                     </div>
                 </div>
             </div>
         </form>
 
         @if ($pendingApprovals->isNotEmpty())
-            <div class="mb-8">
-                <div class="mb-3 flex items-center justify-between">
-                    <h2 class="text-warning text-xl font-bold">
-                        <i class="fas fa-clipboard-check mr-2"></i>เอกสารที่ต้องอนุมัติ
-                        <span class="badge badge-warning badge-sm ml-2">{{ $pendingApprovals->count() }}</span>
+            <section class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-warning text-lg font-bold">
+                        <i class="fas fa-clipboard-check mr-1"></i>เอกสารที่ต้องอนุมัติ
                     </h2>
+                    <span class="badge badge-warning badge-sm">{{ $pendingApprovals->count() }}</span>
                 </div>
-                <div class="border-warning/30 bg-base-100 overflow-x-auto rounded-lg border-2">
+                <div class="data-table-wrap border-warning/25">
                     <table class="table w-full">
                         <thead>
                             <tr>
@@ -173,21 +143,21 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         @endif
 
         @if (request('flag') !== 'approve')
-            <div>
-                <div class="mb-3 flex items-center justify-between">
-                    <h2 class="text-primary text-xl font-bold">
-                        <i class="fas fa-folder-open mr-2"></i>
+            <section class="space-y-3">
+                <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                    <h2 class="text-primary text-lg font-bold">
+                        <i class="fas fa-folder-open mr-1"></i>
                         {{ request('flag') === 'my' ? 'เอกสารของฉัน' : 'เอกสารของฉัน / เอกสารทั้งหมด' }}
                     </h2>
+                    <p class="text-base-content/50 text-sm">
+                        แสดง {{ $documents->firstItem() ?? 0 }} ถึง {{ $documents->lastItem() ?? 0 }} จาก {{ number_format($documents->total()) }} รายการ
+                    </p>
                 </div>
-                <p class="text-base-content/50 mb-2 text-sm">
-                    แสดง {{ $documents->firstItem() ?? 0 }} ถึง {{ $documents->lastItem() ?? 0 }} จาก {{ $documents->total() }} รายการ
-                </p>
-                <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
+                <div class="data-table-wrap">
                     <table class="table w-full">
                         <thead>
                             <tr>
@@ -204,24 +174,33 @@
                                 @include('document.partials.index-row', ['document' => $document])
                             @empty
                                 <tr>
-                                    <td class="text-base-content/50 py-8 text-center" colspan="6">ไม่พบเอกสาร</td>
+                                    <td class="text-base-content/50 py-12 text-center" colspan="6">
+                                        <div class="flex flex-col items-center gap-2">
+                                            <i class="fas fa-inbox text-2xl opacity-40"></i>
+                                            <span>ไม่พบเอกสาร</span>
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-                <div class="divider"></div>
-                <div class="flex justify-end">
-                    {{ $documents->links() }}
-                </div>
-            </div>
+                @if ($documents->hasPages())
+                    <div class="flex justify-end">
+                        {{ $documents->links() }}
+                    </div>
+                @endif
+            </section>
         @elseif ($pendingApprovals->isEmpty())
-            <div class="border-base-content/5 bg-base-100 rounded-lg border p-8 text-center">
-                <p class="text-base-content/50">ไม่มีเอกสารที่ต้องอนุมัติ</p>
+            <div class="page-surface p-10 text-center">
+                <i class="fas fa-check-circle text-success mb-3 text-3xl"></i>
+                <p class="font-semibold">ไม่มีเอกสารที่ต้องอนุมัติ</p>
+                <p class="text-base-content/50 mt-1 text-sm">คุณอัปเดตครบแล้วในขณะนี้</p>
             </div>
         @endif
     </div>
 @endsection
+
 @push('scripts')
     <script>
         let seconds = 30;

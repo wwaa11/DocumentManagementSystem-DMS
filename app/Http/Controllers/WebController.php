@@ -37,7 +37,14 @@ class WebController extends Controller
             abort(404);
         }
 
-        return Storage::disk('public')->response($path, $file->original_filename);
+        return Storage::disk('public')->response(
+            $path,
+            $file->original_filename,
+            [
+                'Content-Type' => $file->resolvedMimeType(),
+            ],
+            'inline'
+        );
     }
 
     public function fileDownload(File $file): StreamedResponse|BinaryFileResponse|Response

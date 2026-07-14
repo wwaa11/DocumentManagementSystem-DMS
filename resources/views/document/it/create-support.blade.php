@@ -34,6 +34,26 @@
                 </div>
             </label>
 
+            <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="title_his">
+                <div class="flex items-center">
+                    <input class="radio radio-primary mr-3" id="title_his" value="HIS" name="title" type="radio" onchange="selectSupportType('HIS')" />
+                    <div>
+                        <h4 class="font-medium">HIS (MonkeyTech)</h4>
+                        <div class="text-base-content/70 text-sm">ระบบ HIS MonkeyTech</div>
+                    </div>
+                </div>
+            </label>
+
+            <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="title_erp">
+                <div class="flex items-center">
+                    <input class="radio radio-primary mr-3" id="title_erp" value="ERP" name="title" type="radio" onchange="selectSupportType('ERP')" />
+                    <div>
+                        <h4 class="font-medium">ERP (NetSuite)</h4>
+                        <div class="text-base-content/70 text-sm">ระบบ ERP NetSuite</div>
+                    </div>
+                </div>
+            </label>
+
             <label class="hover:bg-primary/5 cursor-pointer rounded-lg p-4 transition-all hover:shadow-md" for="title_reset_password">
                 <div class="flex items-center">
                     <input class="radio radio-primary mr-3" id="title_reset_password" value="RESET_PASSWORD" name="title" type="radio" onchange="selectSupportType('RESET_PASSWORD')" />
@@ -250,6 +270,112 @@
             </label>
         </div>
     </div>
+    {{-- if request_type == 'his' --}}
+    <div class="hidden" id="his_request_fieldset">
+        <h4 class="card-title text-primary mb-4 flex items-center text-xl">
+            <i class="fas fa-hospital text-primary mr-2"></i> รายละเอียดการขอ (HIS - MonkeyTech)
+        </h4>
+        <div class="flex flex-col gap-3">
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_his_1">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_his_1" onclick="setDataApprove('support', true, 'ITS')" value="แจ้ง Issue ส่งต่อ Monkey" name="request_type_detail" type="radio" />
+                        <span class="label-text">แจ้ง Issue ส่งต่อ Monkey</span>
+                    </div>
+                </div>
+            </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_his_2">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_his_2" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งปัญหาเกี่ยวกับโปรแกรม Monkey" name="request_type_detail" type="radio" />
+                        <span class="label-text">แจ้งปัญหาเกี่ยวกับโปรแกรม Monkey</span>
+                    </div>
+                </div>
+            </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_his_3">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_his_3" onclick="setDataApprove('support', false, 'ITJ')" value="แจ้งขอ เพิ่ม/แก้ไข/ปรับปรุง/CR โปรแกรม ส่งต่อ Monkey" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้งขอ เพิ่ม/แก้ไข/ปรับปรุง/CR โปรแกรม ส่งต่อ Monkey</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_his_4">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_his_4" onclick="setDataApprove('support', false, 'ITJ')" value="แจ้งขอ เพิ่ม/แก้ไข/ปรับปรุง รายงานใน Monkey" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้งขอ เพิ่ม/แก้ไข/ปรับปรุง รายงานใน Monkey</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_his_5">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_his_5" onclick="setDataApprove('support', false, 'ITJ')" value="แจ้งขอ Setup/Config ต่างๆ ในระบบ Monkey" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้งขอ Setup/Config ต่างๆ ในระบบ Monkey</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+        </div>
+    </div>
+    {{-- if request_type == 'erp' --}}
+    <div class="hidden" id="erp_request_fieldset">
+        <h4 class="card-title text-primary mb-4 flex items-center text-xl">
+            <i class="fas fa-building text-primary mr-2"></i> รายละเอียดการขอ (ERP - NetSuite)
+        </h4>
+        <div class="flex flex-col gap-3">
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_erp_1">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_erp_1" onclick="setDataApprove('support', true, 'ITS')" value="แจ้งปัญหาเกี่ยวกับโปรแกรม ERP" name="request_type_detail" type="radio" />
+                        <span class="label-text">แจ้งปัญหาเกี่ยวกับโปรแกรม ERP</span>
+                    </div>
+                </div>
+            </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_erp_2">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_erp_2" onclick="setDataApprove('support', false, 'ITJ')" value="แจ้งขอ Setup/Config ต่างๆ ในระบบ ERP" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้งขอ Setup/Config ต่างๆ ในระบบ ERP</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_erp_3">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_erp_3" onclick="setDataApprove('support', false, 'ITJ')" value="แจ้ง Void /ยกเลิกต่างๆ ใน ERP" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้ง Void /ยกเลิกต่างๆ ใน ERP</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_erp_4">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_erp_4" onclick="setDataApprove('support', false, 'ITJ')" value="แจ้ง ขอแก้ไข/ปรับปรุง ERP" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้ง ขอแก้ไข/ปรับปรุง ERP</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+        </div>
+    </div>
 
     <label class="label mt-6">
         <span class="fa fa-info-circle"></span>
@@ -264,6 +390,8 @@
             $('#hardware_request_fieldset').addClass('hidden');
             $('#software_request_fieldset').addClass('hidden');
             $('#ssb_request_fieldset').addClass('hidden');
+            $('#his_request_fieldset').addClass('hidden');
+            $('#erp_request_fieldset').addClass('hidden');
             $('#reset_password_request_fieldset').addClass('hidden');
             $('#other_request_fieldset').addClass('hidden');
             $('#title_other_text').prop('disabled', true);
@@ -276,6 +404,10 @@
                 $('#software_request_fieldset').removeClass('hidden');
             } else if (type === 'SSB') {
                 $('#ssb_request_fieldset').removeClass('hidden');
+            } else if (type === 'HIS') {
+                $('#his_request_fieldset').removeClass('hidden');
+            } else if (type === 'ERP') {
+                $('#erp_request_fieldset').removeClass('hidden');
             } else if (type === 'RESET_PASSWORD') {
                 $('#reset_password_request_fieldset').removeClass('hidden');
                 $('#documentCode').val('ITS');

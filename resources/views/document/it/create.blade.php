@@ -202,7 +202,7 @@
                     } else if (title === 'OTHER' && !$('#title_other_text').val()) {
                         isValid = false;
                         errorMessage = 'กรุณาระบุประเภทงานอื่นๆ';
-                    } else if (['HARDWARE', 'SOFTWARE', 'SSB'].includes(title)) {
+                    } else if (['HARDWARE', 'SOFTWARE', 'SSB', 'HIS', 'ERP'].includes(title)) {
                         const requestDetail = $('input[name="request_type_detail"]:checked').val();
                         if (!requestDetail) {
                             isValid = false;

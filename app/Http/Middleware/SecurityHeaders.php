@@ -15,10 +15,10 @@ class SecurityHeaders
         $response = $next($request);
 
         $csp = "default-src 'self';
-        script-src 'self' 'unsafe-inline' https://kit.fontawesome.com;
+        script-src 'self' 'unsafe-inline' https://kit.fontawesome.com https://cdn.jsdelivr.net;
         style-src 'self' 'unsafe-inline' https://fonts.bunny.net;
         img-src 'self' data: https:;
-        connect-src 'self' https://ka-f.fontawesome.com;
+        connect-src 'self' https://ka-f.fontawesome.com https://cdn.jsdelivr.net;
         font-src 'self' https://fonts.bunny.net https://ka-f.fontawesome.com;
         frame-src 'self';
         frame-ancestors 'self'";

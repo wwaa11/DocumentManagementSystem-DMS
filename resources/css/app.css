@@ -6,13 +6,199 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'DM Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
-
 
 @plugin "daisyui" {
-    themes: light --default, dark --prefersdark, emerald;
+    themes: praram --default;
 }
 
-;
+@plugin "daisyui/theme" {
+    name: "praram";
+    default: true;
+    color-scheme: light;
+    --color-base-100: oklch(99% 0.005 200);
+    --color-base-200: oklch(96.5% 0.012 200);
+    --color-base-300: oklch(92% 0.02 200);
+    --color-base-content: oklch(28% 0.04 220);
+    --color-primary: oklch(52% 0.12 210);
+    --color-primary-content: oklch(98% 0.01 200);
+    --color-secondary: oklch(60% 0.1 185);
+    --color-secondary-content: oklch(98% 0.01 185);
+    --color-accent: oklch(62% 0.14 160);
+    --color-accent-content: oklch(98% 0.01 160);
+    --color-neutral: oklch(35% 0.03 220);
+    --color-neutral-content: oklch(97% 0.005 200);
+    --color-info: oklch(65% 0.12 230);
+    --color-info-content: oklch(25% 0.05 230);
+    --color-success: oklch(60% 0.14 155);
+    --color-success-content: oklch(98% 0.01 155);
+    --color-warning: oklch(78% 0.14 85);
+    --color-warning-content: oklch(30% 0.06 85);
+    --color-error: oklch(60% 0.18 25);
+    --color-error-content: oklch(98% 0.01 25);
+    --radius-selector: 0.5rem;
+    --radius-field: 0.6rem;
+    --radius-box: 0.9rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-base-200 text-base-content antialiased;
+        background-image:
+            radial-gradient(ellipse 80% 50% at 0% -10%, color-mix(in oklab, var(--color-primary) 12%, transparent), transparent),
+            radial-gradient(ellipse 60% 40% at 100% 0%, color-mix(in oklab, var(--color-accent) 8%, transparent), transparent);
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    .app-shell {
+        @apply min-h-screen;
+    }
+
+    /* Drawer sidebar: remove the empty gap beside the panel (desktop only) */
+    @media (min-width: 1024px) {
+        .drawer.lg\:drawer-open > .drawer-toggle ~ .drawer-side {
+            width: 14rem;
+            flex-shrink: 0;
+            overflow: visible;
+        }
+
+        .drawer.lg\:drawer-open > .drawer-toggle ~ .drawer-side > .drawer-overlay {
+            display: none !important;
+        }
+    }
+
+    .app-sidebar {
+        @apply border-base-300/70 bg-base-100 text-base-content flex min-h-full w-56 flex-col overflow-visible border-r lg:w-full;
+    }
+
+    .app-sidebar-brand {
+        @apply border-base-200 flex w-full flex-col items-center gap-1 border-b px-3 py-4;
+    }
+
+    .app-user-card {
+        @apply border-base-200 from-primary/5 to-accent/5 mx-2 mt-3 mb-2 rounded-xl border bg-gradient-to-br p-2.5 text-[11px] leading-snug;
+    }
+
+    .app-menu-group-picker {
+        @apply relative z-20 mx-2 mb-2 shrink-0;
+    }
+
+    .app-menu-group-picker .dropdown {
+        @apply relative w-full;
+    }
+
+    .app-menu-group-picker .dropdown-content {
+        @apply max-h-64 overflow-y-auto;
+    }
+
+    .app-nav.menu {
+        width: 100% !important;
+        max-width: 100%;
+        flex-wrap: nowrap;
+        @apply gap-0.5 px-1.5;
+    }
+
+    .app-nav.menu > li {
+        width: 100%;
+    }
+
+    /* Nested group panels inherit daisyUI fit-content + indent — override both */
+    .app-nav .menu-group-panel.menu {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-inline-start: 0 !important;
+        padding-inline-start: 0 !important;
+        padding: 0 !important;
+        flex-wrap: nowrap;
+    }
+
+    .app-nav .menu-group-panel.menu::before,
+    .app-nav li:has(> .menu-group-panel)::before {
+        display: none !important;
+        content: none !important;
+    }
+
+    .app-nav .menu-group-panel.menu > li {
+        width: 100% !important;
+    }
+
+    .app-nav .nav-link {
+        @apply text-base-content/75 w-full rounded-lg font-medium transition-all duration-200;
+    }
+
+    .app-nav .nav-link:hover {
+        @apply bg-primary/8 text-primary;
+    }
+
+    .app-nav .nav-link.menu-active {
+        @apply bg-primary text-primary-content shadow-sm;
+    }
+
+    .app-nav .menu-section {
+        @apply text-base-content/40 my-2 w-full px-2 text-[10px] font-bold tracking-[0.14em] uppercase;
+    }
+
+    .app-main {
+        @apply min-h-screen;
+    }
+
+    .app-topbar {
+        @apply border-base-300/60 bg-base-100/80 sticky top-0 z-40 border-b px-4 py-3 backdrop-blur-md lg:hidden;
+    }
+
+    .app-content {
+        @apply px-4 py-5 sm:px-6 lg:px-8 lg:py-6;
+    }
+
+    .page-surface {
+        @apply border-base-200/80 bg-base-100/90 rounded-2xl border shadow-sm;
+    }
+
+    .page-hero {
+        @apply from-primary/10 via-base-100 to-accent/5 border-base-200/80 relative overflow-hidden rounded-2xl border bg-gradient-to-br p-5 shadow-sm sm:p-6;
+    }
+
+    .filter-panel {
+        @apply border-base-200 bg-base-100 rounded-2xl border p-4 shadow-sm;
+    }
+
+    .data-table-wrap {
+        @apply border-base-200 bg-base-100 overflow-x-auto rounded-2xl border shadow-sm;
+    }
+
+    .data-table-wrap table thead tr {
+        @apply bg-base-200/70 text-base-content/60 text-xs tracking-wide uppercase;
+    }
+
+    .data-table-wrap table tbody tr {
+        @apply hover:bg-primary/5 transition-colors duration-150;
+    }
+}

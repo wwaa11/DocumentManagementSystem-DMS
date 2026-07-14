@@ -1,9 +1,7 @@
 <?php
+
 namespace App\Models;
 
-use App\Models\DocumentHc;
-use App\Models\DocumentHeartstream;
-use App\Models\DocumentPac;
 use Illuminate\Database\Eloquent\Model;
 
 class DocumentUser extends Model
@@ -33,45 +31,45 @@ class DocumentUser extends Model
     {
         return [
             'document_tag' => 'USER',
-            'colour'       => 'warning',
+            'colour' => 'warning',
         ];
     }
 
     public function getListDetailAttribute()
     {
 
-        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
+        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100).'...' : $this->detail;
     }
 
     public function getStatusAttribute()
     {
         $documentStatus = null;
-        $documents      = $this->getAllDocuments();
-        $statusArray    = [];
+        $documents = $this->getAllDocuments();
+        $statusArray = [];
         foreach ($documents as $document) {
             switch ($document->status) {
-                case ("wait_approval"):
+                case 'wait_approval':
                     $statusArray[] = 'wait_approval';
                     break;
-                case ("cancel"):
+                case 'cancel':
                     $statusArray[] = 'cancel';
                     break;
-                case ("not_approval"):
+                case 'not_approval':
                     $statusArray[] = 'not_approval';
                     break;
-                case ("pending"):
+                case 'pending':
                     $statusArray[] = 'pending';
                     break;
-                case ("reject"):
+                case 'reject':
                     $statusArray[] = 'reject';
                     break;
-                case ("process"):
+                case 'process':
                     $statusArray[] = 'process';
                     break;
-                case ("done"):
+                case 'done':
                     $statusArray[] = 'done';
                     break;
-                case ("complete"):
+                case 'complete':
                     $statusArray[] = 'complete';
                     break;
             }
@@ -146,7 +144,7 @@ class DocumentUser extends Model
     public function getAllDocuments()
     {
         $document_user_id = $this->id;
-        $document         = [];
+        $document = [];
 
         $it = DocumentitUser::where('document_user_id', $document_user_id)->first();
         if ($it) {
@@ -175,11 +173,11 @@ class DocumentUser extends Model
     public function gettAlllogs()
     {
         $it = DocumentitUser::where('document_user_id', $this->id)->first();
-        if ($it == null) {
-            return null;
-        } else {
-            return $it->logs->where('action', 'process');
-        }
-    }
 
+        if ($it === null) {
+            return collect();
+        }
+
+        return $it->logs->where('action', 'process')->values();
+    }
 }

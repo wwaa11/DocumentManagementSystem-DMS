@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-theme="emerald" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html data-theme="praram" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
@@ -8,251 +8,314 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link rel="icon" href="{{ asset('images/icon.ico') }}" type="image/x-icon">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700" rel="stylesheet" />
     <script src="https://kit.fontawesome.com/a20e89230f.js" crossorigin="anonymous"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="">
-    <div class="drawer lg:drawer-open">
+<body>
+    <div class="app-shell drawer lg:drawer-open">
         <input class="drawer-toggle" id="my-drawer" type="checkbox" />
-        <div class="drawer-content">
-            <div class="flex p-6">
-                <label class="btn btn-primary drawer-button m-auto flex-1 lg:hidden" for="my-drawer">MENU</label>
+
+        <div class="drawer-content app-main">
+            <div class="app-topbar flex items-center gap-3 md:hidden">
+                <label class="btn btn-primary btn-sm gap-2" for="my-drawer" aria-label="เปิดเมนู">
+                    <i class="fas fa-bars"></i>
+                    เมนู
+                </label>
             </div>
-            @yield('content')
+
+            <div class="app-content">
+                @yield('content')
+            </div>
         </div>
-        <div class="drawer-side">
-            <label class="drawer-overlay" for="my-drawer" aria-label="close sidebar"></label>
-            <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-                <a href="{{ route('document.index') }}">
-                    <img class="m-3 mx-auto w-24" src="{{ asset('images/Vertical Logo.png') }}" alt="logo">
+
+        <div class="drawer-side z-50">
+            <label class="drawer-overlay" for="my-drawer" aria-label="ปิดเมนู"></label>
+            <aside class="app-sidebar">
+                <a class="app-sidebar-brand" href="{{ route('document.index') }}">
+                    <img class="h-12 w-auto object-contain" src="{{ asset('images/Vertical Logo.png') }}" alt="Praram9 logo">
+                    <div class="text-center">
+                        <p class="text-primary text-sm font-bold tracking-tight">Praram9 DMS</p>
+                        <p class="text-base-content/45 text-[10px]">Document Management</p>
+                    </div>
                 </a>
-                <li class="menu-title">Praram9 - DMS</li>
-                <div class="text-info-content bg-neutral-content mb-1 flex flex-col gap-0.5 rounded-md p-3 text-xs">
-                    <div><i class="fa-regular fa-user"></i> : {{ auth()->user()->userid }} <a class="text-error float-right cursor-pointer" onclick="logoutRequest()">ออกจากระบบ</a></div>
-                    <div><i class="fa-solid fa-minus"></i> : {{ auth()->user()->name }}</div>
-                    <div><i class="fa-solid fa-minus"></i> : {{ auth()->user()->department }}</div>
+
+                <div class="app-user-card">
+                    <div class="mb-1 flex items-center justify-between gap-2">
+                        <span class="badge badge-primary badge-soft badge-xs">{{ auth()->user()->userid }}</span>
+                        <button class="text-error hover:bg-error/10 cursor-pointer rounded px-1.5 py-0.5 text-[10px] font-semibold transition" type="button" onclick="logoutRequest()">
+                            ออกจากระบบ
+                        </button>
+                    </div>
+                    <p class="truncate font-semibold" title="{{ auth()->user()->name }}">{{ auth()->user()->name }}</p>
+                    <p class="text-base-content/55 truncate" title="{{ auth()->user()->department }}">{{ auth()->user()->department }}</p>
                 </div>
-                <li class="mb-1"><a class="nav-link" data-route="document.index" href="{{ route('document.index') }}">เอกสารทั้งหมด</a></li>
-                <li class="mb-1"><a class="nav-link" data-route="document.create" href="{{ route('document.create') }}">สร้างเอกสาร</a></li>
+
                 @if (auth()->user()->role !== 'user' && auth()->user()->menu)
                     @php
                         $menuGroups = auth()->user()->menu['groups'] ?? [];
                         $menuLists = auth()->user()->menu['lists'] ?? [];
-                        $menuCounts = auth()->user()->menu['count'] ?? [];
                     @endphp
 
                     @if (! empty($menuGroups))
-                        <li class="mb-2 mt-2 px-1">
-                            <div class="form-control w-full">
-                                <label class="label py-1" for="menu-group-select">
-                                    <span class="label-text text-xs font-semibold">กลุ่มเมนู</span>
-                                </label>
-                                <select class="select select-bordered select-sm w-full" id="menu-group-select">
+                        <div class="app-menu-group-picker">
+                            <span class="text-base-content/40 mb-1 block px-0.5 text-[10px] font-bold tracking-[0.14em] uppercase">
+                                กลุ่มงาน
+                            </span>
+                            <details class="dropdown w-full" id="menu-group-dropdown">
+                                <summary
+                                    class="btn btn-sm btn-outline border-base-300 bg-base-100 hover:bg-base-200 w-full justify-between font-normal"
+                                    id="menu-group-select"
+                                    aria-label="เลือกกลุ่มเมนู"
+                                >
+                                    <span class="truncate" id="menu-group-label">{{ $menuGroups[0]['label'] ?? 'เลือกกลุ่มงาน' }}</span>
+                                    <i class="fas fa-chevron-down text-[10px] opacity-50"></i>
+                                </summary>
+                                <ul class="dropdown-content menu bg-base-100 rounded-box border-base-200 z-50 mt-1 w-full border p-1 shadow-lg" role="listbox">
                                     @foreach ($menuGroups as $group)
-                                        <option value="{{ $group['key'] }}">{{ $group['label'] }}</option>
+                                        <li role="option">
+                                            <button class="menu-group-option" type="button" data-group="{{ $group['key'] }}">
+                                                {{ $group['label'] }}
+                                            </button>
+                                        </li>
                                     @endforeach
-                                </select>
-                            </div>
-                        </li>
-                        @foreach ($menuGroups as $group)
-                            <ul class="menu-group-panel hidden" data-group="{{ $group['key'] }}">
-                                @foreach ($group['menus'] as $link)
-                                    @if ($link['link'] == null)
-                                        <li>
-                                            <div class="divider">{{ $link['title'] }}</div>
-                                        </li>
-                                    @else
-                                        <li class="mb-1">
-                                            <a class="nav-link" data-route="{{ $link['type'] }}.{{ $link['link'] }}" href="{{ route($link['link'], ['type' => $link['type']]) }}">
-                                                {{ $link['title'] }}
-                                                @if ($link['count'])
-                                                    <span class="badge badge-sm badge-primary float-right" id="{{ $link['type'] }}.{{ $link['id'] }}">-</span>
-                                                @endif
-                                            </a>
-                                        </li>
-                                    @endif
-                                @endforeach
-                            </ul>
-                        @endforeach
-                    @else
-                        <ul>
+                                </ul>
+                            </details>
+                        </div>
+                    @endif
+                @endif
+
+                <ul class="app-nav menu menu-sm flex-1 overflow-y-auto pb-4 w-full">
+                    <li class="menu-section">หลัก</li>
+                    <li>
+                        <a class="nav-link" data-route="document.index" href="{{ route('document.index') }}">
+                            <i class="fas fa-folder-open w-4 text-center opacity-70"></i>
+                            เอกสารทั้งหมด
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link" data-route="document.create" href="{{ route('document.create') }}">
+                            <i class="fas fa-plus-circle w-4 text-center opacity-70"></i>
+                            สร้างเอกสาร
+                        </a>
+                    </li>
+
+                    @if (auth()->user()->role !== 'user' && auth()->user()->menu)
+                        @if (! empty($menuGroups))
+                            @foreach ($menuGroups as $group)
+                                <li class="w-full !p-0">
+                                    <ul class="menu menu-sm menu-group-panel hidden w-full" data-group="{{ $group['key'] }}">
+                                        @foreach ($group['menus'] as $link)
+                                            @if ($link['link'] == null)
+                                                <li class="menu-section">{{ $link['title'] }}</li>
+                                            @else
+                                                <li class="w-full">
+                                                    <a class="nav-link" data-route="{{ $link['type'] }}.{{ $link['link'] }}" href="{{ route($link['link'], ['type' => $link['type']]) }}">
+                                                        <span class="truncate">{{ $link['title'] }}</span>
+                                                        @if ($link['count'])
+                                                            <span class="badge badge-xs badge-primary" id="{{ $link['type'] }}.{{ $link['id'] }}">-</span>
+                                                        @endif
+                                                    </a>
+                                                </li>
+                                            @endif
+                                        @endforeach
+                                    </ul>
+                                </li>
+                            @endforeach
+                        @else
+                            <li class="menu-section mt-3">เมนูงาน</li>
                             @foreach ($menuLists as $link)
                                 @if ($link['link'] == null)
-                                    <li>
-                                        <div class="divider">{{ $link['title'] }}</div>
-                                    </li>
+                                    <li class="menu-section">{{ $link['title'] }}</li>
                                 @else
-                                    <li class="mb-1">
+                                    <li>
                                         <a class="nav-link" data-route="{{ $link['type'] }}.{{ $link['link'] }}" href="{{ route($link['link'], ['type' => $link['type']]) }}">
-                                            {{ $link['title'] }}
+                                            <span class="truncate">{{ $link['title'] }}</span>
                                             @if ($link['count'])
-                                                <span class="badge badge-sm badge-primary float-right" id="{{ $link['type'] }}.{{ $link['id'] }}">-</span>
+                                                <span class="badge badge-xs badge-primary" id="{{ $link['type'] }}.{{ $link['id'] }}">-</span>
                                             @endif
                                         </a>
                                     </li>
                                 @endif
                             @endforeach
-                        </ul>
+                        @endif
                     @endif
-                @endif
-            </ul>
+                </ul>
+            </aside>
         </div>
     </div>
-</body>
 
-@if (session('success'))
-    <script type="module">
-        Swal.fire({
-            icon: 'success',
-            title: 'Success',
-            text: '{{ session('success') }}',
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
-    </script>
-@endif
-@if (session('error'))
-    <script type="module">
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: '{{ session('error') }}',
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-        });
-    </script>
-@endif
-<script type="module">
-    $(function() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        const activeRoute = localStorage.getItem('activeRoute') || 'document.index';
-        navLinks.forEach(link => {
-            if (link.getAttribute('data-route') === activeRoute) {
-                link.classList.add('menu-active');
-            }
-
-            link.addEventListener('click', function() {
-                navLinks.forEach(l => l.classList.remove('menu-active'));
-                this.classList.add('menu-active');
-                localStorage.setItem('activeRoute', this.getAttribute('data-route'));
+    @if (session('success'))
+        <script type="module">
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: '{{ session('success') }}',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
             });
-        });
+        </script>
+    @endif
+    @if (session('error'))
+        <script type="module">
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '{{ session('error') }}',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+            });
+        </script>
+    @endif
 
-        @if (auth()->user()->role !== 'user' && auth()->user()->menu)
-            @php
-                $layoutGroups = collect(auth()->user()->menu['groups'] ?? [])->map(function (array $group) {
-                    return [
-                        'key' => $group['key'],
-                        'counts' => collect($group['counts'])->map(function (array $count) {
-                            return [
-                                'url' => route($count['route'], ['type' => $count['type']]),
-                            ];
-                        })->values()->all(),
-                    ];
-                })->values()->all();
+    <script type="module">
+        $(function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const activeRoute = localStorage.getItem('activeRoute') || 'document.index';
+            navLinks.forEach(link => {
+                if (link.getAttribute('data-route') === activeRoute) {
+                    link.classList.add('menu-active');
+                }
 
-                $layoutFlatCounts = collect(auth()->user()->menu['count'] ?? [])->map(function (array $count) {
-                    return [
-                        'url' => route($count['route'], ['type' => $count['type']]),
-                    ];
-                })->values()->all();
-            @endphp
-
-            const menuGroups = @json($layoutGroups);
-            const flatCounts = @json($layoutFlatCounts);
-            const countTimers = {};
-
-            function clearCountTimers() {
-                Object.values(countTimers).forEach((timerId) => clearTimeout(timerId));
-                Object.keys(countTimers).forEach((key) => delete countTimers[key]);
-            }
-
-            function pollCount(url, key) {
-                axios.get(url).then(function(response) {
-                    Object.keys(response.data).forEach(badgeKey => {
-                        updateCount(badgeKey, response.data[badgeKey]);
-                    });
-                    countTimers[key] = setTimeout(() => {
-                        pollCount(url, key);
-                    }, 60 * 1000);
+                link.addEventListener('click', function() {
+                    navLinks.forEach(l => l.classList.remove('menu-active'));
+                    this.classList.add('menu-active');
+                    localStorage.setItem('activeRoute', this.getAttribute('data-route'));
                 });
-            }
+            });
 
-            function startCounts(counts) {
-                clearCountTimers();
-                counts.forEach((link, index) => {
-                    pollCount(link.url, `${link.url}.${index}`);
-                });
-            }
+            @if (auth()->user()->role !== 'user' && auth()->user()->menu)
+                @php
+                    $layoutGroups = collect(auth()->user()->menu['groups'] ?? [])->map(function (array $group) {
+                        return [
+                            'key' => $group['key'],
+                            'counts' => collect($group['counts'])->map(function (array $count) {
+                                return [
+                                    'url' => route($count['route'], ['type' => $count['type']]),
+                                ];
+                            })->values()->all(),
+                        ];
+                    })->values()->all();
 
-            function showMenuGroup(groupKey) {
-                document.querySelectorAll('.menu-group-panel').forEach((panel) => {
-                    panel.classList.toggle('hidden', panel.getAttribute('data-group') !== groupKey);
-                });
+                    $layoutFlatCounts = collect(auth()->user()->menu['count'] ?? [])->map(function (array $count) {
+                        return [
+                            'url' => route($count['route'], ['type' => $count['type']]),
+                        ];
+                    })->values()->all();
+                @endphp
 
-                const selectedGroup = menuGroups.find((group) => group.key === groupKey);
-                startCounts(selectedGroup ? selectedGroup.counts : []);
-                localStorage.setItem('activeMenuGroup', groupKey);
-            }
+                const menuGroups = @json($layoutGroups);
+                const flatCounts = @json($layoutFlatCounts);
+                const countTimers = {};
 
-            if (menuGroups.length > 0) {
-                const select = document.getElementById('menu-group-select');
-                const savedGroup = localStorage.getItem('activeMenuGroup');
-                const initialGroup = menuGroups.some((group) => group.key === savedGroup)
-                    ? savedGroup
-                    : menuGroups[0].key;
+                function clearCountTimers() {
+                    Object.values(countTimers).forEach((timerId) => clearTimeout(timerId));
+                    Object.keys(countTimers).forEach((key) => delete countTimers[key]);
+                }
 
-                if (select) {
-                    select.value = initialGroup;
-                    select.addEventListener('change', function() {
-                        showMenuGroup(this.value);
+                function pollCount(url, key) {
+                    axios.get(url).then(function(response) {
+                        Object.keys(response.data).forEach(badgeKey => {
+                            updateCount(badgeKey, response.data[badgeKey]);
+                        });
+                        countTimers[key] = setTimeout(() => {
+                            pollCount(url, key);
+                        }, 60 * 1000);
                     });
                 }
 
-                showMenuGroup(initialGroup);
-            } else {
-                startCounts(flatCounts);
-            }
-        @endif
-    });
-</script>
-<script>
-    function updateCount(id, number) {
-        if (document.getElementById(id)) {
-            document.getElementById(id).textContent = number;
-        }
-    }
-
-    function logoutRequest() {
-        Swal.fire({
-            title: 'ต้องการออกจากระบบหรือไม่?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            buttonsStyling: false,
-            customClass: {
-                confirmButton: 'btn btn-error mx-3',
-                cancelButton: 'btn btn-ghost mx-3'
-            },
-        }).then((result) => {
-            if (result.isConfirmed) {
-                localStorage.setItem('activeRoute', 'logout');
-                axios.post('{{ route('logout') }}')
-                    .then(function(response) {
-                        if (response.data.status === 'success') {
-                            window.location.href = '{{ route('login') }}';
-                        }
+                function startCounts(counts) {
+                    clearCountTimers();
+                    counts.forEach((link, index) => {
+                        pollCount(link.url, `${link.url}.${index}`);
                     });
-            }
+                }
+
+                function showMenuGroup(groupKey) {
+                    document.querySelectorAll('.menu-group-panel').forEach((panel) => {
+                        panel.classList.toggle('hidden', panel.getAttribute('data-group') !== groupKey);
+                    });
+
+                    const selectedGroup = menuGroups.find((group) => group.key === groupKey);
+                    startCounts(selectedGroup ? selectedGroup.counts : []);
+                    localStorage.setItem('activeMenuGroup', groupKey);
+                }
+
+                if (menuGroups.length > 0) {
+                    const dropdown = document.getElementById('menu-group-dropdown');
+                    const label = document.getElementById('menu-group-label');
+                    const savedGroup = localStorage.getItem('activeMenuGroup');
+                    const initialGroup = menuGroups.some((group) => group.key === savedGroup)
+                        ? savedGroup
+                        : menuGroups[0].key;
+
+                    const groupLabels = {
+                        @foreach ($menuGroups as $group)
+                            '{{ $group['key'] }}': @json($group['label']),
+                        @endforeach
+                    };
+
+                    function setGroupLabel(groupKey) {
+                        if (label) {
+                            label.textContent = groupLabels[groupKey] || groupKey;
+                        }
+                    }
+
+                    document.querySelectorAll('.menu-group-option').forEach((option) => {
+                        option.addEventListener('click', function() {
+                            const groupKey = this.getAttribute('data-group');
+                            setGroupLabel(groupKey);
+                            showMenuGroup(groupKey);
+                            if (dropdown) {
+                                dropdown.open = false;
+                            }
+                        });
+                    });
+
+                    setGroupLabel(initialGroup);
+                    showMenuGroup(initialGroup);
+                } else {
+                    startCounts(flatCounts);
+                }
+            @endif
         });
-    }
-</script>
-@stack('scripts')
+    </script>
+    <script>
+        function updateCount(id, number) {
+            if (document.getElementById(id)) {
+                document.getElementById(id).textContent = number;
+            }
+        }
+
+        function logoutRequest() {
+            Swal.fire({
+                title: 'ต้องการออกจากระบบหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ตกลง',
+                cancelButtonText: 'ยกเลิก',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-error mx-3',
+                    cancelButton: 'btn btn-ghost mx-3'
+                },
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.setItem('activeRoute', 'logout');
+                    axios.post('{{ route('logout') }}')
+                        .then(function(response) {
+                            if (response.data.status === 'success') {
+                                window.location.href = '{{ route('login') }}';
+                            }
+                        });
+                }
+            });
+        }
+    </script>
+    @stack('scripts')
 </body>
 
 </html>

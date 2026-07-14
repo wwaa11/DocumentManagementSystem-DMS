@@ -7,6 +7,7 @@ use App\Http\Controllers\DocumentMediaController;
 use App\Http\Controllers\DocumentPurchaseController;
 use App\Http\Controllers\DocumentTrainingController;
 use App\Http\Controllers\DocumentUserController;
+use App\Http\Controllers\HisLogController;
 use App\Http\Controllers\WebController;
 use Illuminate\Support\Facades\Route;
 
@@ -113,6 +114,12 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/borrowlist/retrieve', [DocumentITController::class, 'adminBorrowRetrieve'])->name('admin.it.borrowlist.retrieve');
         // Report
         Route::get('/admin/reportlist', [DocumentITController::class, 'adminReportDocuments'])->name('admin.it.reportlist');
+
+        // HIS Logs
+        Route::get('/admin/his-logs/create', [HisLogController::class, 'create'])->name('admin.it.hislogs.create');
+        Route::post('/admin/his-logs', [HisLogController::class, 'store'])->name('admin.it.hislogs.store');
+        Route::get('/admin/his-logs/dashboard', [HisLogController::class, 'dashboard'])->name('admin.it.hislogs.dashboard');
+        Route::post('/admin/his-logs/import', [HisLogController::class, 'import'])->name('admin.it.hislogs.import');
     });
     // HC , Heart Stream, PAC, Register
     Route::prefix('user')->middleware(['auth', 'user'])->group(function () {
