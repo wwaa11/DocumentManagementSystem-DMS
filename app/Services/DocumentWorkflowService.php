@@ -154,17 +154,17 @@ class DocumentWorkflowService
         }
     }
 
-    private function mail($email, Model $document): bool
+    private function mail(string $email, Model $document): bool
     {
-        $title = is_string($document->title) ? $document->title : $document->title[0].$document->title[1];
-        $detail = $document->detail;
-        $detail .= '<br><br><a href="'.route('document.type.approve', ['document_type' => $document->document_tag['document_tag'], 'document_id' => $document->id]).'">Click here to approve</a>';
+        $title = $this->resolveDocumentTitle($document);
+        $subject = '[DMS] ขออนุมัติ: '.$title;
+        $body = $this->buildApprovalEmailBody($document, $title, $subject);
 
-        if ($email == '' || $email == '-' || config('app.env') == 'local') {
+        if ($email === '' || $email === '-' || config('app.env') === 'local') {
             Mail::create([
                 'email' => $email,
-                'subject' => $title,
-                'body' => $detail,
+                'subject' => $subject,
+                'body' => $body,
                 'status' => 'Test Send Mail',
             ]);
 
@@ -173,8 +173,8 @@ class DocumentWorkflowService
 
         $mail = Mail::create([
             'email' => $email,
-            'subject' => $title,
-            'body' => $detail,
+            'subject' => $subject,
+            'body' => $body,
         ]);
 
         $response = Http::withHeaders([
@@ -187,8 +187,8 @@ class DocumentWorkflowService
             'Username' => config('services.email_api.username'),
             'Password' => config('services.email_api.password') ?? 'P@rnchai289',
             'DisplayName' => config('services.email_api.display_name'),
-            'Subject' => $document->title,
-            'Body' => $detail,
+            'Subject' => $subject,
+            'Body' => $body,
             'Attachments' => [],
         ]);
 
@@ -202,5 +202,45 @@ class DocumentWorkflowService
         }
 
         return true;
+    }
+
+    private function resolveDocumentTitle(Model $document): string
+    {
+        $title = $document->title;
+
+        if (is_array($title)) {
+            return implode(' ', array_filter($title));
+        }
+
+        return is_string($title) && $title !== ''
+            ? $title
+            : (string) ($document->document_type_name ?? 'เอกสาร');
+    }
+
+    private function buildApprovalEmailBody(Model $document, string $title, string $subject): string
+    {
+        $documentTag = $document->document_tag['document_tag'] ?? 'document';
+        $detail = is_string($document->detail) ? trim($document->detail) : '';
+        $requesterName = auth()->user()?->name
+            ?? $document->creator?->name
+            ?? (string) ($document->requester ?? '-');
+        $submittedAt = $document->created_at
+            ? $document->created_at->timezone(config('app.timezone'))->format('d/m/Y H:i')
+            : now()->timezone(config('app.timezone'))->format('d/m/Y H:i');
+
+        return view('emails.document-approval', [
+            'appName' => config('app.name', 'DMS'),
+            'subject' => $subject,
+            'title' => $title,
+            'documentType' => (string) ($document->document_type_name ?: $documentTag),
+            'documentId' => $document->id,
+            'requesterName' => $requesterName,
+            'submittedAt' => $submittedAt,
+            'detail' => $detail,
+            'approveUrl' => route('document.type.approve', [
+                'document_type' => $documentTag,
+                'document_id' => $document->id,
+            ]),
+        ])->render();
     }
 }
