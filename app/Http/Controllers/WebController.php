@@ -168,7 +168,14 @@ class WebController extends Controller
         switch ($document_type) {
             case 'it':
                 $view = 'document.it.create';
-                $it_admins = User::whereIN('role', ['admin', 'it'])->get();
+                $it_admins = User::query()
+                    ->whereIn('role', ['admin', 'it'])
+                    ->orderBy('department')
+                    ->orderBy('name')
+                    ->get()
+                    ->groupBy(
+                        fn (User $user): string => filled($user->department) ? $user->department : 'ไม่ระบุแผนก'
+                    );
                 $data = compact('it_admins');
                 break;
             case 'media':

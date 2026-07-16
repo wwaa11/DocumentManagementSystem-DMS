@@ -199,7 +199,7 @@
                 </div>
             </article>
 
-            <article class="card bg-base-100 border-base-200/80 border shadow-md">
+            <article class="card bg-base-100 border-base-200/80 border shadow-md lg:col-span-2">
                 <div class="card-body p-5 sm:p-6">
                     <div class="mb-2 flex items-center justify-between gap-3">
                         <div>
@@ -212,57 +212,6 @@
                     </div>
                     <div class="mt-1 h-72 w-full">
                         <canvas id="moduleChart"></canvas>
-                    </div>
-                </div>
-            </article>
-
-            <article class="card bg-base-100 border-base-200/80 border shadow-md">
-                <div class="card-body p-5 sm:p-6">
-                    <div class="mb-2 flex items-center justify-between gap-3">
-                        <div>
-                            <h2 class="text-base font-bold">Top 5 Issues</h2>
-                            <p class="text-base-content/50 text-xs">ประเภทปัญหาที่พบบ่อย</p>
-                        </div>
-                        <span class="bg-accent/15 text-accent-content rounded-lg px-2.5 py-1 text-xs font-medium">
-                            <i class="fas fa-exclamation-triangle mr-1"></i> Issues
-                        </span>
-                    </div>
-                    <div class="mt-1 h-72 w-full">
-                        <canvas id="issueChart"></canvas>
-                    </div>
-                </div>
-            </article>
-
-            <article class="card bg-base-100 border-base-200/80 border shadow-md">
-                <div class="card-body p-5 sm:p-6">
-                    <div class="mb-2 flex items-center justify-between gap-3">
-                        <div>
-                            <h2 class="text-base font-bold">Top ผู้รับเรื่อง</h2>
-                            <p class="text-base-content/50 text-xs">ผู้รับเรื่องที่มีเคสสูงสุด</p>
-                        </div>
-                        <span class="bg-sky-500/10 text-sky-700 rounded-lg px-2.5 py-1 text-xs font-medium">
-                            <i class="fas fa-user-check mr-1"></i> Receiver
-                        </span>
-                    </div>
-                    <div class="mt-1 h-72 w-full">
-                        <canvas id="receiverChart"></canvas>
-                    </div>
-                </div>
-            </article>
-
-            <article class="card bg-base-100 border-base-200/80 border shadow-md">
-                <div class="card-body p-5 sm:p-6">
-                    <div class="mb-2 flex items-center justify-between gap-3">
-                        <div>
-                            <h2 class="text-base font-bold">Top ผู้แก้ไข</h2>
-                            <p class="text-base-content/50 text-xs">ผู้แก้ไขที่มีเคสสูงสุด</p>
-                        </div>
-                        <span class="bg-emerald-500/10 text-emerald-700 rounded-lg px-2.5 py-1 text-xs font-medium">
-                            <i class="fas fa-user-cog mr-1"></i> Fixer
-                        </span>
-                    </div>
-                    <div class="mt-1 h-72 w-full">
-                        <canvas id="fixerChart"></canvas>
                     </div>
                 </div>
             </article>
@@ -280,9 +229,6 @@
             const statusCounts = @json($stats['status_counts']);
             const shiftCounts = @json($stats['shift_counts']);
             const moduleCounts = @json($stats['top_modules']);
-            const issueCounts = @json($stats['top_issues']);
-            const receiverCounts = @json($stats['top_receivers']);
-            const fixerCounts = @json($stats['top_fixers']);
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             const chartDefaults = {
@@ -310,13 +256,6 @@
                 anchor: 'end',
                 align: 'top',
                 offset: 2,
-            };
-
-            const horizontalBarLabels = {
-                ...barValueLabels,
-                anchor: 'end',
-                align: 'end',
-                offset: 4,
             };
 
             const doughnutValueLabels = {
@@ -427,106 +366,6 @@
                     },
                 },
             });
-
-            const hasIssues = Object.keys(issueCounts).length > 0;
-
-            new Chart(document.getElementById('issueChart'), {
-                type: 'bar',
-                data: {
-                    labels: hasIssues ? Object.keys(issueCounts) : ['ไม่มีข้อมูล'],
-                    datasets: [{
-                        label: 'จำนวนเคส',
-                        data: hasIssues ? Object.values(issueCounts) : [0],
-                        backgroundColor: hasIssues
-                            ? ['#f43f5e', '#fb7185', '#fdba74', '#38bdf8', '#a78bfa']
-                            : ['#cbd5e1'],
-                        borderRadius: 8,
-                        borderSkipped: false,
-                        maxBarThickness: 28,
-                    }],
-                },
-                options: {
-                    ...chartDefaults,
-                    indexAxis: 'y',
-                    layout: { padding: { right: 28 } },
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            grace: '12%',
-                            ticks: { precision: 0 },
-                            grid: softGrid,
-                        },
-                        y: {
-                            grid: { display: false },
-                        },
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => ` ${context.parsed.x} เคส`,
-                            },
-                        },
-                        datalabels: horizontalBarLabels,
-                    },
-                },
-            });
-
-            const createPeopleChart = (elementId, counts, colors) => {
-                const hasData = Object.keys(counts).length > 0;
-
-                new Chart(document.getElementById(elementId), {
-                    type: 'bar',
-                    data: {
-                        labels: hasData ? Object.keys(counts) : ['ไม่มีข้อมูล'],
-                        datasets: [{
-                            label: 'จำนวนเคส',
-                            data: hasData ? Object.values(counts) : [0],
-                            backgroundColor: hasData
-                                ? Object.keys(counts).map((_, index) => colors[index % colors.length])
-                                : ['#cbd5e1'],
-                            borderRadius: 8,
-                            borderSkipped: false,
-                            maxBarThickness: 28,
-                        }],
-                    },
-                    options: {
-                        ...chartDefaults,
-                        indexAxis: 'y',
-                        layout: { padding: { right: 28 } },
-                        scales: {
-                            x: {
-                                beginAtZero: true,
-                                grace: '12%',
-                                ticks: { precision: 0 },
-                                grid: softGrid,
-                            },
-                            y: {
-                                grid: { display: false },
-                            },
-                        },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => ` ${context.parsed.x} เคส`,
-                                },
-                            },
-                            datalabels: horizontalBarLabels,
-                        },
-                    },
-                });
-            };
-
-            createPeopleChart('receiverChart', receiverCounts, [
-                '#0ea5e9', '#38bdf8', '#7dd3fc', '#0284c7', '#0369a1',
-                '#67e8f9', '#22d3ee', '#06b6d4', '#0891b2', '#155e75',
-            ]);
-
-            createPeopleChart('fixerChart', fixerCounts, [
-                '#10b981', '#34d399', '#6ee7b7', '#059669', '#047857',
-                '#a7f3d0', '#4ade80', '#22c55e', '#16a34a', '#15803d',
-            ]);
         });
     </script>
 @endpush

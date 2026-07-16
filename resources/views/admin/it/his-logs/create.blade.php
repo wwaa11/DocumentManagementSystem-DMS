@@ -6,7 +6,6 @@
     $defaultTime = $isEdit
         ? ($hisLog->time ? \Illuminate\Support\Str::of($hisLog->time)->substr(0, 5)->toString() : now()->format('H:i'))
         : now()->format('H:i');
-    $selectedIssues = old('issues', $isEdit ? ($hisLog->issues ?? []) : []);
 @endphp
 
 @section('content')
@@ -123,26 +122,6 @@
                     </div>
 
                     <div class="form-control md:col-span-2">
-                        <label class="label">
-                            <span class="label-text font-semibold">Issue <span class="text-error">*</span></span>
-                        </label>
-                        <div class="border-base-300 grid grid-cols-2 gap-3 rounded-lg border p-4 md:grid-cols-3">
-                            @foreach ($issues as $issue)
-                                <label class="flex cursor-pointer items-center gap-2">
-                                    <input
-                                        class="checkbox checkbox-primary checkbox-sm"
-                                        type="checkbox"
-                                        name="issues[]"
-                                        value="{{ $issue }}"
-                                        @checked(collect($selectedIssues)->contains($issue))
-                                    >
-                                    <span>{{ $issue }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <div class="form-control md:col-span-2">
                         <label class="label" for="problem_detail">
                             <span class="label-text font-semibold">รายละเอียดปัญหา</span>
                         </label>
@@ -177,14 +156,28 @@
                         <label class="label" for="fixer">
                             <span class="label-text font-semibold">ผู้แก้ไข</span>
                         </label>
-                        <input
-                            class="input input-bordered w-full"
-                            id="fixer"
-                            name="fixer"
-                            type="text"
-                            placeholder="ชื่อผู้แก้ไข"
-                            value="{{ old('fixer', $isEdit ? $hisLog->fixer : '') }}"
-                        >
+                        @php
+                            $selectedFixer = old('fixer', $isEdit ? $hisLog->fixer : null);
+                            $fixerNames = $fixers->flatten()->pluck('name')->all();
+                        @endphp
+                        <select class="select select-bordered w-full" id="fixer" name="fixer">
+                            <option value="">— ไม่ระบุ —</option>
+                            @if (filled($selectedFixer) && ! in_array($selectedFixer, $fixerNames, true))
+                                <option value="{{ $selectedFixer }}" selected>{{ $selectedFixer }} (เดิม)</option>
+                            @endif
+                            @foreach ($fixers as $department => $departmentUsers)
+                                <optgroup label="{{ $department }}">
+                                    @foreach ($departmentUsers as $fixerUser)
+                                        <option
+                                            value="{{ $fixerUser->name }}"
+                                            @selected($selectedFixer === $fixerUser->name)
+                                        >
+                                            {{ $fixerUser->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-control md:col-span-2">

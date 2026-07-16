@@ -13,7 +13,6 @@ return new class extends Migration
             $table->date('reported_at');
             $table->string('reporter');
             $table->string('module');
-            $table->json('issues')->nullable();
             $table->text('problem_detail')->nullable();
             $table->string('receiver');
             $table->string('receiver_userid')->nullable();

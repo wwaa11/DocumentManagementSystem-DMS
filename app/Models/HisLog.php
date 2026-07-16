@@ -15,7 +15,6 @@ class HisLog extends Model
         'reported_at',
         'reporter',
         'module',
-        'issues',
         'problem_detail',
         'receiver',
         'receiver_userid',
@@ -33,7 +32,6 @@ class HisLog extends Model
     {
         return [
             'reported_at' => 'date',
-            'issues' => 'array',
         ];
     }
 
@@ -72,15 +70,38 @@ class HisLog extends Model
     /**
      * @return list<string>
      */
-    public static function issueOptions(): array
+    public static function fixerRoles(): array
     {
         return [
-            'Package',
-            'EMR',
-            'Other',
-            'Log In',
-            'Appointment',
+            'it',
+            'it-approve',
+            'it-hardware',
+            'admin',
         ];
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<int, \App\Models\User>
+     */
+    public static function fixerUsers()
+    {
+        return User::query()
+            ->whereIn('role', self::fixerRoles())
+            ->orderBy('department')
+            ->orderBy('name')
+            ->get(['userid', 'name', 'role', 'department']);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function fixerOptions(): array
+    {
+        return self::fixerUsers()
+            ->pluck('name')
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

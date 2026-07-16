@@ -64,6 +64,58 @@ class DocumentITService
         return $userField;
     }
 
+    /**
+     * @param  array<string, array{name: string, request: array<string, string>}>  $doctors
+     */
+    private function setDoctorFieldData(array $doctors): string
+    {
+        $doctorField = '';
+
+        foreach ($doctors as $doctor) {
+            $doctorField .= 'ชื่อแพทย์: '.$doctor['name'].'<br>';
+            $doctorField .= 'รายการที่ขอ: ';
+
+            $request = $doctor['request'] ?? [];
+            $systems = [];
+
+            if (($request['mkyt'] ?? '') === 'true') {
+                $mkytRoles = [];
+                if (($request['mkyt_surgeon'] ?? '') === 'true') {
+                    $mkytRoles[] = 'Surgeon (Surgeon/Assistant Surgeon)';
+                }
+                if (($request['mkyt_radiologist'] ?? '') === 'true') {
+                    $mkytRoles[] = 'Radiologist';
+                }
+                if (($request['mkyt_anaesthetist'] ?? '') === 'true') {
+                    $mkytRoles[] = 'Anaesthetist (Anaesthetist/Assistant Anesthetist)';
+                }
+                if (($request['mkyt_checkup'] ?? '') === 'true') {
+                    $mkytRoles[] = 'Check up';
+                }
+                if (($request['mkyt_careprovider'] ?? '') === 'true') {
+                    $mkytRoles[] = 'Careprovider';
+                }
+                $systems[] = 'MKyT'.(count($mkytRoles) > 0 ? ': '.implode(', ', $mkytRoles) : '');
+            }
+
+            foreach (['windows' => 'Windows', 'email' => 'Email', 'hclab' => 'HCLAB', 'pacs' => 'PACS', 'heartstream' => 'HeartStream', 'register' => 'Register'] as $key => $label) {
+                if (($request[$key] ?? '') === 'true') {
+                    $systems[] = $label;
+                }
+            }
+
+            $doctorField .= implode(', ', $systems);
+
+            if (! empty($request['detail'])) {
+                $doctorField .= '<br>รายละเอียด: '.$request['detail'];
+            }
+
+            $doctorField .= '<br><br>';
+        }
+
+        return $doctorField;
+    }
+
     private function createDocumentIT(Request $request): void
     {
         $dataField = $request->all();
@@ -131,10 +183,13 @@ class DocumentITService
                 $detail = $this->setUserFieldData($request->users, $title);
                 break;
             case 'เลขาแพทย์':
-                $detail = $request->user_detail;
+                $detail = $this->setDoctorFieldData($request->doctors ?? []);
                 break;
             case 'ฝ่ายบุคคล':
                 $detail = $request->user_detail;
+                break;
+            default:
+                $detail = '';
                 break;
         }
 
@@ -149,28 +204,32 @@ class DocumentITService
         $this->workflow->createApprover('user', $approverField, $document);
         $this->workflow->createFile($request, $document);
 
-        if ($request->createIT == 'true') {
-            $this->createSubUserDocument('it', $document, $approver);
+        $assignedUserId = $title === 'ฝ่ายบุคคล' ? $request->document_admin : null;
+
+        if ($request->createIT == 'true' || $title === 'ฝ่ายบุคคล') {
+            $this->createSubUserDocument('it', $document, $approver, $assignedUserId);
         }
 
-        if ($request->createHC == 'true') {
-            $this->createSubUserDocument('hc', $document, $approver);
-        }
+        if ($title !== 'ฝ่ายบุคคล') {
+            if ($request->createHC == 'true') {
+                $this->createSubUserDocument('hc', $document, $approver);
+            }
 
-        if ($request->createPAC == 'true') {
-            $this->createSubUserDocument('pac', $document, $approver);
-        }
+            if ($request->createPAC == 'true') {
+                $this->createSubUserDocument('pac', $document, $approver);
+            }
 
-        if ($request->createHeartStream == 'true') {
-            $this->createSubUserDocument('heart-steam', $document, $approver);
-        }
+            if ($request->createHeartStream == 'true') {
+                $this->createSubUserDocument('heart-steam', $document, $approver);
+            }
 
-        if ($request->createRegister == 'true') {
-            $this->createSubUserDocument('register', $document, $approver);
+            if ($request->createRegister == 'true') {
+                $this->createSubUserDocument('register', $document, $approver);
+            }
         }
     }
 
-    private function createSubUserDocument(string $type, DocumentUser $documentUser, $approver): void
+    private function createSubUserDocument(string $type, DocumentUser $documentUser, $approver, ?string $assignedUserId = null): void
     {
         switch ($type) {
             case 'it':
@@ -203,6 +262,11 @@ class DocumentITService
         $document->document_user_id = $documentUser->id;
         $document->status = $approver['userid'] == auth()->user()->userid ? 'pending' : 'wait_approval';
         $document->document_number = DocumentNumber::getNextNumber($NumberType);
+
+        if ($assignedUserId) {
+            $document->assigned_user_id = $assignedUserId;
+        }
+
         $document->save();
 
         $taskData = [
@@ -218,6 +282,14 @@ class DocumentITService
             'action' => 'create',
             'details' => $logDetails,
         ]);
+
+        if ($assignedUserId) {
+            $document->logs()->create([
+                'userid' => auth()->user()->userid,
+                'action' => 'info',
+                'details' => 'มอบหมายงานไปยัง '.$assignedUserId,
+            ]);
+        }
     }
 
     private function createDocumentBorrow(Request $request): void

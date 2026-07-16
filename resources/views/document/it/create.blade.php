@@ -73,8 +73,12 @@
                         </x-ui.section-title>
                         <select class="select select-bordered w-full" name="document_admin">
                             <option selected disabled>โปรดระบุ</option>
-                            @foreach ($it_admins as $it_admin)
-                                <option value="{{ $it_admin->userid }}">{{ $it_admin->name }}</option>
+                            @foreach ($it_admins as $department => $admins)
+                                <optgroup label="{{ $department }}">
+                                    @foreach ($admins as $it_admin)
+                                        <option value="{{ $it_admin->userid }}">{{ $it_admin->name }}</option>
+                                    @endforeach
+                                </optgroup>
                             @endforeach
                         </select>
                     </div>
@@ -180,16 +184,13 @@
                     if (!title) {
                         isValid = false;
                         errorMessage = 'กรุณาเลือกหัวข้อขอรหัสผู้ใช้งาน';
-                    } else if (title === 'เลขาแพทย์' || title === 'ฝ่ายบุคคล') {
-                        const hasSystem = $('#doctor_hr_it').is(':checked') ||
-                            $('#doctor_hr_hclab').is(':checked') ||
-                            $('#doctor_hr_pacs').is(':checked') ||
-                            $('#doctor_hr_heartstream').is(':checked') ||
-                            $('#doctor_hr_register').is(':checked');
-                        if (!hasSystem) {
+                    } else if (title === 'เลขาแพทย์') {
+                        if ($('#doctor_result_append .doctor-item').length === 0) {
                             isValid = false;
-                            errorMessage = 'กรุณาเลือกอย่างน้อย 1 ระบบ';
-                        } else if (!$('#user_detail').val()) {
+                            errorMessage = 'กรุณาเพิ่มรายการแพทย์อย่างน้อย 1 รายการ';
+                        }
+                    } else if (title === 'ฝ่ายบุคคล') {
+                        if (!$('#user_detail').val()) {
                             isValid = false;
                             errorMessage = 'กรุณากรอกรายละเอียด';
                         }

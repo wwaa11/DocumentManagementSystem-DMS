@@ -31,9 +31,8 @@ class HisLogTest extends TestCase
             'reported_at' => '2026-07-14',
             'reporter' => 'ก้อย / Eye',
             'module' => 'Package',
-            'issues' => ['Package', 'Other'],
             'problem_detail' => 'ทดสอบปัญหา',
-            'fixer' => 'เปิ้ล',
+            'fixer' => null,
             'root_cause' => 'แก้แล้ว',
             'status' => 'Closed',
             'time' => '10:30',
@@ -42,7 +41,7 @@ class HisLogTest extends TestCase
         $this->assertTrue($validator->passes());
     }
 
-    public function test_store_request_requires_issues_and_module(): void
+    public function test_store_request_requires_module(): void
     {
         $validator = Validator::make([
             'reported_at' => '2026-07-14',
@@ -53,7 +52,6 @@ class HisLogTest extends TestCase
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('module', $validator->errors()->toArray());
-        $this->assertArrayHasKey('issues', $validator->errors()->toArray());
     }
 
     public function test_import_request_requires_excel_file(): void
@@ -117,11 +115,11 @@ class HisLogTest extends TestCase
         $this->assertSame('2026-07-01', $payload['reported_at']);
     }
 
-    public function test_module_and_issue_options_are_configured(): void
+    public function test_module_and_fixer_options_are_configured(): void
     {
         $this->assertContains('OPD', HisLog::moduleOptions());
         $this->assertContains('Patient Info', HisLog::moduleOptions());
-        $this->assertContains('Log In', HisLog::issueOptions());
+        $this->assertSame(['it', 'it-approve', 'it-hardware', 'admin'], HisLog::fixerRoles());
         $this->assertSame(['Open', 'In Progress', 'Closed'], HisLog::statusOptions());
     }
 
@@ -138,17 +136,5 @@ class HisLogTest extends TestCase
             url('/it/admin/his-logs/1/edit'),
             route('admin.it.hislogs.edit', ['hisLog' => 1])
         );
-    }
-
-    public function test_top_named_counts_skips_blank_values(): void
-    {
-        $service = app(HisLogService::class);
-        $method = new ReflectionMethod(HisLogService::class, 'topNamedCounts');
-        $method->setAccessible(true);
-
-        /** @var array<string, int> $counts */
-        $counts = $method->invoke($service, collect(['เปิ้ล', '', '  ', 'ก้อย', 'เปิ้ล', null]), 10);
-
-        $this->assertSame(['เปิ้ล' => 2, 'ก้อย' => 1], $counts);
     }
 }

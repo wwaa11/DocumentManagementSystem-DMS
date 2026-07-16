@@ -25,7 +25,9 @@ class HisLogService
             'hisLog' => null,
             'receiver' => $user->name,
             'modules' => HisLog::moduleOptions(),
-            'issues' => HisLog::issueOptions(),
+            'fixers' => HisLog::fixerUsers()->groupBy(
+                fn (User $user): string => filled($user->department) ? $user->department : 'ไม่ระบุแผนก'
+            ),
             'statuses' => HisLog::statusOptions(),
         ]);
     }
@@ -40,7 +42,6 @@ class HisLogService
             'reported_at' => $request->date('reported_at'),
             'reporter' => $request->string('reporter')->toString(),
             'module' => $request->string('module')->toString(),
-            'issues' => $request->input('issues', []),
             'problem_detail' => $request->input('problem_detail'),
             'receiver' => $user->name,
             'receiver_userid' => $user->userid,
@@ -62,7 +63,9 @@ class HisLogService
             'hisLog' => $hisLog,
             'receiver' => $hisLog->receiver,
             'modules' => HisLog::moduleOptions(),
-            'issues' => HisLog::issueOptions(),
+            'fixers' => HisLog::fixerUsers()->groupBy(
+                fn (User $user): string => filled($user->department) ? $user->department : 'ไม่ระบุแผนก'
+            ),
             'statuses' => HisLog::statusOptions(),
         ]);
     }
@@ -75,7 +78,6 @@ class HisLogService
             'reported_at' => $request->date('reported_at'),
             'reporter' => $request->string('reporter')->toString(),
             'module' => $request->string('module')->toString(),
-            'issues' => $request->input('issues', []),
             'problem_detail' => $request->input('problem_detail'),
             'fixer' => $request->input('fixer'),
             'root_cause' => $request->input('root_cause'),
@@ -93,6 +95,10 @@ class HisLogService
     {
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
+        $module = $request->input('module');
+        $shift = $request->input('shift');
+        $status = $request->input('status');
+        $problemDetail = $request->input('problem_detail');
 
         $query = HisLog::query()->orderByDesc('reported_at')->orderByDesc('time');
 
@@ -104,12 +110,35 @@ class HisLogService
             $query->whereDate('reported_at', '<=', $endDate);
         }
 
+        if (filled($module)) {
+            $query->where('module', $module);
+        }
+
+        if (filled($shift)) {
+            $query->where('shift', $shift);
+        }
+
+        if (filled($status)) {
+            $query->where('status', $status);
+        }
+
+        if (filled($problemDetail)) {
+            $query->where('problem_detail', 'like', '%'.$problemDetail.'%');
+        }
+
         $logs = $query->paginate(20)->withQueryString();
 
         return view('admin.it.his-logs.index', [
             'logs' => $logs,
             'start_date' => $startDate,
             'end_date' => $endDate,
+            'module' => $module,
+            'shift' => $shift,
+            'status' => $status,
+            'problem_detail' => $problemDetail,
+            'modules' => HisLog::moduleOptions(),
+            'shifts' => HisLog::shiftOptions(),
+            'statuses' => HisLog::statusOptions(),
         ]);
     }
 
@@ -179,15 +208,12 @@ class HisLogService
      *     close_rate: float,
      *     status_counts: array<string, int>,
      *     top_modules: array<string, int>,
-     *     top_issues: array<string, int>,
-     *     shift_counts: array<string, int>,
-     *     top_receivers: array<string, int>,
-     *     top_fixers: array<string, int>
+     *     shift_counts: array<string, int>
      * }
      */
     public function buildDashboardStats($query): array
     {
-        $records = $query->get(['module', 'issues', 'status', 'shift', 'receiver', 'fixer']);
+        $records = $query->get(['module', 'status', 'shift']);
         $total = $records->count();
         $closed = $records->where('status', 'Closed')->count();
 
@@ -203,15 +229,6 @@ class HisLogService
             ->take(10)
             ->all();
 
-        $issueCounts = [];
-        foreach ($records as $record) {
-            foreach (($record->issues ?? []) as $issue) {
-                $issueCounts[$issue] = ($issueCounts[$issue] ?? 0) + 1;
-            }
-        }
-        arsort($issueCounts);
-        $issueCounts = array_slice($issueCounts, 0, 5, true);
-
         $shiftCounts = [];
         foreach (HisLog::shiftOptions() as $shift) {
             $shiftCounts[$shift] = $records->where('shift', $shift)->count();
@@ -223,28 +240,8 @@ class HisLogService
             'close_rate' => $total > 0 ? round(($closed / $total) * 100, 1) : 0.0,
             'status_counts' => $statusCounts,
             'top_modules' => $moduleCounts,
-            'top_issues' => $issueCounts,
             'shift_counts' => $shiftCounts,
-            'top_receivers' => $this->topNamedCounts($records->pluck('receiver'), 10),
-            'top_fixers' => $this->topNamedCounts($records->pluck('fixer'), 10),
         ];
-    }
-
-    /**
-     * @param  \Illuminate\Support\Collection<int, mixed>  $values
-     * @return array<string, int>
-     */
-    private function topNamedCounts($values, int $limit): array
-    {
-        $counts = $values
-            ->map(fn ($value) => is_string($value) ? trim($value) : '')
-            ->filter(fn (string $value): bool => $value !== '')
-            ->countBy()
-            ->sortDesc()
-            ->take($limit)
-            ->all();
-
-        return $counts;
     }
 
     /**
@@ -312,7 +309,6 @@ class HisLogService
             'reported_at' => $reportedAt,
             'reporter' => $reporter,
             'module' => $module,
-            'issues' => [],
             'problem_detail' => $problemDetail !== '' ? $problemDetail : null,
             'receiver' => $receiver,
             'receiver_userid' => null,

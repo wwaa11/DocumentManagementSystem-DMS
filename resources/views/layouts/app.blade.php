@@ -36,8 +36,8 @@
                 <a class="app-sidebar-brand" href="{{ route('document.index') }}">
                     <img class="h-12 w-auto object-contain" src="{{ asset('images/Vertical Logo.png') }}" alt="Praram9 logo">
                     <div class="text-center">
-                        <p class="text-primary text-sm font-bold tracking-tight">Praram9 DMS</p>
-                        <p class="text-base-content/45 text-[10px]">Document Management</p>
+                        <p class="text-primary text-base font-bold tracking-tight">Praram9 DMS</p>
+                        <p class="text-base-content/45 text-xs">Document Management</p>
                     </div>
                 </a>
 
@@ -86,7 +86,7 @@
                     @endif
                 @endif
 
-                <ul class="app-nav menu menu-sm flex-1 overflow-y-auto pb-4 w-full">
+                <ul class="app-nav menu flex-1 overflow-y-auto pb-4 w-full">
                     <li class="menu-section">หลัก</li>
                     <li>
                         <a class="nav-link" data-route="document.index" href="{{ route('document.index') }}">
@@ -105,7 +105,7 @@
                         @if (! empty($menuGroups))
                             @foreach ($menuGroups as $group)
                                 <li class="w-full !p-0">
-                                    <ul class="menu menu-sm menu-group-panel hidden w-full" data-group="{{ $group['key'] }}">
+                                    <ul class="menu menu-group-panel hidden w-full" data-group="{{ $group['key'] }}">
                                         @foreach ($group['menus'] as $link)
                                             @if ($link['link'] == null)
                                                 <li class="menu-section">{{ $link['title'] }}</li>

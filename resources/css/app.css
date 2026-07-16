@@ -85,7 +85,8 @@
     /* Drawer sidebar: remove the empty gap beside the panel (desktop only) */
     @media (min-width: 1024px) {
         .drawer.lg\:drawer-open > .drawer-toggle ~ .drawer-side {
-            width: 14rem;
+            width: 20%;
+            min-width: 16rem;
             flex-shrink: 0;
             overflow: visible;
         }
@@ -96,7 +97,7 @@
     }
 
     .app-sidebar {
-        @apply border-base-300/70 bg-base-100 text-base-content flex min-h-full w-56 flex-col overflow-visible border-r lg:w-full;
+        @apply border-base-300/70 bg-base-100 text-base-content flex min-h-full w-72 flex-col overflow-visible border-r lg:w-full;
     }
 
     .app-sidebar-brand {
@@ -104,7 +105,7 @@
     }
 
     .app-user-card {
-        @apply border-base-200 from-primary/5 to-accent/5 mx-2 mt-3 mb-2 rounded-xl border bg-gradient-to-br p-2.5 text-[11px] leading-snug;
+        @apply border-base-200 from-primary/5 to-accent/5 mx-2 mt-3 mb-2 rounded-xl border bg-gradient-to-br p-2.5 text-xs leading-snug;
     }
 
     .app-menu-group-picker {
@@ -151,7 +152,7 @@
     }
 
     .app-nav .nav-link {
-        @apply text-base-content/75 w-full rounded-lg font-medium transition-all duration-200;
+        @apply text-base-content/75 w-full rounded-lg text-sm font-medium transition-all duration-200;
     }
 
     .app-nav .nav-link:hover {
@@ -163,7 +164,7 @@
     }
 
     .app-nav .menu-section {
-        @apply text-base-content/40 my-2 w-full px-2 text-[10px] font-bold tracking-[0.14em] uppercase;
+        @apply text-base-content/40 my-2 w-full px-2 text-xs font-bold tracking-[0.14em] uppercase;
     }
 
     .app-main {

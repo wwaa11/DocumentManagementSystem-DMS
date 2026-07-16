@@ -22,6 +22,7 @@
     <script>
         function updateCreateFlags() {
             const hasITRequest = $('input[name^="users["][name$="[request][ssb]"]').val() === 'true' ||
+                $('input[name^="users["][name$="[request][mkyt]"]').val() === 'true' ||
                 $('input[name^="users["][name$="[request][windows]"]').val() === 'true' ||
                 $('input[name^="users["][name$="[request][email]"]').val() === 'true' ||
                 $('input[name^="users["][name$="[request][other_check]"]').val() === 'true';
@@ -30,46 +31,69 @@
             const hasHeartStreamRequest = $('input[name^="users["][name$="[request][heartstream]"]').val() === 'true';
             const hasRegisterRequest = $('input[name^="users["][name$="[request][register]"]').val() === 'true';
 
-            const doctorHrIT = $('#doctor_hr_it').is(':checked');
-            const doctorHrHCLab = $('#doctor_hr_hclab').is(':checked');
-            const doctorHrPACS = $('#doctor_hr_pacs').is(':checked');
-            const doctorHrHeartStream = $('#doctor_hr_heartstream').is(':checked');
-            const doctorHrRegister = $('#doctor_hr_register').is(':checked');
+            const doctorHasIT = $('input[name^="doctors["][name$="[request][mkyt]"]').filter(function () {
+                return $(this).val() === 'true';
+            }).length > 0 ||
+                $('input[name^="doctors["][name$="[request][windows]"]').filter(function () {
+                    return $(this).val() === 'true';
+                }).length > 0 ||
+                $('input[name^="doctors["][name$="[request][email]"]').filter(function () {
+                    return $(this).val() === 'true';
+                }).length > 0;
+            const doctorHasHC = $('input[name^="doctors["][name$="[request][hclab]"]').filter(function () {
+                return $(this).val() === 'true';
+            }).length > 0;
+            const doctorHasPAC = $('input[name^="doctors["][name$="[request][pacs]"]').filter(function () {
+                return $(this).val() === 'true';
+            }).length > 0;
+            const doctorHasHeartStream = $('input[name^="doctors["][name$="[request][heartstream]"]').filter(function () {
+                return $(this).val() === 'true';
+            }).length > 0;
+            const doctorHasRegister = $('input[name^="doctors["][name$="[request][register]"]').filter(function () {
+                return $(this).val() === 'true';
+            }).length > 0;
 
-            $('input[name="createIT"]').val(doctorHrIT || hasITRequest ? 'true' : 'false');
-            $('input[name="createHC"]').val(doctorHrHCLab || hasHCRequest ? 'true' : 'false');
-            $('input[name="createPAC"]').val(doctorHrPACS || hasPACRequest ? 'true' : 'false');
-            $('input[name="createHeartStream"]').val(doctorHrHeartStream || hasHeartStreamRequest ? 'true' : 'false');
-            $('input[name="createRegister"]').val(doctorHrRegister || hasRegisterRequest ? 'true' : 'false');
+            const isHr = $('input[name="title"]:checked').val() === 'ฝ่ายบุคคล';
+
+            $('input[name="createIT"]').val(isHr || doctorHasIT || hasITRequest ? 'true' : 'false');
+            $('input[name="createHC"]').val(!isHr && (doctorHasHC || hasHCRequest) ? 'true' : 'false');
+            $('input[name="createPAC"]').val(!isHr && (doctorHasPAC || hasPACRequest) ? 'true' : 'false');
+            $('input[name="createHeartStream"]').val(!isHr && (doctorHasHeartStream || hasHeartStreamRequest) ? 'true' : 'false');
+            $('input[name="createRegister"]').val(!isHr && (doctorHasRegister || hasRegisterRequest) ? 'true' : 'false');
         }
 
         function selectRequestType(type) {
             $("input[name='title']").prop('checked', false);
             $('#user-title-' + type).prop('checked', true);
 
+            $('#user_search').addClass('hidden');
+            $('#doctor_section').addClass('hidden');
+            $('#hr_section').addClass('hidden');
+            $('#user_detail').prop('disabled', true);
+            $('#send_to_it_admin').addClass('hidden');
+
             if (type === 'edit') {
                 $('#user_search').removeClass('hidden');
-                $('#doctor_hr').addClass('hidden');
-                $('#user_detail').prop('disabled', true);
-            } else if (type === 'hr' || type === 'doctor') {
-                $('#user_search').addClass('hidden');
-                $('#doctor_hr').removeClass('hidden');
+            } else if (type === 'doctor') {
+                $('#doctor_section').removeClass('hidden');
+            } else if (type === 'hr') {
+                $('#hr_section').removeClass('hidden');
                 $('#user_detail').prop('disabled', false);
+                $('#send_to_it_admin').removeClass('hidden');
             }
 
-            $('#doctor_hr_it').prop('checked', false);
-            $('#doctor_hr_hclab').prop('checked', false);
-            $('#doctor_hr_pacs').prop('checked', false);
-            $('#doctor_hr_heartstream').prop('checked', false);
-            $('#doctor_hr_register').prop('checked', false);
-
-            $('input[name=createIT]').val('false');
+            $('input[name=createIT]').val(type === 'hr' ? 'true' : 'false');
             $('input[name=createHC]').val('false');
             $('input[name=createPAC]').val('false');
             $('input[name=createHeartStream]').val('false');
             $('input[name=createRegister]').val('false');
             $('#user_result_append').html('');
+            $('#doctor_result_append').html('');
+            if (typeof resetDoctorForm === 'function') {
+                resetDoctorForm();
+            }
             $('#document-addtional-info').removeClass('hidden');
+            updateCreateFlags();
         }
     </script>
 @endpush

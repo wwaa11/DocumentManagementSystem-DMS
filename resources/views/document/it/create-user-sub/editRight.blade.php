@@ -74,6 +74,10 @@
              <span class="label-text">SSB</span>
          </label>
          <label class="hover:bg-base-200 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors">
+            <input class="checkbox checkbox-primary" id="request_MKyT" type="checkbox" />
+            <span class="label-text">MKyT</span>
+        </label>
+         <label class="hover:bg-base-200 flex cursor-pointer items-center gap-3 rounded-lg p-3 transition-colors">
              <input class="checkbox checkbox-primary" id="request_windows" type="checkbox" />
              <span class="label-text">Windows</span>
          </label>
@@ -180,6 +184,7 @@
              // Also clear the specific request checkboxes/fields (optional, but good practice)
              $('input[name="request_type"]').prop("checked", false);
              $("#request_ssb").prop("checked", false);
+             $("#request_MKyT").prop("checked", false);
              $("#request_windows").prop("checked", false);
              $("#request_email").prop("checked", false);
              $("#request_hclab").prop("checked", false);
@@ -213,6 +218,7 @@
              const department = $("#request_department").val();
              const request_type = $('input[name="request_type"]:checked').val();
              const ssb = $("#request_ssb").is(":checked");
+             const mkyt = $("#request_MKyT").is(":checked");
              const windows = $("#request_windows").is(":checked");
              const email = $("#request_email").is(":checked");
              const hclab = $("#request_hclab").is(":checked");
@@ -244,7 +250,7 @@
                  return;
              }
 
-             if (!ssb && !windows && !email && !hclab && !pacs && !heartstream && !register && !other_check) {
+             if (!ssb && !mkyt && !windows && !email && !hclab && !pacs && !heartstream && !register && !other_check) {
                  Swal.fire({
                      icon: "error",
                      title: "กรุณาเลือกระบบที่ต้องการ",
@@ -273,10 +279,13 @@
              // Collect systems requested for display
              const systemsRequested = [
                  ssb ? "SSB" : "",
+                 mkyt ? "MKyT" : "",
                  windows ? "Windows" : "",
                  email ? "Email" : "",
                  hclab ? "HCLAB" : "",
                  pacs ? "PACS" : "",
+                 heartstream ? "Heart Stream" : "",
+                 register ? "Register" : "",
                  other_check ? other : ""
              ].filter(Boolean).join(", ");
 
@@ -304,6 +313,7 @@
             <input type="hidden" name="users[${userid}][department]" value="${department}" />
             <input type="hidden" name="users[${userid}][type]" value="${request_type}" />
             <input type="hidden" name="users[${userid}][request][ssb]" value="${ssb}" />
+            <input type="hidden" name="users[${userid}][request][mkyt]" value="${mkyt}" />
             <input type="hidden" name="users[${userid}][request][windows]" value="${windows}" />
             <input type="hidden" name="users[${userid}][request][email]" value="${email}" />
             <input type="hidden" name="users[${userid}][request][hclab]" value="${hclab}" />

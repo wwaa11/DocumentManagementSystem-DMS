@@ -32,6 +32,10 @@
             $text = 'เอกสารเสร็จสมบูรณ์';
             $class = 'badge-soft badge-success';
             break;
+        case 'complete-partial':
+            $text = 'เสร็จบางส่วน';
+            $class = 'badge-soft badge-info';
+            break;
         case 'borrow_approve':
             $text = 'รออนุมัติการยืมอุปกรณ์';
             $class = 'badge-soft badge-secondary';
@@ -41,8 +45,8 @@
             $class = 'badge-soft badge-neutral';
             break;
         default:
-            $text = '';
-            $class = '';
+            $text = $document['status'] ?: '-';
+            $class = 'badge-soft badge-ghost';
     }
 @endphp
 <tr class="hover:bg-base-300">

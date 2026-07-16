@@ -7,6 +7,7 @@
         'process' => ['text' => 'กำลังดำเนินการ', 'class' => 'badge-primary'],
         'done' => ['text' => 'เอกสารรออนุมัติ', 'class' => 'badge-secondary'],
         'complete' => ['text' => 'เสร็จสมบูรณ์', 'class' => 'badge-success'],
+        'complete-partial' => ['text' => 'เสร็จบางส่วน', 'class' => 'badge-info'],
         'reject' => ['text' => 'ยกเลิกเอกสาร', 'class' => 'badge-error'],
         'cancel' => ['text' => 'ยกเลิกเอกสาร', 'class' => 'badge-error'],
         'not_approval' => ['text' => 'ไม่อนุมัติ', 'class' => 'badge-error'],
