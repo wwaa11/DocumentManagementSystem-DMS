@@ -142,13 +142,12 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if ($action == 'new')
-                                    <button class="btn btn-accent" type="button" onclick="acceptDocument('{{ $document->id }}')">รับงาน</button>
-                                @else
-                                    <a href="{{ route('admin.media.view', ['document_id' => $document->id, 'action' => $action]) }}">
-                                        <button class="btn btn-accent">ดูเอกสาร</button>
-                                    </a>
-                                @endif
+                                <div class="flex flex-wrap items-center justify-center gap-2">
+                                    @if ($action == 'new')
+                                        <button class="btn btn-accent" type="button" onclick="acceptDocument('{{ $document->id }}')">รับงาน</button>
+                                    @endif
+                                    <a class="btn btn-outline btn-accent" href="{{ route('admin.media.view', ['document_id' => $document->id, 'action' => $action]) }}">ดูเอกสาร</a>
+                                </div>
                             </td>
                         </tr>
                     @endforeach

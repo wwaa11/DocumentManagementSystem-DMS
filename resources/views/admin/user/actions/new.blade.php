@@ -17,8 +17,9 @@
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        axios.post('{{ route('admin.media.accept') }}', {
-                            id: '{{ $document->id }}'
+                        axios.post('{{ route('admin.user.accept') }}', {
+                            id: '{{ $document->id }}',
+                            type: '{{ $type }}'
                         }).then((response) => {
                             if (response.data.status == 'success') {
                                 Swal.fire({
@@ -29,7 +30,7 @@
                                     timerProgressBar: true,
                                     timer: 1000
                                 }).then(() => {
-                                    window.location.href = '{{ route('admin.media.view', ['document_id' => $document->id, 'action' => 'my']) }}';
+                                    window.location.href = '{{ route('admin.user.view', ['document_id' => $document->id, 'action' => 'my', 'type' => $type]) }}';
                                 });
                             } else {
                                 Swal.fire({
