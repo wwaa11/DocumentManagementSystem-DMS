@@ -77,23 +77,32 @@ class User extends Authenticatable
     {
         $menu = [];
         $menulist = [
-            'admin' => [
+            'approvers' => [
                 [
-                    'title' => 'Admin',
-                    'type' => 'admin',
+                    'title' => 'Approvers',
+                    'type' => 'approver',
                     'id' => 'title',
                     'link' => null,
                     'count' => false,
                 ],
                 [
-                    'title' => 'Approvers',
+                    'title' => 'Department Approvers',
                     'type' => 'approver',
                     'id' => 'approver',
                     'link' => 'approvers.list',
                     'count' => false,
                 ],
+            ],
+            'roles' => [
                 [
                     'title' => 'Roles',
+                    'type' => 'role',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'User Roles',
                     'type' => 'role',
                     'id' => 'role',
                     'link' => 'roles.list',
@@ -378,31 +387,6 @@ class User extends Authenticatable
             ];
         }
 
-        $roleManagerMenus = [
-            'it-approve',
-            'purchase-approve',
-            'purchase-head',
-            'media-head',
-            'pac-approve',
-            'lab-approve',
-            'heartstream-approve',
-            'register-approve',
-        ];
-
-        foreach ($roleManagerMenus as $menuKey) {
-            if (! isset($menulist[$menuKey])) {
-                continue;
-            }
-
-            $menulist[$menuKey][] = [
-                'title' => 'Roles',
-                'type' => 'role',
-                'id' => 'role',
-                'link' => 'roles.list',
-                'count' => false,
-            ];
-        }
-
         foreach ($listArray as $value) {
             if (array_key_exists($value, $menulist)) {
                 $menu = array_merge($menu, $menulist[$value]);
@@ -438,7 +422,7 @@ class User extends Authenticatable
                 'count' => [],
                 'lists' => [],
                 'groups' => $this->menuGroups([
-                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['admin'], 'counts' => []],
+                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['approvers', 'roles'], 'counts' => []],
                     ['key' => 'it', 'label' => 'IT', 'menus' => ['it-approve', 'it-hardware', 'it'], 'counts' => ['it']],
                     ['key' => 'purchase', 'label' => 'Purchase', 'menus' => ['purchase-approve', 'purchase-head', 'purchase'], 'counts' => ['purchase']],
                     ['key' => 'media', 'label' => 'Media', 'menus' => ['media-head', 'media'], 'counts' => ['media']],
@@ -455,55 +439,55 @@ class User extends Authenticatable
 
         if ($this->role == 'it') {
             $count = $this->countList(['it']);
-            $menu = $this->menuList(['it']);
+            $menu = $this->menuList(['it', 'approvers']);
         } elseif ($this->role == 'it-approve') {
             $count = $this->countList(['it']);
-            $menu = $this->menuList(['it-approve', 'it']);
+            $menu = $this->menuList(['it-approve', 'it', 'roles']);
         } elseif ($this->role == 'it-hardware') {
             $count = $this->countList(['it']);
             $menu = $this->menuList(['it-hardware', 'it']);
         } elseif ($this->role == 'it-hardware-approve') {
             $count = $this->countList(['it']);
-            $menu = $this->menuList(['it-approve', 'it-hardware', 'it']);
+            $menu = $this->menuList(['it-approve', 'it-hardware', 'it', 'roles']);
         } elseif ($this->role == 'lab') {
             $count = $this->countList(['lab']);
             $menu = $this->menuList(['lab']);
         } elseif ($this->role == 'lab-approve') {
             $count = $this->countList(['lab']);
-            $menu = $this->menuList(['lab-approve', 'lab']);
+            $menu = $this->menuList(['lab-approve', 'lab', 'roles']);
         } elseif ($this->role == 'pac') {
             $count = $this->countList(['pac']);
             $menu = $this->menuList(['pac']);
         } elseif ($this->role == 'pac-approve') {
             $count = $this->countList(['pac']);
-            $menu = $this->menuList(['pac-approve', 'pac']);
+            $menu = $this->menuList(['pac-approve', 'pac', 'roles']);
         } elseif ($this->role == 'heartstream') {
             $count = $this->countList(['heartstream']);
             $menu = $this->menuList(['heartstream']);
         } elseif ($this->role == 'heartstream-approve') {
             $count = $this->countList(['heartstream']);
-            $menu = $this->menuList(['heartstream-approve', 'heartstream']);
+            $menu = $this->menuList(['heartstream-approve', 'heartstream', 'roles']);
         } elseif ($this->role == 'register') {
             $count = $this->countList(['register']);
             $menu = $this->menuList(['register']);
         } elseif ($this->role == 'register-approve') {
             $count = $this->countList(['register']);
-            $menu = $this->menuList(['register-approve', 'register']);
+            $menu = $this->menuList(['register-approve', 'register', 'roles']);
         } elseif ($this->role == 'purchase') {
             $count = $this->countList(['purchase']);
             $menu = $this->menuList(['purchase']);
         } elseif ($this->role == 'purchase-approve') {
             $count = $this->countList(['purchase']);
-            $menu = $this->menuList(['purchase-approve', 'purchase']);
+            $menu = $this->menuList(['purchase-approve', 'purchase', 'roles']);
         } elseif ($this->role == 'purchase-head') {
             $count = $this->countList(['purchase']);
-            $menu = $this->menuList(['purchase-head', 'purchase']);
+            $menu = $this->menuList(['purchase-head', 'purchase', 'roles']);
         } elseif ($this->role == 'media') {
             $count = $this->countList(['media']);
             $menu = $this->menuList(['media']);
         } elseif ($this->role == 'media-head') {
             $count = $this->countList(['media']);
-            $menu = $this->menuList(['media-head', 'media']);
+            $menu = $this->menuList(['media-head', 'media', 'roles']);
         }
 
         return [

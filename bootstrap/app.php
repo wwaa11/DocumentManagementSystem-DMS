@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'role-manager' => \App\Http\Middleware\EnsureUserCanManageRoles::class,
+            'approver-manager' => \App\Http\Middleware\EnsureUserCanManageApprovers::class,
             'it' => \App\Http\Middleware\CheckIT::class,
             'user' => \App\Http\Middleware\CheckUser::class,
             'purchase' => \App\Http\Middleware\CheckPurchase::class,

@@ -41,5 +41,22 @@ class PurchaseMenuTest extends TestCase
             ['admin', 'it', 'purchase', 'media', 'pac', 'lab', 'heartstream', 'register'],
             $groupKeys
         );
+
+        $adminMenus = collect($menu['groups'])->firstWhere('key', 'admin')['menus'];
+        $this->assertTrue(collect($adminMenus)->contains(
+            fn (array $item): bool => ($item['link'] ?? null) === null && ($item['title'] ?? null) === 'Roles'
+        ));
+        $this->assertTrue(collect($adminMenus)->contains(
+            fn (array $item): bool => ($item['link'] ?? null) === 'roles.list'
+        ));
+        $this->assertTrue(collect($adminMenus)->contains(
+            fn (array $item): bool => ($item['link'] ?? null) === null && ($item['title'] ?? null) === 'Approvers'
+        ));
+        $this->assertTrue(collect($adminMenus)->contains(
+            fn (array $item): bool => ($item['link'] ?? null) === 'approvers.list'
+        ));
+        $this->assertFalse(collect($adminMenus)->contains(
+            fn (array $item): bool => ($item['title'] ?? null) === 'Roles' && ($item['link'] ?? null) === 'roles.list'
+        ));
     }
 }

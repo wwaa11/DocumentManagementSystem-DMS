@@ -80,6 +80,29 @@ class RoleManagementTest extends TestCase
         $this->assertTrue($service->canManageRoles($user));
     }
 
+    public function test_role_managers_have_roles_in_own_menu_section(): void
+    {
+        $user = new User([
+            'userid' => '650001',
+            'name' => 'Media Head',
+            'position' => 'Head',
+            'department' => 'Media',
+            'division' => 'Media',
+        ]);
+        $user->role = 'media-head';
+
+        $titles = collect($user->menu['lists'])->pluck('title')->all();
+        $roleSectionIndex = array_search('Roles', $titles, true);
+        $roleLinkIndex = collect($user->menu['lists'])->search(
+            fn (array $item): bool => ($item['link'] ?? null) === 'roles.list'
+        );
+
+        $this->assertNotFalse($roleSectionIndex);
+        $this->assertNotFalse($roleLinkIndex);
+        $this->assertLessThan($roleLinkIndex, $roleSectionIndex);
+        $this->assertNull($user->menu['lists'][$roleSectionIndex]['link']);
+    }
+
     public function test_role_labels_for_media_head_are_scoped(): void
     {
         $service = app(ApproverAdminService::class);

@@ -8,7 +8,7 @@ class UpdateApproverRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return app(\App\Services\Admin\ApproverAdminService::class)->canManageApprovers($this->user());
     }
 
     /**

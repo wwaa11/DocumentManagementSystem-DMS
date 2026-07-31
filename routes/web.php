@@ -20,7 +20,7 @@ Route::get('/training/download-pdf/{id}', [DocumentTrainingController::class, 'd
 
 Route::group(['middleware' => 'auth'], function () {
     // Admin
-    Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
+    Route::prefix('admin')->middleware(['auth', 'approver-manager'])->group(function () {
         Route::get('/approver/list', [AdminController::class, 'ApproverList'])->name('approvers.list');
         Route::post('/approver/getuser', [AdminController::class, 'ApproverGetUser'])->name('approvers.getuser');
         Route::post('/approver/update', [AdminController::class, 'ApproverUpdate'])->name('approvers.update');

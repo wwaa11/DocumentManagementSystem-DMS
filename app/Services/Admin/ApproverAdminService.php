@@ -164,6 +164,17 @@ class ApproverAdminService
         return $assignable === null || $assignable !== [];
     }
 
+    public function canManageApprovers(?User $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        if (! $user || blank($user->role)) {
+            return false;
+        }
+
+        return in_array((string) $user->role, ['admin', 'dev', 'it'], true);
+    }
+
     /**
      * Roles the actor may assign. null means unrestricted (admin/dev).
      *
