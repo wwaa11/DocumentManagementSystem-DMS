@@ -14,7 +14,7 @@
                     <i class="fas fa-sync-alt text-xs"></i>
                     รีเฟรชใน
                     <span class="countdown font-mono">
-                        <span class="bg-base-100/80 border-base-200 rounded-md border px-2 py-0.5" id="countdown" style="--value:{{ $seconds }};"></span>
+                        <span class="bg-base-100/80 border-base-200 rounded-md border px-2" id="countdown" style="--value:{{ $seconds }};"></span>
                     </span>
                     วินาที
                 </p>

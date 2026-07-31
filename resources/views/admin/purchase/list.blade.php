@@ -63,8 +63,18 @@
                 </thead>
                 <tbody>
                     @foreach ($documents as $document)
-                        <tr class="hover:bg-base-300">
-                            <td class="text-center">{{ $document->document_number }}</td>
+                        @php
+                            $isNewJobOverdue = $action == 'new' && $document->created_at->diffInSeconds(now()) > 86400;
+                        @endphp
+                        <tr class="hover:bg-base-300 {{ $isNewJobOverdue ? 'bg-error/10' : '' }}">
+                            <td class="text-center">
+                                @if ($action == 'new')
+                                    <x-document.job-timing-badge :since="$document->created_at" />
+                                    <br>
+                                @endif
+                                <br>
+                                {{ $document->document_number }}
+                            </td>
                             <td class="text-xs">
                                 {{ $document->document_type_name }} <br>
                                 @if (is_array($document->title))

@@ -132,7 +132,7 @@
                                 <tr>
                                     <th>แผนก</th>
                                     <th class="text-center">จำนวนเอกสาร</th>
-                                    <th>ความร้อนแรง</th>
+                                    <th>% ของจำนวนเอกสาร</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -141,7 +141,8 @@
                                     <tr>
                                         <td class="font-medium">{{ $dept }}</td>
                                         <td class="text-center font-bold">{{ $count }}</td>
-                                        <td>
+                                        <td class="text-center">
+                                            {{ round(($count / $maxCount) * 100, 2) }}%
                                             <progress class="progress progress-primary w-full" value="{{ $count }}" max="{{ $maxCount }}"></progress>
                                         </td>
                                     </tr>

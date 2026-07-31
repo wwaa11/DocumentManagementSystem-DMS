@@ -8,7 +8,7 @@
         />
         <form id="create-form" action="{{ route('document.media.create') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <x-document.approver-form />
+            <x-document.approver-form :can-change-approver="false" />
             <x-ui.validation-errors />
 
             <input id="selfApprove" type="hidden" name="selfApprove" value="false">

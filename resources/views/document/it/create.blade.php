@@ -8,7 +8,7 @@
         />
         <form id="create-form" action="{{ route('document.it.create') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <x-document.approver-form />
+            <x-document.approver-form :can-change-approver="false" />
             <x-ui.validation-errors />
 
             <input type="hidden" name="main_document_type" value="false" />
