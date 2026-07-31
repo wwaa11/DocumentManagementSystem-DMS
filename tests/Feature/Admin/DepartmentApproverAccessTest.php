@@ -29,7 +29,9 @@ class DepartmentApproverAccessTest extends TestCase
         $this->assertTrue($service->canManageApprovers($this->makeUser('admin')));
         $this->assertTrue($service->canManageApprovers($this->makeUser('dev')));
         $this->assertTrue($service->canManageApprovers($this->makeUser('it')));
+        $this->assertTrue($service->canManageApprovers($this->makeUser('it-hardware-approve')));
         $this->assertFalse($service->canManageApprovers($this->makeUser('it-approve')));
+        $this->assertFalse($service->canManageApprovers($this->makeUser('it-hardware')));
         $this->assertFalse($service->canManageApprovers($this->makeUser('media')));
         $this->assertFalse($service->canManageApprovers($this->makeUser('user')));
     }
@@ -40,6 +42,16 @@ class DepartmentApproverAccessTest extends TestCase
         $titles = collect($menu['lists'])->pluck('title')->all();
 
         $this->assertContains('Approvers', $titles);
+        $this->assertTrue(collect($menu['lists'])->contains(
+            fn (array $item): bool => ($item['link'] ?? null) === 'approvers.list'
+                && ($item['title'] ?? null) === 'Department Approvers'
+        ));
+    }
+
+    public function test_it_hardware_approve_menu_includes_department_approvers_section(): void
+    {
+        $menu = $this->makeUser('it-hardware-approve')->menu;
+
         $this->assertTrue(collect($menu['lists'])->contains(
             fn (array $item): bool => ($item['link'] ?? null) === 'approvers.list'
                 && ($item['title'] ?? null) === 'Department Approvers'

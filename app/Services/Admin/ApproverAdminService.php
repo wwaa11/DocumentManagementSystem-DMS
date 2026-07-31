@@ -172,7 +172,7 @@ class ApproverAdminService
             return false;
         }
 
-        return in_array((string) $user->role, ['admin', 'dev', 'it'], true);
+        return in_array((string) $user->role, ['admin', 'dev', 'it', 'it-hardware-approve'], true);
     }
 
     /**

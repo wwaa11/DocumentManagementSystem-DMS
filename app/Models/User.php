@@ -448,7 +448,7 @@ class User extends Authenticatable
             $menu = $this->menuList(['it-hardware', 'it']);
         } elseif ($this->role == 'it-hardware-approve') {
             $count = $this->countList(['it']);
-            $menu = $this->menuList(['it-approve', 'it-hardware', 'it', 'roles']);
+            $menu = $this->menuList(['it-approve', 'it-hardware', 'it', 'approvers', 'roles']);
         } elseif ($this->role == 'lab') {
             $count = $this->countList(['lab']);
             $menu = $this->menuList(['lab']);
