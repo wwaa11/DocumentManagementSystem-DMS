@@ -76,7 +76,7 @@ class DocumentUserStatusTest extends TestCase
             ],
         ])->render();
 
-        $this->assertStringContainsString('รออนุมัติจากหน่วยงาน', $html);
+        $this->assertStringContainsString('รออนุมัติจากหัวหน้าแผนก', $html);
     }
 
     public function test_index_row_renders_complete_partial_status(): void

@@ -118,6 +118,7 @@ class ApproverAdminService
             'it' => 'IT',
             'it-hardware' => 'IT Hardware',
             'it-approve' => 'IT Approve',
+            'it-hardware-approve' => 'IT Hardware + Approve',
             'lab' => 'Lab',
             'lab-approve' => 'Lab Approve',
             'pac' => 'PAC',
@@ -140,7 +141,7 @@ class ApproverAdminService
     public function roleFamilies(): array
     {
         return [
-            'it' => ['it', 'it-hardware', 'it-approve'],
+            'it' => ['it', 'it-hardware', 'it-approve', 'it-hardware-approve'],
             'lab' => ['lab', 'lab-approve'],
             'pac' => ['pac', 'pac-approve'],
             'heartstream' => ['heartstream', 'heartstream-approve'],

@@ -204,7 +204,7 @@ class DocumentITAdminService
 
         $userList = [];
         if ($action == 'my') {
-            $userList = User::whereIn('role', ['admin', 'it', 'it-hardware', 'it-approver'])->get();
+            $userList = User::whereIn('role', ['admin', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'])->get();
         }
 
         return view('admin.it.view', compact('document', 'action', 'userList', 'type'));

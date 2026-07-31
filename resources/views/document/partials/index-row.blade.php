@@ -1,7 +1,7 @@
 @php
     switch ($document['status']) {
         case 'wait_approval':
-            $text = 'รออนุมัติจากหน่วยงาน';
+            $text = 'รออนุมัติจากหัวหน้าแผนก';
             $class = 'badge-soft badge-warning';
             break;
         case 'not_approval':

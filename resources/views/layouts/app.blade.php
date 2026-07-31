@@ -315,6 +315,80 @@
             });
         }
     </script>
+    <script>
+        function clearFormFieldErrors(form) {
+            const $form = form ? $(form) : $('form');
+            $form.find('.input-error, .select-error, .textarea-error').removeClass('input-error select-error textarea-error');
+            $form.find('[data-field-error]').removeClass('ring-2 ring-error border-error').removeAttr('data-field-error');
+        }
+
+        function highlightInvalidField(selector, form) {
+            clearFormFieldErrors(form);
+
+            const $scope = form ? $(form) : $(document);
+            const $el = $scope.find(selector).first();
+            if (!$el.length) {
+                return null;
+            }
+
+            if ($el.is('input[type="radio"], input[type="checkbox"]')) {
+                const name = $el.attr('name');
+                $scope.find(`input[name="${name}"]`).each(function () {
+                    $(this).closest('label').addClass('ring-2 ring-error border-error').attr('data-field-error', '1');
+                });
+
+                const target = $el.closest('label')[0] || $el[0];
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                return $el[0];
+            }
+
+            if ($el.is('select')) {
+                $el.addClass('select-error');
+            } else if ($el.is('textarea')) {
+                $el.addClass('textarea-error');
+            } else if ($el.is('input')) {
+                $el.addClass('input-error');
+            } else {
+                $el.addClass('ring-2 ring-error border-error rounded-lg').attr('data-field-error', '1');
+            }
+
+            $el[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if ($el.is('input, select, textarea')) {
+                setTimeout(() => $el.trigger('focus'), 300);
+            }
+
+            return $el[0];
+        }
+
+        function showValidationError(message, fieldSelector, form) {
+            if (fieldSelector) {
+                highlightInvalidField(fieldSelector, form);
+            }
+
+            return Swal.fire({
+                icon: 'warning',
+                title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+                text: message,
+                confirmButtonText: 'ตกลง',
+                buttonsStyling: false,
+                customClass: { confirmButton: 'btn btn-primary' },
+            });
+        }
+
+        $(document).on('input change', '.input-error, .select-error, .textarea-error', function () {
+            $(this).removeClass('input-error select-error textarea-error');
+        });
+
+        $(document).on('change', 'input[type="radio"], input[type="checkbox"]', function () {
+            const name = $(this).attr('name');
+            if (!name) {
+                return;
+            }
+
+            $(`input[name="${name}"]`).closest('label[data-field-error]').removeClass('ring-2 ring-error border-error').removeAttr('data-field-error');
+        });
+    </script>
     @stack('scripts')
 </body>
 

@@ -50,6 +50,7 @@
                         name="document_type"
                         value="borrow"
                         onchange="selectDocType('borrow')"
+                        hint="*ต้องการขออนุมัติจากแผนก"
                     >
                         ขอยืมอุปกรณ์
                     </x-ui.radio-option>
@@ -158,8 +159,10 @@
         function submitForm() {
             event.preventDefault();
 
+            const form = '#create-form';
             const type = $('input[name="document_type"]:checked').val();
             if (!type) {
+                highlightInvalidField('input[name="document_type"]', form);
                 Swal.fire({
                     icon: 'warning',
                     title: 'กรุณาเลือกประเภทเอกสาร',
@@ -172,10 +175,12 @@
 
             let isValid = true;
             let errorMessage = '';
+            let errorField = null;
 
             if (!$('#document_phone').val()) {
                 isValid = false;
                 errorMessage = 'กรุณาระบุเบอร์โทรศัพท์ภายใน';
+                errorField = '#document_phone';
             }
 
             if (isValid) {
@@ -184,15 +189,18 @@
                     if (!title) {
                         isValid = false;
                         errorMessage = 'กรุณาเลือกหัวข้อขอรหัสผู้ใช้งาน';
+                        errorField = 'input[name="title"]';
                     } else if (title === 'เลขาแพทย์') {
                         if ($('#doctor_result_append .doctor-item').length === 0) {
                             isValid = false;
                             errorMessage = 'กรุณาเพิ่มรายการแพทย์อย่างน้อย 1 รายการ';
+                            errorField = '#doctor_result_append';
                         }
                     } else if (title === 'ฝ่ายบุคคล') {
                         if (!$('#user_detail').val()) {
                             isValid = false;
                             errorMessage = 'กรุณากรอกรายละเอียด';
+                            errorField = '#user_detail';
                         }
                     }
                 } else if (type === 'support') {
@@ -200,24 +208,30 @@
                     if (!title) {
                         isValid = false;
                         errorMessage = 'กรุณาเลือกประเภทงานที่ต้องการแจ้ง';
+                        errorField = 'input[name="title"]';
                     } else if (title === 'OTHER' && !$('#title_other_text').val()) {
                         isValid = false;
                         errorMessage = 'กรุณาระบุประเภทงานอื่นๆ';
+                        errorField = '#title_other_text';
                     } else if (['HARDWARE', 'SOFTWARE', 'SSB', 'HIS', 'ERP'].includes(title)) {
                         const requestDetail = $('input[name="request_type_detail"]:checked').val();
                         if (!requestDetail) {
                             isValid = false;
                             errorMessage = 'กรุณาเลือกรายละเอียดการขอ';
+                            errorField = 'input[name="request_type_detail"]';
                         } else if (requestDetail === 'อื่นๆ') {
                             if (title === 'HARDWARE' && !$('#request_other_hardware').val()) {
                                 isValid = false;
                                 errorMessage = 'กรุณาระบุรายละเอียดอื่นๆ (Hardware)';
+                                errorField = '#request_other_hardware';
                             } else if (title === 'SOFTWARE' && !$('#request_other_software').val()) {
                                 isValid = false;
                                 errorMessage = 'กรุณาระบุรายละเอียดอื่นๆ (Software)';
+                                errorField = '#request_other_software';
                             } else if (title === 'SSB' && !$('#request_other_ssb').val()) {
                                 isValid = false;
                                 errorMessage = 'กรุณาระบุรายละเอียดอื่นๆ (SSB)';
+                                errorField = '#request_other_ssb';
                             }
                         }
                     }
@@ -225,40 +239,46 @@
                     if (isValid && !$('#support_detail').val()) {
                         isValid = false;
                         errorMessage = 'กรุณากรอกรายละเอียดเพิ่มเติม';
+                        errorField = '#support_detail';
                     }
                 } else if (type === 'borrow') {
                     const borrowType = $('input[name="borrow_type"]:checked').val();
                     if (!borrowType) {
                         isValid = false;
                         errorMessage = 'กรุณาเลือกประเภทอุปกรณ์ที่ต้องการยืม';
+                        errorField = 'input[name="borrow_type"]';
                     } else if (borrowType === 'OTHER' && !$('#borrow_other_text').val()) {
                         isValid = false;
                         errorMessage = 'กรุณาระบุประเภทอุปกรณ์อื่นๆ';
+                        errorField = '#borrow_other_text';
+                    }
+
+                    if (isValid && !$('input[name="borrow_date"]').val()) {
+                        isValid = false;
+                        errorMessage = 'กรุณาระบุวันที่ขอยืมอุปกรณ์';
+                        errorField = 'input[name="borrow_date"]';
                     }
 
                     if (isValid && !$('input[name="return_date"]').val()) {
                         isValid = false;
                         errorMessage = 'กรุณาระบุวันที่คาดว่าจะคืนอุปกรณ์';
+                        errorField = 'input[name="return_date"]';
                     }
 
                     if (isValid && !$('#borrow_detail').val()) {
                         isValid = false;
                         errorMessage = 'กรุณากรอกรายละเอียดเพิ่มเติม';
+                        errorField = '#borrow_detail';
                     }
                 }
             }
 
             if (!isValid) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
-                    text: errorMessage,
-                    confirmButtonText: 'ตกลง',
-                    buttonsStyling: false,
-                    customClass: { confirmButton: 'btn btn-primary' },
-                });
+                showValidationError(errorMessage, errorField, form);
                 return;
             }
+
+            clearFormFieldErrors(form);
 
             Swal.fire({
                 title: 'ต้องการสร้างเอกสารหรือไม่?',

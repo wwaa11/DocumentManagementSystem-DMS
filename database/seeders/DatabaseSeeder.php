@@ -374,7 +374,13 @@ class DatabaseSeeder extends Seeder
             ],
         ];
         foreach ($documentTaskList as $task) {
-            DocumentListTask::create($task);
+            DocumentListTask::updateOrCreate(
+                [
+                    'document_type' => $task['document_type'],
+                    'step' => $task['step'],
+                ],
+                $task
+            );
         }
     }
 }

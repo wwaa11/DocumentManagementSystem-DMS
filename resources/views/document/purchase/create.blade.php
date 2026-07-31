@@ -202,8 +202,10 @@
         function submitForm() {
             event.preventDefault();
 
+            const form = '#create-form';
             const type = $('input[name="document_type"]:checked').val();
             if (!type) {
+                highlightInvalidField('input[name="document_type"]', form);
                 Swal.fire({
                     icon: 'warning',
                     title: 'กรุณาเลือกประเภทของเอกสาร',
@@ -216,39 +218,40 @@
 
             let isValid = true;
             let errorMessage = '';
+            let errorField = null;
 
             if (type === 'other' && !$('#title_other_text').val()) {
                 isValid = false;
                 errorMessage = 'กรุณาระบุประเภทเอกสารอื่นๆ';
+                errorField = '#title_other_text';
             } else if (type === 'po_edit') {
                 if (!$('#po_number').val()) {
                     isValid = false;
                     errorMessage = 'กรุณาระบุเลขที่ใบสั่งซื้อ';
+                    errorField = '#po_number';
                 } else if (!$('input[name="po_reason"]:checked').val()) {
                     isValid = false;
                     errorMessage = 'กรุณาเลือกรายละเอียด';
+                    errorField = 'input[name="po_reason"]';
                 } else if ($('input[name="po_reason"]:checked').val() === 'อื่นๆ' && !$('#po_reason_other').val()) {
                     isValid = false;
                     errorMessage = 'กรุณาระบุรายละเอียดอื่นๆ';
+                    errorField = '#po_reason_other';
                 }
             }
 
             if (isValid && !$('#document_phone').val()) {
                 isValid = false;
                 errorMessage = 'กรุณาระบุเบอร์โทรศัพท์ภายใน';
+                errorField = '#document_phone';
             }
 
             if (!isValid) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
-                    text: errorMessage,
-                    confirmButtonText: 'ตกลง',
-                    buttonsStyling: false,
-                    customClass: { confirmButton: 'btn btn-primary' },
-                });
+                showValidationError(errorMessage, errorField, form);
                 return;
             }
+
+            clearFormFieldErrors(form);
 
             Swal.fire({
                 title: 'ต้องการสร้างเอกสารหรือไม่?',

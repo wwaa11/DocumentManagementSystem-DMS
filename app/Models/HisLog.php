@@ -76,6 +76,7 @@ class HisLog extends Model
             'it',
             'it-approve',
             'it-hardware',
+            'it-hardware-approve',
             'admin',
         ];
     }

@@ -63,6 +63,23 @@ class RoleManagementTest extends TestCase
         $this->assertTrue($service->canAssignRole('admin', 'it', 'purchase'));
     }
 
+    public function test_it_hardware_approve_is_in_it_family_and_can_manage_roles(): void
+    {
+        $service = app(ApproverAdminService::class);
+
+        $this->assertSame(
+            ['user', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'],
+            $service->assignableRoleKeys('it-hardware-approve')
+        );
+        $this->assertArrayHasKey('it-hardware-approve', $service->allRoleLabels());
+        $this->assertSame('IT Hardware + Approve', $service->allRoleLabels()['it-hardware-approve']);
+        $this->assertContains('it-hardware-approve', $service->roleFamilies()['it']);
+
+        $user = new User;
+        $user->role = 'it-hardware-approve';
+        $this->assertTrue($service->canManageRoles($user));
+    }
+
     public function test_role_labels_for_media_head_are_scoped(): void
     {
         $service = app(ApproverAdminService::class);

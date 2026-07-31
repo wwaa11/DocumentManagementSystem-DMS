@@ -119,7 +119,7 @@ class HisLogTest extends TestCase
     {
         $this->assertContains('OPD', HisLog::moduleOptions());
         $this->assertContains('Patient Info', HisLog::moduleOptions());
-        $this->assertSame(['it', 'it-approve', 'it-hardware', 'admin'], HisLog::fixerRoles());
+        $this->assertSame(['it', 'it-approve', 'it-hardware', 'it-hardware-approve', 'admin'], HisLog::fixerRoles());
         $this->assertSame(['Open', 'In Progress', 'Closed'], HisLog::statusOptions());
     }
 

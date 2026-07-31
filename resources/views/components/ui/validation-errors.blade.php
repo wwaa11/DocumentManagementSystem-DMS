@@ -10,4 +10,19 @@
             </ul>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const errorKeys = @json($errors->keys());
+                if (!errorKeys.length || typeof highlightInvalidField !== 'function') {
+                    return;
+                }
+
+                const firstKey = errorKeys[0];
+                const selector = `[name="${firstKey}"], [name="${firstKey}[]"], #${firstKey}`;
+                highlightInvalidField(selector, 'form');
+            });
+        </script>
+    @endpush
 @endif

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,7 @@ class DocumentBorrow extends Model
     ];
 
     protected $casts = [
+        'borrow_date' => 'datetime',
         'estimate_return_date' => 'datetime',
     ];
 
@@ -38,7 +40,7 @@ class DocumentBorrow extends Model
     {
         return [
             'document_tag' => 'BORROW',
-            'colour'       => 'secondary',
+            'colour' => 'secondary',
         ];
     }
 
@@ -59,12 +61,12 @@ class DocumentBorrow extends Model
     public function getListDetailAttribute()
     {
 
-        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100) . '...' : $this->detail;
+        return strlen($this->detail) > 100 ? mb_substr($this->detail, 0, 100).'...' : $this->detail;
     }
 
     public function allHardwareRetrieve()
     {
-        $total    = $this->hardwares()->count();
+        $total = $this->hardwares()->count();
         $retrieve = $this->hardwares()->whereNotNull('return_date')->count();
 
         return ($total == $retrieve) ? true : false;

@@ -748,20 +748,34 @@
 
         function submitForm() {
             event.preventDefault();
+            const form = '#create-form';
             let missingFields = [];
+            let errorField = null;
 
-            if (!document.getElementById('training_name').value) missingFields.push('ชื่อหลักสูตร');
-            if (!document.querySelector('input[name="source_type"]:checked')) missingFields.push('ที่มาหลักสูตร');
+            if (!document.getElementById('training_name').value) {
+                missingFields.push('ชื่อหลักสูตร');
+                errorField = errorField || '#training_name';
+            }
+            if (!document.querySelector('input[name="source_type"]:checked')) {
+                missingFields.push('ที่มาหลักสูตร');
+                errorField = errorField || 'input[name="source_type"]';
+            }
 
             const dateMode = document.querySelector('input[name="date_mode"]:checked').value;
             if (dateMode === 'range') {
                 if (!document.querySelector('input[name="start_date"]').value || !document.querySelector('input[name="end_date"]').value) {
                     missingFields.push('วันที่ฝึกอบรม (ระบุช่วงเวลา)');
+                    if (!document.querySelector('input[name="start_date"]').value) {
+                        errorField = errorField || 'input[name="start_date"]';
+                    } else {
+                        errorField = errorField || 'input[name="end_date"]';
+                    }
                 }
             } else {
                 const specificDates = Array.from(document.querySelectorAll('input[name="specific_date[]"]')).filter(i => i.value);
                 if (specificDates.length === 0) {
                     missingFields.push('วันที่ฝึกอบรม (ระบุวันที่)');
+                    errorField = errorField || 'input[name="specific_date[]"]';
                 } else {
                     // Check if each date has a time
                     const specificGroups = document.querySelectorAll('#specific_date_list .group');
@@ -771,15 +785,34 @@
                         const eTime = group.querySelector('input[name="specific_end_time[]"]').value;
                         if (date && (!sTime || !eTime)) {
                             missingFields.push(`กรุณาระบุเวลาสำหรับวันที่รายการที่ ${idx + 1}`);
+                            if (!errorField) {
+                                errorField = !sTime
+                                    ? group.querySelector('input[name="specific_start_time[]"]')
+                                    : group.querySelector('input[name="specific_end_time[]"]');
+                            }
                         }
                     });
                 }
             }
 
-            if (document.querySelectorAll('input[name="participants_userid[]"]').length === 0) missingFields.push('รายชื่อผู้เข้าร่วม');
-            if (files.length === 0) missingFields.push('เอกสารแนบประกอบการอบรม');
+            if (document.querySelectorAll('input[name="participants_userid[]"]').length === 0) {
+                missingFields.push('รายชื่อผู้เข้าร่วม');
+                errorField = errorField || '#participant-table';
+            }
+            if (files.length === 0) {
+                missingFields.push('เอกสารแนบประกอบการอบรม');
+                errorField = errorField || '#file_input';
+            }
 
             if (missingFields.length > 0) {
+                if (typeof errorField === 'string') {
+                    highlightInvalidField(errorField, form);
+                } else if (errorField) {
+                    clearFormFieldErrors(form);
+                    $(errorField).addClass('input-error');
+                    errorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
                 Swal.fire({
                     title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
                     html: `<div class="text-left mt-2"><ul class="list-disc pl-5"><li>${missingFields.join('</li><li>')}</li></ul></div>`,
@@ -792,6 +825,8 @@
                 });
                 return;
             }
+
+            clearFormFieldErrors(form);
 
             // Check total file size (User requirement: max 100MB)
             const totalSize = files.reduce((sum, f) => sum + f.size, 0);

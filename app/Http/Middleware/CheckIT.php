@@ -16,7 +16,7 @@ class CheckIT
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $checkRoleList = in_array(Auth::user()->role, ['admin', 'dev', 'it', 'it-approve', 'it-hardware'], true);
+        $checkRoleList = in_array(Auth::user()->role, ['admin', 'dev', 'it', 'it-approve', 'it-hardware', 'it-hardware-approve'], true);
         if (Auth::check() && $checkRoleList) {
             return $next($request);
         }

@@ -2,7 +2,7 @@
 
 @php
     $map = [
-        'wait_approval' => ['text' => 'รออนุมัติจากหน่วยงาน', 'class' => 'badge-warning'],
+        'wait_approval' => ['text' => 'รออนุมัติจากหัวหน้าแผนก', 'class' => 'badge-warning'],
         'pending' => ['text' => 'รอการดำเนินการ', 'class' => 'badge-info'],
         'process' => ['text' => 'กำลังดำเนินการ', 'class' => 'badge-primary'],
         'done' => ['text' => 'เอกสารรออนุมัติ', 'class' => 'badge-secondary'],

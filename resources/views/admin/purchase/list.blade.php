@@ -17,7 +17,7 @@
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">สถานะ</span></label>
                             <select class="select select-bordered select-sm w-full" name="status">
                                 <option value="">ทั้งหมด</option>
-                                <option value="wait_approval" {{ isset($status) && $status == 'wait_approval' ? 'selected' : '' }}>รออนุมัติจากหน่วยงาน</option>
+                                <option value="wait_approval" {{ isset($status) && $status == 'wait_approval' ? 'selected' : '' }}>รออนุมัติจากหัวหน้าแผนก</option>
                                 <option value="pending" {{ isset($status) && $status == 'pending' ? 'selected' : '' }}>รอการดำเนินการ</option>
                                 <option value="process" {{ isset($status) && $status == 'process' ? 'selected' : '' }}>กำลังดำเนินการ</option>
                                 <option value="done" {{ isset($status) && $status == 'done' ? 'selected' : '' }}>เอกสารรออนุมัติ</option>
@@ -102,7 +102,7 @@
                                 @php
                                     switch ($document->status) {
                                         case 'wait_approval':
-                                            $text = 'รออนุมัติจากหน่วยงาน';
+                                            $text = 'รออนุมัติจากหัวหน้าแผนก';
                                             $class = 'badge-soft badge-warning';
                                             break;
                                         case 'not_approval':

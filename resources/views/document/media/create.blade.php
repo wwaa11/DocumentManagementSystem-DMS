@@ -201,71 +201,81 @@
         function submitForm() {
             event.preventDefault();
 
+            const form = '#create-form';
             const type = $('input[name="document_type"]:checked').val();
             let isValid = true;
             let errorMessage = '';
+            let errorField = null;
 
             if (!$('#title').val()) {
                 isValid = false;
                 errorMessage = 'กรุณาระบุชื่องาน';
+                errorField = '#title';
             } else if (!type) {
                 isValid = false;
                 errorMessage = 'กรุณาเลือกประเภทสื่อ';
+                errorField = 'input[name="document_type"]';
             } else if (type === 'other' && !$('#other_text').val()) {
                 isValid = false;
                 errorMessage = 'กรุณาระบุประเภทสื่ออื่นๆ';
+                errorField = '#other_text';
             } else if (type === 'sign') {
                 if ($('input[name="sign_types[]"]:checked').length === 0) {
                     isValid = false;
                     errorMessage = 'กรุณาเลือกประเภทป้ายอย่างน้อย 1 รายการ';
+                    errorField = 'input[name="sign_types[]"]';
                 } else if (!$('#sign_location').val()) {
                     isValid = false;
                     errorMessage = 'กรุณาระบุสถานที่ติดตั้งป้าย';
+                    errorField = '#sign_location';
                 }
             } else if (type === 'brochure') {
                 if ($('input[name="brochure_sizes[]"]:checked').length === 0) {
                     isValid = false;
                     errorMessage = 'กรุณาเลือกขนาดโบรชัวร์ / แผ่นพับ';
+                    errorField = 'input[name="brochure_sizes[]"]';
                 } else if (!$('input[name="brochure_print_type"]:checked').val()) {
                     isValid = false;
                     errorMessage = 'กรุณาเลือกประเภทการพิมพ์';
+                    errorField = 'input[name="brochure_print_type"]';
                 }
             } else if (type === 'photo_video') {
                 if ($('input[name="photo_work_types[]"]:checked').length === 0) {
                     isValid = false;
                     errorMessage = 'กรุณาเลือกลักษณะงาน';
+                    errorField = 'input[name="photo_work_types[]"]';
                 } else if (!$('#photo_date').val()) {
                     isValid = false;
                     errorMessage = 'กรุณาระบุวันที่ถ่ายทำ';
+                    errorField = '#photo_date';
                 } else if (!$('#photo_time').val()) {
                     isValid = false;
                     errorMessage = 'กรุณาระบุเวลาถ่ายทำ';
+                    errorField = '#photo_time';
                 } else if (!$('#photo_location').val()) {
                     isValid = false;
                     errorMessage = 'กรุณาระบุสถานที่ถ่ายทำ';
+                    errorField = '#photo_location';
                 }
             }
 
             if (isValid && !$('#required_date').val()) {
                 isValid = false;
                 errorMessage = 'กรุณาระบุวันที่ต้องการ';
+                errorField = '#required_date';
             }
             if (isValid && !$('#document_phone').val()) {
                 isValid = false;
                 errorMessage = 'กรุณาระบุเบอร์โทรศัพท์ภายใน';
+                errorField = '#document_phone';
             }
 
             if (!isValid) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
-                    text: errorMessage,
-                    confirmButtonText: 'ตกลง',
-                    buttonsStyling: false,
-                    customClass: { confirmButton: 'btn btn-primary' },
-                });
+                showValidationError(errorMessage, errorField, form);
                 return;
             }
+
+            clearFormFieldErrors(form);
 
             Swal.fire({
                 title: 'ต้องการสร้างเอกสารหรือไม่?',

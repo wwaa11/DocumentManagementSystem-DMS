@@ -32,6 +32,11 @@
     </div>
 
     <x-ui.section-title icon="fas fa-calendar-alt" tag="h4" class="text-accent">
+        วันที่ขอยืมอุปกรณ์
+    </x-ui.section-title>
+    <input class="input input-bordered input-accent mt-1 w-full" id="borrow_date" name="borrow_date" type="date" />
+
+    <x-ui.section-title icon="fas fa-calendar-alt" tag="h4" class="text-accent mt-6">
         วันที่คาดว่าจะคืนอุปกรณ์
     </x-ui.section-title>
     <input class="input input-bordered input-accent mt-1 w-full" id="return_date" name="return_date" type="date" />

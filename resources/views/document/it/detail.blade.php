@@ -19,6 +19,8 @@
     <strong>รายละเอียด</strong>
     <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail ?? $document->documentUser->detail !!}</p>
     @if ($type == 'BORROW')
+        <strong>วันที่ขอยืมอุปกรณ์</strong>
+        <input class="input input-accent text-accent w-full" type="text" readonly value="{{ $document->borrow_date?->format('d M Y') ?? '-' }}">
         <strong>วันที่คาดว่าจะคืนอุปกรณ์</strong>
         <input class="input input-accent text-accent w-full" type="text" readonly value="{{ $document->estimate_return_date->format('d M Y') }}">
         <strong>รายการอุปกรณ์</strong>

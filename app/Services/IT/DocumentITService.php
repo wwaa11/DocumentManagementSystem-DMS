@@ -307,6 +307,7 @@ class DocumentITService
         $document->document_number = DocumentNumber::getNextNumber($dataField['documentCode']);
         $document->title = $request->borrow_type == 'OTHER' ? $request->borrow_other_text : $request->borrow_type;
         $document->detail = $request->borrow_detail;
+        $document->borrow_date = $request->borrow_date;
         $document->estimate_return_date = $request->return_date;
         $document->save();
 
