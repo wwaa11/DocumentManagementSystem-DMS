@@ -9,12 +9,12 @@
              <label class="label">
                  <span class="label-text">รหัสพนักงาน</span>
              </label>
-             <div class="join flex">
+             <div class="join w-full">
                  <button class="btn btn-square btn-warning join-item hidden" id="reset-search-btn" type="button" onclick="resetUserForm()">
                      <i class="fas fa-redo"></i>
                  </button>
                  <input class="join-item input input-bordered w-full" id="request_userid" placeholder="รหัสพนักงาน" type="text" />
-                 <button class="btn btn-square btn-primary join-item" type="button" onclick="searchUserData()">
+                 <button class="btn btn-square btn-primary join-item" id="search-btn" type="button" onclick="searchUserData()">
                      <i class="fas fa-search"></i>
                  </button>
              </div>

@@ -179,7 +179,7 @@
                             </td>
                             <td class="text-center">
                                 <div class="flex flex-wrap items-center justify-center gap-2">
-                                    @if ($action == "new")
+                                    @if ($action == "new" && blank($document->assigned_user_id))
                                         <button class="btn btn-accent" type="button" onclick="acceptDocument('{{ $document->id }}','{{ $document->document_tag["document_tag"] }}')">รับงาน</button>
                                     @endif
                                     <a class="btn btn-outline btn-accent" href="{{ route("admin.it.view", ["document_id" => $document->id, "action" => $action, "type" => $document->document_tag["document_tag"]]) }}">ดูเอกสาร</a>

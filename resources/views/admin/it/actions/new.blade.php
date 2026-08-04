@@ -1,4 +1,4 @@
-@if ($document->assigned_user_id === null)
+@if ($document->assigned_user_id === null || $document->assigned_user_id === auth()->user()->userid)
     <button class="btn btn-accent w-full" type="button" onclick="acceptDocument()">รับงาน</button>
     @push('scripts')
         <script>

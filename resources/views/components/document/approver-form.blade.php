@@ -85,9 +85,42 @@
     </div>
 @endif
 
-@if ($canChangeApprover)
-    @push('scripts')
-        <script>
+@push('scripts')
+    <script>
+        async function searchUser(userid) {
+            if (!userid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ผิดพลาด',
+                    text: 'กรุณาใส่ User ID',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                return;
+            }
+
+            let user = null;
+
+            await axios.post('{{ route('user.search') }}', {
+                    userid: userid,
+                })
+                .then(function(response) {
+                    if (response.data.status) {
+                        user = response.data.user;
+                    }
+                })
+                .catch(function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ผิดพลาด',
+                        text: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์',
+                    });
+                });
+
+            return user;
+        }
+
+        @if ($canChangeApprover)
             function showApproverSelection() {
                 $('#approver-selection').toggleClass('hidden');
             }
@@ -112,39 +145,6 @@
                     showApproverSelection();
                 }
             }
-
-            async function searchUser(userid) {
-                if (!userid) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'ผิดพลาด',
-                        text: 'กรุณาใส่ User ID',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                    return;
-                }
-
-                let user = null;
-
-                await axios.post('{{ route('user.search') }}', {
-                        userid: userid,
-                    })
-                    .then(function(response) {
-                        if (response.data.status) {
-                            user = response.data.user;
-                        }
-                    })
-                    .catch(function() {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'ผิดพลาด',
-                            text: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์',
-                        });
-                    });
-
-                return user;
-            }
-        </script>
-    @endpush
-@endif
+        @endif
+    </script>
+@endpush

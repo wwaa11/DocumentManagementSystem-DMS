@@ -13,6 +13,7 @@ use App\Models\DocumentRegister;
 use App\Models\DocumentUser;
 use App\Services\DocumentWorkflowService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class DocumentITService
 {
@@ -35,21 +36,24 @@ class DocumentITService
         }
     }
 
-    private function setUserFieldData($users, string $title): string
+    /**
+     * @param  array<string, array{userid?: string, name?: string, name_en?: string, department?: string, request?: array<string, string>}>|null  $users
+     */
+    private function setUserFieldData(?array $users, string $title): string
     {
         $userField = '';
 
-        foreach ($users as $user) {
-            $userField .= 'รหัสพนักงาน: '.$user['userid'].'<br>';
-            $userField .= 'ชื่อ-นามสกุล: '.$user['name'].' '.$user['name_en'].'<br>';
-            $userField .= 'แผนก: '.$user['department'].'<br>';
+        foreach ($users ?? [] as $user) {
+            $userField .= 'รหัสพนักงาน: '.($user['userid'] ?? '').'<br>';
+            $userField .= 'ชื่อ-นามสกุล: '.($user['name'] ?? '').' '.($user['name_en'] ?? '').'<br>';
+            $userField .= 'แผนก: '.($user['department'] ?? '').'<br>';
             $userField .= 'ประเภท: '.$title.'<br>';
             $userField .= 'รายการที่ขอ: ';
 
-            foreach ($user['request'] as $service => $value) {
+            foreach ($user['request'] ?? [] as $service => $value) {
                 if ($value == 'true') {
                     if ($service == 'other') {
-                        $userField .= $user['request']['other'].' ';
+                        $userField .= ($user['request']['other'] ?? '').' ';
                     } else {
                         $userField .= $service.' ';
                     }
@@ -180,10 +184,22 @@ class DocumentITService
 
         switch ($title) {
             case 'ขอแก้ไขสิทธิการใช้งาน':
-                $detail = $this->setUserFieldData($request->users, $title);
+                $users = $request->input('users');
+                if (! is_array($users) || $users === []) {
+                    throw ValidationException::withMessages([
+                        'users' => 'กรุณาเพิ่มรายการผู้ใช้งานอย่างน้อย 1 รายการ',
+                    ]);
+                }
+                $detail = $this->setUserFieldData($users, $title);
                 break;
             case 'เลขาแพทย์':
-                $detail = $this->setDoctorFieldData($request->doctors ?? []);
+                $doctors = $request->input('doctors');
+                if (! is_array($doctors) || $doctors === []) {
+                    throw ValidationException::withMessages([
+                        'doctors' => 'กรุณาเพิ่มรายการแพทย์อย่างน้อย 1 รายการ',
+                    ]);
+                }
+                $detail = $this->setDoctorFieldData($doctors);
                 break;
             case 'ฝ่ายบุคคล':
                 $detail = $request->user_detail;
@@ -260,12 +276,13 @@ class DocumentITService
         }
 
         $document->document_user_id = $documentUser->id;
-        $document->status = $approver['userid'] == auth()->user()->userid ? 'pending' : 'wait_approval';
-        $document->document_number = DocumentNumber::getNextNumber($NumberType);
-
         if ($assignedUserId) {
             $document->assigned_user_id = $assignedUserId;
+            $document->status = $approver['userid'] == auth()->user()->userid ? 'process' : 'wait_approval';
+        } else {
+            $document->status = $approver['userid'] == auth()->user()->userid ? 'pending' : 'wait_approval';
         }
+        $document->document_number = DocumentNumber::getNextNumber($NumberType);
 
         $document->save();
 

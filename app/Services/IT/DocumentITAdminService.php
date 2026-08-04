@@ -22,20 +22,29 @@ class DocumentITAdminService
     {
         $documentListAll = DocumentIT::whereIn('status', ['pending', 'process', 'done'])->get();
         $documentListNewHardware = $documentListAll->where('status', 'pending')->filter(function ($item) {
-            return $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+            return blank($item->assigned_user_id)
+                && $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
         $documentListNew = $documentListAll->where('status', 'pending')->filter(function ($item) {
-            return ! $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+            return blank($item->assigned_user_id)
+                && ! $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
         $documentListApprove = $documentListAll->where('status', 'done')->count();
-        $documentListMy = $documentListAll->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
+        $documentListMy = $documentListAll->filter(function ($item) {
+            return $item->assigned_user_id === auth()->user()->userid
+                && in_array($item->status, ['process', 'pending'], true);
+        })->count();
 
         $documentITUserList = DocumentItUser::whereIn('status', ['pending', 'process', 'done'])->get();
         $documentITUserListNew = $documentITUserList->where('status', 'pending')->filter(function ($item) {
-            return ! $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
+            return blank($item->assigned_user_id)
+                && ! $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
         })->count();
         $documentITUserListApprove = $documentITUserList->where('status', 'done')->count();
-        $documentITUserListMy = $documentITUserList->where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->count();
+        $documentITUserListMy = $documentITUserList->filter(function ($item) {
+            return $item->assigned_user_id === auth()->user()->userid
+                && in_array($item->status, ['process', 'pending'], true);
+        })->count();
 
         $documentBorrowList = DocumentBorrow::whereIn('status', ['pending', 'borrow_approve', 'return_approve', 'return'])->get();
         $documentListBorrowHardware = $documentBorrowList->where('status', 'pending')->filter(function ($item) {
@@ -90,13 +99,13 @@ class DocumentITAdminService
 
     public function adminNewDocuments(): View
     {
-        $documentListAll = DocumentIT::where('status', 'pending')->get();
+        $documentListAll = DocumentIT::where('status', 'pending')->whereNull('assigned_user_id')->get();
         $documents = $documentListAll->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
 
             return ! $task;
         });
-        $documentITUserListAll = DocumentItUser::where('status', 'pending')->get();
+        $documentITUserListAll = DocumentItUser::where('status', 'pending')->whereNull('assigned_user_id')->get();
         $documentsITUser = $documentITUserListAll->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
 
@@ -110,8 +119,23 @@ class DocumentITAdminService
 
     public function adminMyDocuments(): View
     {
-        $documents = DocumentIT::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
-        $documentsITUser = DocumentItUser::where('assigned_user_id', auth()->user()->userid)->where('status', 'process')->get();
+        $currentUserId = auth()->user()->userid;
+        $documents = DocumentIT::query()
+            ->where('assigned_user_id', $currentUserId)
+            ->whereIn('status', ['process', 'pending'])
+            ->get();
+        $documentsITUser = DocumentItUser::query()
+            ->where('assigned_user_id', $currentUserId)
+            ->whereIn('status', ['process', 'pending'])
+            ->get();
+
+        foreach ($documents->concat($documentsITUser) as $document) {
+            if ($document->status === 'pending') {
+                $document->status = 'process';
+                $document->save();
+            }
+        }
+
         $documents = $documents->concat($documentsITUser)->sortBy('created_at');
         $action = 'my';
 
@@ -224,7 +248,11 @@ class DocumentITAdminService
         }
 
         $status = ($request->status == 'approve') ? 'อนุมัติ' : 'ปฏิเสธ';
-        $document->status = ($request->status == 'approve') ? 'pending' : 'reject';
+        if ($request->status == 'approve') {
+            $document->status = filled($document->assigned_user_id) ? 'process' : 'pending';
+        } else {
+            $document->status = 'reject';
+        }
         $document->save();
 
         $document->tasks()->where('step', 2)->update([
@@ -255,19 +283,36 @@ class DocumentITAdminService
             $document = DocumentItUser::find($request->id);
         }
 
-        if ($document->assigned_user_id !== null) {
+        if (! $document) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ไม่พบเอกสาร!',
+            ]);
+        }
+
+        $currentUserId = auth()->user()->userid;
+        $assignedUserId = $document->assigned_user_id;
+
+        if (filled($assignedUserId) && $assignedUserId !== $currentUserId) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'เอกสารนี้ได้ถูกรับงานแล้ว!',
             ]);
         }
 
+        if ($document->status !== 'pending') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'เอกสารนี้ไม่สามารถรับงานได้!',
+            ]);
+        }
+
         $document->status = 'process';
-        $document->assigned_user_id = auth()->user()->userid;
+        $document->assigned_user_id = $currentUserId;
         $document->save();
 
         $document->logs()->create([
-            'userid' => auth()->user()->userid,
+            'userid' => $currentUserId,
             'action' => 'accept',
             'details' => 'รับงาน',
         ]);

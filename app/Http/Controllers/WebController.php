@@ -66,6 +66,9 @@ class WebController extends Controller
 
         foreach ($approveDocuments as $item) {
             $documentData = $item->document;
+            if (! $documentData) {
+                continue;
+            }
             $document_id = $documentData->document_tag['document_tag'].$documentData->id;
             $detail = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100).'...' : $documentData->detail;
             $documents[$document_id] = [
@@ -169,7 +172,7 @@ class WebController extends Controller
             case 'it':
                 $view = 'document.it.create';
                 $it_admins = User::query()
-                    ->whereIn('role', ['admin', 'it'])
+                    ->whereIn('role', ['admin', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'])
                     ->orderBy('department')
                     ->orderBy('name')
                     ->get()
@@ -367,7 +370,7 @@ class WebController extends Controller
 
             foreach ($document->getAllDocuments() as $subDocument) {
                 if ($request->status == 'approve') {
-                    $status_change = 'pending';
+                    $status_change = filled($subDocument->assigned_user_id) ? 'process' : 'pending';
                 } elseif ($request->status == 'reject') {
                     $status_change = 'not_approval';
                 }

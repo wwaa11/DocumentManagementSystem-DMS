@@ -47,25 +47,57 @@ class NewJobsViewDocumentTest extends TestCase
         }
     }
 
-    public function test_new_job_view_hides_accept_button_when_already_assigned(): void
+    public function test_new_job_view_hides_accept_button_when_already_assigned_to_someone_else(): void
     {
+        $user = new \App\Models\User([
+            'userid' => '650099',
+            'name' => 'Other',
+        ]);
+        $this->actingAs($user);
+
         $document = (object) [
             'id' => 10,
             'assigned_user_id' => '650001',
             'document_tag' => ['document_tag' => 'IT'],
         ];
 
-        $actions = [
-            'admin.it.actions.new' => [],
+        $html = view('admin.it.actions.new', ['document' => $document])->render();
+        $this->assertStringNotContainsString('รับงาน', $html);
+
+        foreach ([
             'admin.user.actions.new' => ['type' => 'USER'],
             'admin.media.actions.new' => [],
             'admin.purchase.actions.new' => [],
-        ];
-
-        foreach ($actions as $view => $extra) {
+        ] as $view => $extra) {
             $html = view($view, array_merge(['document' => $document], $extra))->render();
-
             $this->assertStringNotContainsString('รับงาน', $html, $view);
         }
+    }
+
+    public function test_new_job_view_allows_accept_for_preassigned_assignee(): void
+    {
+        $user = new \App\Models\User([
+            'userid' => '650001',
+            'name' => 'Assignee',
+        ]);
+        $this->actingAs($user);
+
+        $document = (object) [
+            'id' => 10,
+            'assigned_user_id' => '650001',
+            'document_tag' => ['document_tag' => 'IT'],
+        ];
+
+        $html = view('admin.it.actions.new', ['document' => $document])->render();
+
+        $this->assertStringContainsString('รับงาน', $html);
+        $this->assertStringContainsString('acceptDocument', $html);
+    }
+
+    public function test_new_jobs_list_hides_accept_when_preassigned(): void
+    {
+        $source = file_get_contents(resource_path('views/admin/it/list.blade.php'));
+
+        $this->assertStringContainsString('blank($document->assigned_user_id)', $source);
     }
 }

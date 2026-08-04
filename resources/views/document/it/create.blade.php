@@ -190,6 +190,12 @@
                         isValid = false;
                         errorMessage = 'กรุณาเลือกหัวข้อขอรหัสผู้ใช้งาน';
                         errorField = 'input[name="title"]';
+                    } else if (title === 'ขอแก้ไขสิทธิการใช้งาน') {
+                        if ($('#user_result_append .user-item').length === 0) {
+                            isValid = false;
+                            errorMessage = 'กรุณาเพิ่มรายการผู้ใช้งานอย่างน้อย 1 รายการ';
+                            errorField = '#user_result_append';
+                        }
                     } else if (title === 'เลขาแพทย์') {
                         if ($('#doctor_result_append .doctor-item').length === 0) {
                             isValid = false;

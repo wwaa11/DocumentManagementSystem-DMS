@@ -41,7 +41,7 @@ class DocumentWorkflowService
                     $isApprove = true;
 
                     if ($islastStep && $type !== 'user') {
-                        if ($approveable->assigned_user_id !== null) {
+                        if (filled($approveable->assigned_user_id)) {
                             $approveable->update([
                                 'status' => 'process',
                             ]);
@@ -62,7 +62,7 @@ class DocumentWorkflowService
                         $isApprove = true;
 
                         if ($islastStep && $type !== 'user') {
-                            if ($approveable->assigned_user_id !== null) {
+                            if (filled($approveable->assigned_user_id)) {
                                 $approveable->update([
                                     'status' => 'process',
                                 ]);
