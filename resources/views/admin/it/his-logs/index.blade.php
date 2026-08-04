@@ -2,7 +2,7 @@
 
 @php
     $hasDateFilter = filled($start_date) || filled($end_date);
-    $hasOtherFilters = filled($module) || filled($shift) || filled($status) || filled($problem_detail);
+    $hasAdvancedFilters = $hasDateFilter || filled($module) || filled($shift) || filled($status);
     $periodLabel = $hasDateFilter
         ? collect([$start_date, $end_date])->filter()->implode(' → ')
         : 'ทั้งหมด';
@@ -15,6 +15,12 @@
         filled($status) ? ['key' => 'status', 'label' => 'สถานะ: '.$status] : null,
         filled($problem_detail) ? ['key' => 'problem_detail', 'label' => 'ปัญหา: '.$problem_detail] : null,
     ])->filter()->values();
+    $advancedFilterCount = collect([
+        $hasDateFilter,
+        filled($module),
+        filled($shift),
+        filled($status),
+    ])->filter()->count();
 @endphp
 
 @section('content')
@@ -80,103 +86,114 @@
 
         <section class="border-base-200/80 from-base-100 to-base-200/40 mt-6 overflow-hidden rounded-2xl border bg-gradient-to-br shadow-md">
             <form action="{{ route('admin.it.hislogs.index') }}" method="GET">
-                <div class="border-base-200/70 flex flex-col gap-4 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                    <div class="flex items-start gap-3">
-                        <span class="bg-primary/10 text-primary ring-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1">
-                            <i class="fas fa-sliders-h"></i>
-                        </span>
-                        <div>
-                            <h2 class="text-base font-bold tracking-tight">ตัวกรอง</h2>
-                            <p class="text-base-content/55 text-xs">ค้นหาและกรองรายการตามเงื่อนไขที่ต้องการ</p>
+                <div class="space-y-4 px-5 py-5 sm:px-6">
+                    <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+                        <div class="form-control min-w-0 flex-1">
+                            <label class="label py-1" for="problem_detail">
+                                <span class="label-text text-xs font-semibold tracking-wide uppercase">รายละเอียดปัญหา</span>
+                            </label>
+                            <label class="input input-bordered flex w-full items-center gap-3">
+                                <i class="fas fa-search text-base-content/40"></i>
+                                <input
+                                    class="grow"
+                                    id="problem_detail"
+                                    type="search"
+                                    name="problem_detail"
+                                    value="{{ $problem_detail }}"
+                                    placeholder="พิมพ์คำค้นหาในรายละเอียดปัญหา..."
+                                    autocomplete="off"
+                                >
+                            </label>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button class="btn btn-primary btn-sm gap-2" type="submit">
+                                <i class="fas fa-search"></i> ค้นหา
+                            </button>
+                            <button
+                                class="btn btn-ghost btn-sm border-base-content/10 gap-2"
+                                id="hislog-filters-toggle"
+                                type="button"
+                                aria-expanded="{{ $hasAdvancedFilters ? 'true' : 'false' }}"
+                                aria-controls="hislog-advanced-filters"
+                            >
+                                <i class="fas fa-sliders-h"></i>
+                                ตัวกรอง
+                                @if ($advancedFilterCount > 0)
+                                    <span class="badge badge-primary badge-sm">{{ $advancedFilterCount }}</span>
+                                @endif
+                                <i class="fas fa-chevron-down text-xs transition-transform duration-200 {{ $hasAdvancedFilters ? 'rotate-180' : '' }}" data-filter-chevron></i>
+                            </button>
+                            @if ($activeFilters->isNotEmpty())
+                                <a class="btn btn-ghost btn-sm border-base-content/10 gap-2" href="{{ route('admin.it.hislogs.index') }}">
+                                    <i class="fas fa-undo"></i> ล้าง
+                                </a>
+                            @endif
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button class="btn btn-primary btn-sm gap-2" type="submit">
-                            <i class="fas fa-search"></i> ค้นหา
-                        </button>
-                        <a class="btn btn-ghost btn-sm border-base-content/10 gap-2" href="{{ route('admin.it.hislogs.index') }}">
-                            <i class="fas fa-undo"></i> ล้างทั้งหมด
-                        </a>
-                    </div>
-                </div>
 
-                <div class="space-y-5 px-5 py-5 sm:px-6">
-                    <div class="form-control">
-                        <label class="label py-1" for="problem_detail">
-                            <span class="label-text text-xs font-semibold tracking-wide uppercase">รายละเอียดปัญหา</span>
-                        </label>
-                        <label class="input input-bordered flex w-full items-center gap-3">
-                            <i class="fas fa-search text-base-content/40"></i>
-                            <input
-                                class="grow"
-                                id="problem_detail"
-                                type="search"
-                                name="problem_detail"
-                                value="{{ $problem_detail }}"
-                                placeholder="พิมพ์คำค้นหาในรายละเอียดปัญหา..."
-                                autocomplete="off"
-                            >
-                        </label>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
-                        <div class="bg-base-100/80 border-base-200/80 rounded-xl border p-4 lg:col-span-4">
-                            <p class="text-base-content/50 mb-3 text-[11px] font-semibold tracking-wider uppercase">
-                                <i class="fas fa-calendar-day mr-1"></i> ช่วงวันที่
-                            </p>
-                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <div class="form-control">
-                                    <label class="label py-0.5" for="start_date">
-                                        <span class="label-text text-xs">เริ่มต้น</span>
-                                    </label>
-                                    <input class="input input-bordered input-sm w-full" id="start_date" type="date" name="start_date" value="{{ $start_date }}">
-                                </div>
-                                <div class="form-control">
-                                    <label class="label py-0.5" for="end_date">
-                                        <span class="label-text text-xs">สิ้นสุด</span>
-                                    </label>
-                                    <input class="input input-bordered input-sm w-full" id="end_date" type="date" name="end_date" value="{{ $end_date }}">
+                    <div
+                        class="{{ $hasAdvancedFilters ? '' : 'hidden' }}"
+                        id="hislog-advanced-filters"
+                    >
+                        <div class="grid grid-cols-1 gap-4 border-t border-base-200/70 pt-4 lg:grid-cols-12">
+                            <div class="bg-base-100/80 border-base-200/80 rounded-xl border p-4 lg:col-span-4">
+                                <p class="text-base-content/50 mb-3 text-[11px] font-semibold tracking-wider uppercase">
+                                    <i class="fas fa-calendar-day mr-1"></i> ช่วงวันที่
+                                </p>
+                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div class="form-control">
+                                        <label class="label py-0.5" for="start_date">
+                                            <span class="label-text text-xs">เริ่มต้น</span>
+                                        </label>
+                                        <input class="input input-bordered input-sm w-full" id="start_date" type="date" name="start_date" value="{{ $start_date }}">
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label py-0.5" for="end_date">
+                                            <span class="label-text text-xs">สิ้นสุด</span>
+                                        </label>
+                                        <input class="input input-bordered input-sm w-full" id="end_date" type="date" name="end_date" value="{{ $end_date }}">
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="bg-base-100/80 border-base-200/80 rounded-xl border p-4 lg:col-span-8">
-                            <p class="text-base-content/50 mb-3 text-[11px] font-semibold tracking-wider uppercase">
-                                <i class="fas fa-tags mr-1"></i> เงื่อนไขเคส
-                            </p>
-                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                <div class="form-control">
-                                    <label class="label py-0.5" for="module">
-                                        <span class="label-text text-xs">Module</span>
-                                    </label>
-                                    <select class="select select-bordered select-sm w-full" id="module" name="module">
-                                        <option value="">ทั้งหมด</option>
-                                        @foreach ($modules as $moduleOption)
-                                            <option value="{{ $moduleOption }}" @selected($module === $moduleOption)>{{ $moduleOption }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-control">
-                                    <label class="label py-0.5" for="shift">
-                                        <span class="label-text text-xs">Shift</span>
-                                    </label>
-                                    <select class="select select-bordered select-sm w-full" id="shift" name="shift">
-                                        <option value="">ทั้งหมด</option>
-                                        @foreach ($shifts as $shiftOption)
-                                            <option value="{{ $shiftOption }}" @selected($shift === $shiftOption)>{{ $shiftOption }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-control">
-                                    <label class="label py-0.5" for="status">
-                                        <span class="label-text text-xs">สถานะ</span>
-                                    </label>
-                                    <select class="select select-bordered select-sm w-full" id="status" name="status">
-                                        <option value="">ทั้งหมด</option>
-                                        @foreach ($statuses as $statusOption)
-                                            <option value="{{ $statusOption }}" @selected($status === $statusOption)>{{ $statusOption }}</option>
-                                        @endforeach
-                                    </select>
+                            <div class="bg-base-100/80 border-base-200/80 rounded-xl border p-4 lg:col-span-8">
+                                <p class="text-base-content/50 mb-3 text-[11px] font-semibold tracking-wider uppercase">
+                                    <i class="fas fa-tags mr-1"></i> เงื่อนไขเคส
+                                </p>
+                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                    <div class="form-control">
+                                        <label class="label py-0.5" for="module">
+                                            <span class="label-text text-xs">Module</span>
+                                        </label>
+                                        <select class="select select-bordered select-sm w-full" id="module" name="module">
+                                            <option value="">ทั้งหมด</option>
+                                            @foreach ($modules as $moduleOption)
+                                                <option value="{{ $moduleOption }}" @selected($module === $moduleOption)>{{ $moduleOption }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label py-0.5" for="shift">
+                                            <span class="label-text text-xs">Shift</span>
+                                        </label>
+                                        <select class="select select-bordered select-sm w-full" id="shift" name="shift">
+                                            <option value="">ทั้งหมด</option>
+                                            @foreach ($shifts as $shiftOption)
+                                                <option value="{{ $shiftOption }}" @selected($shift === $shiftOption)>{{ $shiftOption }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label py-0.5" for="status">
+                                            <span class="label-text text-xs">สถานะ</span>
+                                        </label>
+                                        <select class="select select-bordered select-sm w-full" id="status" name="status">
+                                            <option value="">ทั้งหมด</option>
+                                            @foreach ($statuses as $statusOption)
+                                                <option value="{{ $statusOption }}" @selected($status === $statusOption)>{{ $statusOption }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -321,3 +338,24 @@
         </section>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('hislog-filters-toggle');
+            const panel = document.getElementById('hislog-advanced-filters');
+            const chevron = toggle?.querySelector('[data-filter-chevron]');
+
+            if (!toggle || !panel) {
+                return;
+            }
+
+            toggle.addEventListener('click', () => {
+                const isOpen = !panel.classList.contains('hidden');
+                panel.classList.toggle('hidden', isOpen);
+                toggle.setAttribute('aria-expanded', (!isOpen).toString());
+                chevron?.classList.toggle('rotate-180', !isOpen);
+            });
+        });
+    </script>
+@endpush

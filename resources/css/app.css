@@ -202,4 +202,38 @@
     .data-table-wrap table tbody tr {
         @apply hover:bg-primary/5 transition-colors duration-150;
     }
+
+    .job-timing-fire {
+        box-shadow: 0 0 6px rgb(249 115 22 / 35%);
+        animation: job-timing-fire-glow 2s ease-in-out infinite;
+    }
+
+    .job-timing-fire__flame {
+        animation: job-timing-fire-flicker 1.4s ease-in-out infinite;
+        transform-origin: center bottom;
+    }
+
+    @keyframes job-timing-fire-glow {
+        0%,
+        100% {
+            box-shadow: 0 0 4px rgb(249 115 22 / 25%);
+        }
+
+        50% {
+            box-shadow: 0 0 8px rgb(249 115 22 / 45%);
+        }
+    }
+
+    @keyframes job-timing-fire-flicker {
+        0%,
+        100% {
+            opacity: 0.85;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 1;
+            transform: scale(1.08);
+        }
+    }
 }

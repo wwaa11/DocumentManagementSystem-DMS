@@ -6,7 +6,10 @@
 @endphp
 
 @if ($isOnTime)
-    <div {{ $attributes->merge(['class' => 'badge badge-soft badge-success mt-1']) }}>On Time</div>
+    <div {{ $attributes->merge(['class' => 'badge badge-success mt-1']) }}>On Time</div>
 @else
-    <div {{ $attributes->merge(['class' => 'badge badge-soft badge-error mt-1']) }}>Overdue</div>
+    <div {{ $attributes->merge(['class' => 'badge badge-error job-timing-fire mt-1 gap-1']) }}>
+        Overdue
+        <i class="fas fa-fire job-timing-fire__flame" aria-hidden="true"></i>
+    </div>
 @endif

@@ -85,7 +85,8 @@
                             </td>
                             <td>
                                 {{ $document->documentUser->creator->name }}<br>
-                                {{ $document->created_at->format("d/m/Y H:i:s") }}
+                                <span class="text-xs text-gray-500">{{ $document->creator->department }}</span><br>
+                                <span class="text-xs text-gray-500">{{ $document->created_at->format("d/m/Y H:i:s") }}</span>
                             </td>
                             <td class="text-xs">
                                 @foreach ($document->documentUser->approvers as $approver)
