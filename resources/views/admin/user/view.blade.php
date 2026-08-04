@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <div class="justify-center gap-3 lg:flex">
-        <div class="card bg-base-100 mb-4 shadow-xl">
+        <div class="card bg-base-100 mb-4 shadow-xl max-w-2xl">
             <div class="card-body">
                 <x-ui.back-button />
                 <x-document.detail-masthead
@@ -25,7 +25,7 @@
                 <x-document.task-timeline :tasks="$document->tasks" />
             </div>
         </div>
-        <div class="card bg-base-100 mb-4 shadow-xl">
+        <div class="card bg-base-100 mb-4 shadow-xl max-w-xl">
             <div class="card-body">
                 <h5 class="card-title">รายการดำเนินงาน</h5>
                 @if ($document->logs()->where('action', 'process')->count() > 0)
@@ -34,7 +34,7 @@
                             $actionCss = $log->action == 'process' ? 'primary' : 'accent';
                         @endphp
                         <div class="rounded-box border-{{ $actionCss }} w-full border p-2">
-                            <textarea class="textarea w-full border-0 focus:outline-none" readonly>{!! $log->details !!}</textarea>
+                            <textarea class="textarea w-full border-0 focus:outline-none" rows="10" readonly>{!! $log->details !!}</textarea>
                             <div class="text-{{ $actionCss }} flex justify-between text-xs">
                                 <div>{{ $log->userid }} {{ $log->user->name }}</div>
                                 <div>{{ $log->created_at->format('Y-m-d H:i:s') }}</div>

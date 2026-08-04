@@ -17,9 +17,8 @@
     <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail !!}</p>
     @foreach ($document->getAllDocuments() as $doc)
         @foreach ($doc->logs->where('action', 'process') as $log)
-            <p class="border-accent rounded-md border p-4">{{ $log->details }}
+            <textarea class="textarea border-secondary rounded-md border p-4 w-full focus:outline-none" rows="10" readonly>{!! $log->details !!}</textarea>
             <div class="text-end text-xs text-gray-500">{{ $log->user->name }} {{ $log->created_at->format('d/m/Y H:i:s') }}</div>
-            </p>
         @endforeach
     @endforeach
     <div class="divider"></div>

@@ -16,9 +16,9 @@
         <tbody>
             @forelse ($logs as $log)
                 <tr>
-                    <td>{{ $log->created_at->format('d/m/Y H:i') }}</td>
-                    <td>{{ $log->details }}</td>
-                    <td>{{ $log->user->name ?? $log->userid }}</td>
+                    <td class="whitespace-nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
+                    <td>{{ Str::limit($log->details, 100) }}</td>
+                    <td class="whitespace-nowrap">{{ $log->user->name ?? $log->userid }}</td>
                 </tr>
             @empty
                 <tr>

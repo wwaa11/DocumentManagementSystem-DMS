@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <div class="justify-center gap-3 lg:flex">
-        <div class="card bg-base-100 mb-4 shadow-xl">
+        <div class="card bg-base-100 mb-4 shadow-xl max-w-2xl">
             @if ($type == 'IT' || $type == 'BORROW')
                 @include('document.it.detail')
             @elseif ($type == 'USER')
@@ -14,7 +14,7 @@
                 @include('document.media.detail')
             @endif
         </div>
-        <div class="card bg-base-100 mb-4 shadow-xl">
+        <div class="card bg-base-100 mb-4 shadow-xl max-w-xl">
             <div class="card-body">
                 @if ($type == 'Training')
                     {{-- @include('document.training.management') --}}

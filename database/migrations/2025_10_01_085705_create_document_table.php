@@ -197,7 +197,7 @@ return new class extends Migration
                 ->onDelete('set null');
             $table->string('action');
             // Polymorphic Columns: This replaces 'loggable_id' and 'loggable_type'.
-            $table->string('details')->nullable();
+            $table->text('details')->nullable();
             $table->timestamps();
             // Index for faster lookups (e.g., find all actions by a user or on a specific type of document)
             $table->index(['userid', 'action']);

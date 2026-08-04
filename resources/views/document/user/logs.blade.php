@@ -15,9 +15,9 @@
             <tbody>
                 @foreach ($doc->logs as $log)
                     <tr>
-                        <td>{{ $log->created_at->format("d/m/Y H:i") }}</td>
-                        <td>{{ $log->details }}</td>
-                        <td>{{ $log->user->name }}</td>
+                        <td class="whitespace-nowrap">{{ $log->created_at->format("d/m/Y H:i") }}</td>
+                        <td>{{ Str::limit($log->details, 100) }}</td>
+                        <td class="whitespace-nowrap">{{ $log->user->name }}</td>
                     </tr>
                 @endforeach
             </tbody>
