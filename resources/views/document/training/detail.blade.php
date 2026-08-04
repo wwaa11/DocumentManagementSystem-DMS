@@ -34,7 +34,7 @@
             <div class="text-[10px] font-bold uppercase tracking-widest opacity-40">แผนก</div>
             <div class="mt-1 flex items-center gap-2 font-bold">
                 <i class="fas fa-building text-primary/60 text-xs"></i>
-                {{ $document->creator->department }}
+                {{ $document->creator->department ?? null }}
             </div>
         </div>
         <div class="bg-base-200/50 border-base-200 rounded-xl border p-4">

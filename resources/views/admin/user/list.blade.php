@@ -79,13 +79,13 @@
                             </td>
                             <td class="text-xs">
                                 <div class="preview-trigger cursor-pointer hover:text-blue-600" data-fulltext="{{ $document->documentUser->detail }}" onclick="showDetail(this)">
-                                    {{ Str::limit($document->documentUser->ListDetail, 50) }}
+                                    {!! Str::limit($document->documentUser->ListDetail, 50) !!}
                                     <i class="fas fa-search-plus ml-1 text-gray-400"></i>
                                 </div>
                             </td>
                             <td>
                                 {{ $document->documentUser->creator->name }}<br>
-                                <span class="text-xs text-gray-500">{{ $document->creator->department }}</span><br>
+                                <span class="text-xs text-gray-500">{{ $document->documentUser->creator->department }}</span><br>
                                 <span class="text-xs text-gray-500">{{ $document->created_at->format("d/m/Y H:i:s") }}</span>
                             </td>
                             <td class="text-xs">

@@ -88,7 +88,7 @@
                             </td>
                             <td class="text-xs">
                                 <div class="preview-trigger cursor-pointer hover:text-blue-600" data-fulltext="{{ $document->detail }}" onclick="showDetail(this)">
-                                    {{ Str::limit($document->list_detail, 50) }}
+                                    {!! Str::limit($document->list_detail, 50) !!}
                                     <i class="fas fa-search-plus ml-1 text-gray-400"></i>
                                 </div>
                             </td>

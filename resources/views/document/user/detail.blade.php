@@ -14,7 +14,11 @@
         <div class="divider"></div>
     @endif
     <strong>รายละเอียด</strong>
-    <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail !!}</p>
+    @if( (str_contains($document->detail, "<br>") || str_contains($document->detail, "\n")) )
+    <p class="border-secondary rounded-md border p-4 whitespace-pre-wrap">{!! $document->detail !!}</p>
+    @else
+    <p class="border-secondary rounded-md border p-4">{{ $document->detail }}</p>
+    @endif
     @foreach ($document->getAllDocuments() as $doc)
         @foreach ($doc->logs->where('action', 'process') as $log)
             <textarea class="textarea border-secondary rounded-md border p-4 w-full focus:outline-none" rows="10" readonly>{!! $log->details !!}</textarea>

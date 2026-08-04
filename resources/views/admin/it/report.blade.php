@@ -136,14 +136,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @php $maxCount = count($deptStats) > 0 ? max($deptStats) : 1; @endphp
                                 @foreach ($deptStats as $dept => $count)
                                     <tr>
                                         <td class="font-medium">{{ $dept }}</td>
                                         <td class="text-center font-bold">{{ $count }}</td>
                                         <td class="text-center">
-                                            {{ round(($count / $maxCount) * 100, 2) }}%
-                                            <progress class="progress progress-primary w-full" value="{{ $count }}" max="{{ $maxCount }}"></progress>
+                                            {{ round($count / $allStats["total"] * 100, 2) }}%
+                                            <progress class="progress progress-primary w-full" value="{{ $count }}" max="{{ $allStats["total"] }}"></progress>
                                         </td>
                                     </tr>
                                 @endforeach

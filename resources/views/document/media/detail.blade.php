@@ -93,7 +93,7 @@
     @endif
 
     <strong>รายละเอียด</strong>
-    <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail !!}</p>
+    <textarea class="textarea w-full border-secondary rounded-md p-4 focus:outline-none" rows="10" readonly>{!! $document->detail !!}</textarea>
 
     <x-document.task-timeline :tasks="$document->tasks" />
 </div>

@@ -17,7 +17,11 @@
         <div class="divider"></div>
     @endif
     <strong>รายละเอียด</strong>
-    <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail ?? $document->documentUser->detail !!}</p>
+    @if( (str_contains($document->detail, "<br>") || str_contains($document->detail, "\n")) )
+    <p class="border-secondary rounded-md border p-4 whitespace-pre-wrap">{!! $document->detail !!}</p>
+    @else
+    <p class="border-secondary rounded-md border p-4">{{ $document->detail }}</p>
+    @endif
     @if ($type == 'BORROW')
         <strong>วันที่ขอยืมอุปกรณ์</strong>
         <input class="input input-accent text-accent w-full" type="text" readonly value="{{ $document->borrow_date?->format('d M Y') ?? '-' }}">

@@ -204,12 +204,13 @@
     }
 
     .job-timing-fire {
-        box-shadow: 0 0 6px rgb(249 115 22 / 35%);
+        box-shadow: 0 0 6px rgba(251, 255, 0, 0.959);
         animation: job-timing-fire-glow 2s ease-in-out infinite;
     }
 
     .job-timing-fire__flame {
         animation: job-timing-fire-flicker 1.4s ease-in-out infinite;
+        color: rgb(251, 255, 0);
         transform-origin: center bottom;
     }
 

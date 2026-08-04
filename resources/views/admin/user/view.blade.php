@@ -21,7 +21,11 @@
                     <div class="divider"></div>
                 @endif
                 <strong>รายละเอียด</strong>
-                <p class="border-secondary min-h-48 rounded-md border p-4">{!! $document->detail ?? $document->documentUser->detail !!}</p>
+                @if( (str_contains($document->documentUser->detail, "<br>") || str_contains($document->documentUser->detail, "\n")) )
+                <p class="border-secondary rounded-md border p-4 whitespace-pre-wrap">{!! $document->documentUser->detail !!}</p>
+                @else
+                <p class="border-secondary rounded-md border p-4">{{ $document->documentUser->detail }}</p>
+                @endif
                 <x-document.task-timeline :tasks="$document->tasks" />
             </div>
         </div>
