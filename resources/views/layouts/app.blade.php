@@ -148,7 +148,7 @@
 
     @if (session('success'))
         <script type="module">
-            Swal.fire({
+            window.Swal.fire({
                 icon: 'success',
                 title: 'Success',
                 text: '{{ session('success') }}',
@@ -160,7 +160,7 @@
     @endif
     @if (session('error'))
         <script type="module">
-            Swal.fire({
+            window.Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: '{{ session('error') }}',
@@ -172,116 +172,114 @@
     @endif
 
     <script type="module">
-        $(function() {
-            const navLinks = document.querySelectorAll('.nav-link');
-            const activeRoute = localStorage.getItem('activeRoute') || 'document.index';
-            navLinks.forEach(link => {
-                if (link.getAttribute('data-route') === activeRoute) {
-                    link.classList.add('menu-active');
-                }
+        const navLinks = document.querySelectorAll('.nav-link');
+        const activeRoute = localStorage.getItem('activeRoute') || 'document.index';
+        navLinks.forEach(link => {
+            if (link.getAttribute('data-route') === activeRoute) {
+                link.classList.add('menu-active');
+            }
 
-                link.addEventListener('click', function() {
-                    navLinks.forEach(l => l.classList.remove('menu-active'));
-                    this.classList.add('menu-active');
-                    localStorage.setItem('activeRoute', this.getAttribute('data-route'));
-                });
+            link.addEventListener('click', function() {
+                navLinks.forEach(l => l.classList.remove('menu-active'));
+                this.classList.add('menu-active');
+                localStorage.setItem('activeRoute', this.getAttribute('data-route'));
             });
-
-            @if (auth()->user()->role !== 'user' && auth()->user()->menu)
-                @php
-                    $layoutGroups = collect(auth()->user()->menu['groups'] ?? [])->map(function (array $group) {
-                        return [
-                            'key' => $group['key'],
-                            'counts' => collect($group['counts'])->map(function (array $count) {
-                                return [
-                                    'url' => route($count['route'], ['type' => $count['type']]),
-                                ];
-                            })->values()->all(),
-                        ];
-                    })->values()->all();
-
-                    $layoutFlatCounts = collect(auth()->user()->menu['count'] ?? [])->map(function (array $count) {
-                        return [
-                            'url' => route($count['route'], ['type' => $count['type']]),
-                        ];
-                    })->values()->all();
-                @endphp
-
-                const menuGroups = @json($layoutGroups);
-                const flatCounts = @json($layoutFlatCounts);
-                const countTimers = {};
-
-                function clearCountTimers() {
-                    Object.values(countTimers).forEach((timerId) => clearTimeout(timerId));
-                    Object.keys(countTimers).forEach((key) => delete countTimers[key]);
-                }
-
-                function pollCount(url, key) {
-                    axios.get(url).then(function(response) {
-                        Object.keys(response.data).forEach(badgeKey => {
-                            updateCount(badgeKey, response.data[badgeKey]);
-                        });
-                        countTimers[key] = setTimeout(() => {
-                            pollCount(url, key);
-                        }, 60 * 1000);
-                    });
-                }
-
-                function startCounts(counts) {
-                    clearCountTimers();
-                    counts.forEach((link, index) => {
-                        pollCount(link.url, `${link.url}.${index}`);
-                    });
-                }
-
-                function showMenuGroup(groupKey) {
-                    document.querySelectorAll('.menu-group-panel').forEach((panel) => {
-                        panel.classList.toggle('hidden', panel.getAttribute('data-group') !== groupKey);
-                    });
-
-                    const selectedGroup = menuGroups.find((group) => group.key === groupKey);
-                    startCounts(selectedGroup ? selectedGroup.counts : []);
-                    localStorage.setItem('activeMenuGroup', groupKey);
-                }
-
-                if (menuGroups.length > 0) {
-                    const dropdown = document.getElementById('menu-group-dropdown');
-                    const label = document.getElementById('menu-group-label');
-                    const savedGroup = localStorage.getItem('activeMenuGroup');
-                    const initialGroup = menuGroups.some((group) => group.key === savedGroup)
-                        ? savedGroup
-                        : menuGroups[0].key;
-
-                    const groupLabels = {
-                        @foreach ($menuGroups as $group)
-                            '{{ $group['key'] }}': @json($group['label']),
-                        @endforeach
-                    };
-
-                    function setGroupLabel(groupKey) {
-                        if (label) {
-                            label.textContent = groupLabels[groupKey] || groupKey;
-                        }
-                    }
-
-                    document.querySelectorAll('.menu-group-option').forEach((option) => {
-                        option.addEventListener('click', function() {
-                            const groupKey = this.getAttribute('data-group');
-                            setGroupLabel(groupKey);
-                            showMenuGroup(groupKey);
-                            if (dropdown) {
-                                dropdown.open = false;
-                            }
-                        });
-                    });
-
-                    setGroupLabel(initialGroup);
-                    showMenuGroup(initialGroup);
-                } else {
-                    startCounts(flatCounts);
-                }
-            @endif
         });
+
+        @if (auth()->user()->role !== 'user' && auth()->user()->menu)
+            @php
+                $layoutGroups = collect(auth()->user()->menu['groups'] ?? [])->map(function (array $group) {
+                    return [
+                        'key' => $group['key'],
+                        'counts' => collect($group['counts'])->map(function (array $count) {
+                            return [
+                                'url' => route($count['route'], ['type' => $count['type']]),
+                            ];
+                        })->values()->all(),
+                    ];
+                })->values()->all();
+
+                $layoutFlatCounts = collect(auth()->user()->menu['count'] ?? [])->map(function (array $count) {
+                    return [
+                        'url' => route($count['route'], ['type' => $count['type']]),
+                    ];
+                })->values()->all();
+            @endphp
+
+            const menuGroups = @json($layoutGroups);
+            const flatCounts = @json($layoutFlatCounts);
+            const countTimers = {};
+
+            function clearCountTimers() {
+                Object.values(countTimers).forEach((timerId) => clearTimeout(timerId));
+                Object.keys(countTimers).forEach((key) => delete countTimers[key]);
+            }
+
+            function pollCount(url, key) {
+                window.axios.get(url).then(function(response) {
+                    Object.keys(response.data).forEach(badgeKey => {
+                        updateCount(badgeKey, response.data[badgeKey]);
+                    });
+                    countTimers[key] = setTimeout(() => {
+                        pollCount(url, key);
+                    }, 60 * 1000);
+                });
+            }
+
+            function startCounts(counts) {
+                clearCountTimers();
+                counts.forEach((link, index) => {
+                    pollCount(link.url, `${link.url}.${index}`);
+                });
+            }
+
+            function showMenuGroup(groupKey) {
+                document.querySelectorAll('.menu-group-panel').forEach((panel) => {
+                    panel.classList.toggle('hidden', panel.getAttribute('data-group') !== groupKey);
+                });
+
+                const selectedGroup = menuGroups.find((group) => group.key === groupKey);
+                startCounts(selectedGroup ? selectedGroup.counts : []);
+                localStorage.setItem('activeMenuGroup', groupKey);
+            }
+
+            if (menuGroups.length > 0) {
+                const dropdown = document.getElementById('menu-group-dropdown');
+                const label = document.getElementById('menu-group-label');
+                const savedGroup = localStorage.getItem('activeMenuGroup');
+                const initialGroup = menuGroups.some((group) => group.key === savedGroup)
+                    ? savedGroup
+                    : menuGroups[0].key;
+
+                const groupLabels = {
+                    @foreach ($menuGroups as $group)
+                        '{{ $group['key'] }}': @json($group['label']),
+                    @endforeach
+                };
+
+                function setGroupLabel(groupKey) {
+                    if (label) {
+                        label.textContent = groupLabels[groupKey] || groupKey;
+                    }
+                }
+
+                document.querySelectorAll('.menu-group-option').forEach((option) => {
+                    option.addEventListener('click', function() {
+                        const groupKey = this.getAttribute('data-group');
+                        setGroupLabel(groupKey);
+                        showMenuGroup(groupKey);
+                        if (dropdown) {
+                            dropdown.open = false;
+                        }
+                    });
+                });
+
+                setGroupLabel(initialGroup);
+                showMenuGroup(initialGroup);
+            } else {
+                startCounts(flatCounts);
+            }
+        @endif
     </script>
     <script>
         function updateCount(id, number) {
@@ -375,18 +373,19 @@
                 customClass: { confirmButton: 'btn btn-primary' },
             });
         }
-
-        $(document).on('input change', '.input-error, .select-error, .textarea-error', function () {
-            $(this).removeClass('input-error select-error textarea-error');
+    </script>
+    <script type="module">
+        window.$(document).on('input change', '.input-error, .select-error, .textarea-error', function () {
+            window.$(this).removeClass('input-error select-error textarea-error');
         });
 
-        $(document).on('change', 'input[type="radio"], input[type="checkbox"]', function () {
-            const name = $(this).attr('name');
+        window.$(document).on('change', 'input[type="radio"], input[type="checkbox"]', function () {
+            const name = window.$(this).attr('name');
             if (!name) {
                 return;
             }
 
-            $(`input[name="${name}"]`).closest('label[data-field-error]').removeClass('ring-2 ring-error border-error').removeAttr('data-field-error');
+            window.$(`input[name="${name}"]`).closest('label[data-field-error]').removeClass('ring-2 ring-error border-error').removeAttr('data-field-error');
         });
     </script>
     @stack('scripts')
