@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
     <div class="justify-center gap-3 lg:flex">
-        <div class="card bg-base-100 mb-4 shadow-xl max-w-2xl">
+        <div class="card bg-base-100 mb-4 shadow-xl max-w-3xl">
             <div class="card-body">
                 <x-ui.back-button />
                 <x-document.detail-masthead

@@ -23,28 +23,26 @@ class HisLogService
 
         return view('admin.it.his-logs.create', [
             'hisLog' => null,
-            'receiver' => $user->name,
+            'selectedReceiverUserid' => $user->userid,
+            'selectedFixer' => $user->name,
             'modules' => HisLog::moduleOptions(),
-            'fixers' => HisLog::fixerUsers()->groupBy(
-                fn (User $user): string => filled($user->department) ? $user->department : 'ไม่ระบุแผนก'
-            ),
+            'assignees' => $this->assigneeOptionsByDepartment(),
             'statuses' => HisLog::statusOptions(),
         ]);
     }
 
     public function store(StoreHisLogRequest $request): RedirectResponse
     {
-        /** @var User $user */
-        $user = Auth::user();
         $time = $this->normalizeTime($request->string('time')->toString());
+        $receiver = $this->resolveReceiver($request->string('receiver_userid')->toString());
 
         HisLog::query()->create([
             'reported_at' => $request->date('reported_at'),
             'reporter' => $request->string('reporter')->toString(),
             'module' => $request->string('module')->toString(),
             'problem_detail' => $request->input('problem_detail'),
-            'receiver' => $user->name,
-            'receiver_userid' => $user->userid,
+            'receiver' => $receiver->name,
+            'receiver_userid' => $receiver->userid,
             'fixer' => $request->input('fixer'),
             'root_cause' => $request->input('root_cause'),
             'status' => $request->string('status')->toString(),
@@ -59,13 +57,20 @@ class HisLogService
 
     public function editForm(HisLog $hisLog): View
     {
+        $selectedReceiverUserid = $hisLog->receiver_userid;
+
+        if (! filled($selectedReceiverUserid) && filled($hisLog->receiver)) {
+            $selectedReceiverUserid = HisLog::fixerUsers()
+                ->firstWhere('name', $hisLog->receiver)
+                ?->userid;
+        }
+
         return view('admin.it.his-logs.create', [
             'hisLog' => $hisLog,
-            'receiver' => $hisLog->receiver,
+            'selectedReceiverUserid' => $selectedReceiverUserid,
+            'selectedFixer' => $hisLog->fixer,
             'modules' => HisLog::moduleOptions(),
-            'fixers' => HisLog::fixerUsers()->groupBy(
-                fn (User $user): string => filled($user->department) ? $user->department : 'ไม่ระบุแผนก'
-            ),
+            'assignees' => $this->assigneeOptionsByDepartment(),
             'statuses' => HisLog::statusOptions(),
         ]);
     }
@@ -73,12 +78,18 @@ class HisLogService
     public function update(StoreHisLogRequest $request, HisLog $hisLog): RedirectResponse
     {
         $time = $this->normalizeTime($request->string('time')->toString());
+        $receiver = $this->resolveReceiver(
+            $request->string('receiver_userid')->toString(),
+            $hisLog
+        );
 
         $hisLog->update([
             'reported_at' => $request->date('reported_at'),
             'reporter' => $request->string('reporter')->toString(),
             'module' => $request->string('module')->toString(),
             'problem_detail' => $request->input('problem_detail'),
+            'receiver' => $receiver->name,
+            'receiver_userid' => $receiver->userid,
             'fixer' => $request->input('fixer'),
             'root_cause' => $request->input('root_cause'),
             'status' => $request->string('status')->toString(),
@@ -491,5 +502,41 @@ class HisLogService
         }
 
         throw new RuntimeException('รูปแบบเวลาไม่ถูกต้อง');
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, User>>
+     */
+    private function assigneeOptionsByDepartment()
+    {
+        return HisLog::fixerUsers()->groupBy(
+            fn (User $user): string => filled($user->department) ? $user->department : 'ไม่ระบุแผนก'
+        );
+    }
+
+    private function resolveReceiver(string $receiverUserid, ?HisLog $hisLog = null): User
+    {
+        $receiver = User::query()
+            ->where('userid', $receiverUserid)
+            ->whereIn('role', HisLog::fixerRoles())
+            ->first(['userid', 'name', 'role']);
+
+        if ($receiver instanceof User) {
+            return $receiver;
+        }
+
+        if (
+            $hisLog instanceof HisLog
+            && filled($hisLog->receiver_userid)
+            && (string) $hisLog->receiver_userid === $receiverUserid
+            && filled($hisLog->receiver)
+        ) {
+            return new User([
+                'userid' => $hisLog->receiver_userid,
+                'name' => $hisLog->receiver,
+            ]);
+        }
+
+        throw new RuntimeException('ผู้รับเรื่องที่เลือกไม่ถูกต้อง');
     }
 }

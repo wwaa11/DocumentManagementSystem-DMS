@@ -135,21 +135,39 @@
                     </div>
 
                     <div class="form-control">
-                        <label class="label" for="receiver">
-                            <span class="label-text font-semibold">ผู้รับเรื่อง</span>
+                        <label class="label" for="receiver_userid">
+                            <span class="label-text font-semibold">ผู้รับเรื่อง <span class="text-error">*</span></span>
                         </label>
-                        <input
-                            class="input input-bordered w-full bg-base-200"
-                            id="receiver"
-                            type="text"
-                            value="{{ $receiver }}"
-                            readonly
-                        >
-                        <label class="label">
-                            <span class="label-text-alt text-base-content/60">
-                                {{ $isEdit ? 'คงค่าผู้รับเรื่องเดิมของการบันทึก' : 'กำหนดอัตโนมัติจากผู้ใช้งานที่เข้าสู่ระบบ' }}
-                            </span>
-                        </label>
+                        @php
+                            $selectedReceiverUserid = old('receiver_userid', $selectedReceiverUserid);
+                            $assigneeUserids = $assignees->flatten()->pluck('userid')->all();
+                            $assigneeNames = $assignees->flatten()->pluck('name')->all();
+                        @endphp
+                        <select class="select select-bordered w-full" id="receiver_userid" name="receiver_userid" required>
+                            <option value="" disabled {{ filled($selectedReceiverUserid) ? '' : 'selected' }}>
+                                โปรดเลือกผู้รับเรื่อง
+                            </option>
+                            @if (
+                                filled($selectedReceiverUserid)
+                                && ! in_array($selectedReceiverUserid, $assigneeUserids, true)
+                            )
+                                <option value="{{ $selectedReceiverUserid }}" selected>
+                                    {{ $isEdit && filled($hisLog->receiver) ? $hisLog->receiver : $selectedReceiverUserid }} (เดิม)
+                                </option>
+                            @endif
+                            @foreach ($assignees as $department => $departmentUsers)
+                                <optgroup label="{{ $department }}">
+                                    @foreach ($departmentUsers as $assigneeUser)
+                                        <option
+                                            value="{{ $assigneeUser->userid }}"
+                                            @selected((string) $selectedReceiverUserid === (string) $assigneeUser->userid)
+                                        >
+                                            {{ $assigneeUser->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="form-control">
@@ -157,15 +175,14 @@
                             <span class="label-text font-semibold">ผู้แก้ไข</span>
                         </label>
                         @php
-                            $selectedFixer = old('fixer', $isEdit ? $hisLog->fixer : null);
-                            $fixerNames = $fixers->flatten()->pluck('name')->all();
+                            $selectedFixer = old('fixer', $selectedFixer);
                         @endphp
                         <select class="select select-bordered w-full" id="fixer" name="fixer">
                             <option value="">— ไม่ระบุ —</option>
-                            @if (filled($selectedFixer) && ! in_array($selectedFixer, $fixerNames, true))
+                            @if (filled($selectedFixer) && ! in_array($selectedFixer, $assigneeNames, true))
                                 <option value="{{ $selectedFixer }}" selected>{{ $selectedFixer }} (เดิม)</option>
                             @endif
-                            @foreach ($fixers as $department => $departmentUsers)
+                            @foreach ($assignees as $department => $departmentUsers)
                                 <optgroup label="{{ $department }}">
                                     @foreach ($departmentUsers as $fixerUser)
                                         <option

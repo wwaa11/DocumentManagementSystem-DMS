@@ -8,6 +8,10 @@
         <button class="btn btn-error btn-soft" type="button">อุปกรณ์ทั้งหมดยังไม่ได้รับคืน</button>
     @endif
 @endif
+@if (in_array($document->status, ['pending', 'borrow'], true))
+    <div class="divider"></div>
+    <button class="btn btn-dash btn-error" onclick="cancelDocument()" type="button">ยกเลิกเอกสารนี้</button>
+@endif
 @push("scripts")
     <script>
         function addHardware() {
@@ -187,6 +191,60 @@
                     });
                 };
             });
+        }
+
+        async function cancelDocument() {
+            const swal = await Swal.fire({
+                title: "ยืนยันการยกเลิกเอกสารนี้?",
+                text: "เอกสารนี้จะถูกยกเลิกและไม่สามารถแก้ไขได้",
+                icon: "warning",
+                input: "textarea",
+                inputPlaceholder: "กรุณาใส่เหตุผลการยกเลิก",
+                showCancelButton: true,
+                confirmButtonText: "ยกเลิกเอกสารนี้",
+                cancelButtonText: "ไม่ยกเลิก",
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: "btn btn-ghost me-2",
+                    cancelButton: "btn btn-error"
+                }
+            });
+            if (swal.isConfirmed && !swal.value) {
+                Swal.fire({
+                    title: "กรุณาใส่เหตุผลการยกเลิก",
+                    icon: "warning",
+                    showConfirmButton: false,
+                    timer: 1000,
+                    timerProgressBar: true,
+                });
+            }
+            if (swal.isConfirmed && swal.value) {
+                axios.post("{{ route("admin.it.cancel") }}", {
+                    id: {{ $document->id }},
+                    type: "BORROW",
+                    reason: swal.value,
+                }).then(function(response) {
+                    if (response.data.status == "success") {
+                        Swal.fire({
+                            title: "ยกเลิกเอกสารสำเร็จ!",
+                            icon: "success",
+                            showConfirmButton: false,
+                            timer: 1000,
+                            timerProgressBar: true,
+                        }).then(function() {
+                            window.location.href = "{{ route("admin.it.borrowlist") }}";
+                        });
+                    } else {
+                        Swal.fire({
+                            title: response.data.message,
+                            icon: "error",
+                            showConfirmButton: false,
+                            timer: 1000,
+                            timerProgressBar: true,
+                        });
+                    }
+                });
+            }
         }
     </script>
 @endpush

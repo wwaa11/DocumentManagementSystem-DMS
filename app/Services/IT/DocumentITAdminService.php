@@ -327,14 +327,26 @@ class DocumentITAdminService
     {
         if ($request->type == 'IT') {
             $document = DocumentIT::find($request->id);
+            $taskUsers = ['IT Department'];
+        } elseif ($request->type == 'BORROW') {
+            $document = DocumentBorrow::find($request->id);
+            $taskUsers = ['IT Department', 'IT Unit Support'];
         } else {
             $document = DocumentItUser::find($request->id);
+            $taskUsers = ['IT Department'];
+        }
+
+        if (! $document) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ไม่พบเอกสาร!',
+            ]);
         }
 
         $document->status = 'reject';
         $document->save();
 
-        $document->tasks()->where('task_user', 'IT Department')->update([
+        $document->tasks()->whereIn('task_user', $taskUsers)->update([
             'status' => 'reject',
             'task_name' => 'ปฏิเสธ',
             'task_user' => auth()->user()->userid,

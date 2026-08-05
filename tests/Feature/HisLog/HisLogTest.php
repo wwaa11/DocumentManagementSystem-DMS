@@ -32,6 +32,7 @@ class HisLogTest extends TestCase
             'reporter' => 'ก้อย / Eye',
             'module' => 'Package',
             'problem_detail' => 'ทดสอบปัญหา',
+            'receiver_userid' => '650001',
             'fixer' => null,
             'root_cause' => 'แก้แล้ว',
             'status' => 'Closed',
