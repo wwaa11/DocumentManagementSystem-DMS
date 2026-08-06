@@ -49,7 +49,7 @@ class DocumentPurchaseAdminService
     {
         $documents = DocumentPurchase::query()
             ->where('status', 'done')
-            ->with(['creator', 'approvers.user', 'tasks'])
+            ->with(['creator', 'approvers.user', 'tasks.user', 'logs.user'])
             ->get()
             ->filter(fn (DocumentPurchase $document): bool => $this->hasWaitingTask($document, 'purchase-approve'))
             ->values();
@@ -62,7 +62,7 @@ class DocumentPurchaseAdminService
     {
         $documents = DocumentPurchase::query()
             ->where('status', 'done')
-            ->with(['creator', 'approvers.user', 'tasks'])
+            ->with(['creator', 'approvers.user', 'tasks.user', 'logs.user'])
             ->get()
             ->filter(fn (DocumentPurchase $document): bool => $this->hasWaitingTask($document, 'purchase-head'))
             ->values();
@@ -90,7 +90,7 @@ class DocumentPurchaseAdminService
             ->where('assigned_user_id', Auth::user()->userid)
             ->where('status', 'process')
             ->with(['creator', 'approvers.user', 'assigned_user'])
-            ->orderBy('created_at')
+            ->orderByDesc('created_at')
             ->get();
         $action = 'my';
 

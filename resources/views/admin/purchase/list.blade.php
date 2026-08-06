@@ -57,6 +57,9 @@
                         <th>รายละเอียด</th>
                         <th>ผู้ขอ/วันที่ขอ</th>
                         <th>ผู้อนุมัติ</th>
+                        @if ($action == 'approve' || $action == 'head')
+                            <th>ปิดงานโดย</th>
+                        @endif
                         <th>สถานะ</th>
                         <th></th>
                     </tr>
@@ -109,6 +112,11 @@
                                     {{ $approver->user->name ?? $approver->userid }}
                                 @endforeach
                             </td>
+                            @if ($action == 'approve' || $action == 'head')
+                                <td class="text-center">
+                                    <x-document.done-by :document="$document" />
+                                </td>
+                            @endif
                             <td class="text-center">
                                 @php
                                     switch ($document->status) {

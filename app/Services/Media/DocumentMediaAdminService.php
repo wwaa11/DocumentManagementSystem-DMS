@@ -65,7 +65,7 @@ class DocumentMediaAdminService
             ->where('assigned_user_id', Auth::user()->userid)
             ->where('status', 'process')
             ->with(['creator', 'approvers.user', 'assigned_user'])
-            ->orderBy('created_at')
+            ->orderByDesc('created_at')
             ->get();
         $action = 'my';
 

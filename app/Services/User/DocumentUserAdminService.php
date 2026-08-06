@@ -38,7 +38,10 @@ class DocumentUserAdminService
 
     public function adminApproveDocuments(string $type): View
     {
-        $documents = $this->documentTypes->query($type)->where('status', 'done')->get();
+        $documents = $this->documentTypes->query($type)
+            ->where('status', 'done')
+            ->with(['documentUser.approvers.user', 'documentUser.creator', 'tasks.user', 'logs.user'])
+            ->get();
         $action = 'approve';
 
         return view('admin.user.list', compact('documents', 'action', 'type'));
@@ -62,6 +65,7 @@ class DocumentUserAdminService
         $documents = $this->documentTypes->query($type)
             ->where('assigned_user_id', Auth::user()->userid)
             ->where('status', 'process')
+            ->orderByDesc('created_at')
             ->get();
         $action = 'my';
 

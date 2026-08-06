@@ -88,9 +88,13 @@ class DocumentITAdminService
 
     public function adminApproveDocuments(): View
     {
-        $documents = DocumentIT::where('status', 'done')->get();
-        $documentsITUser = DocumentItUser::where('status', 'done')->get();
-        $documentsBorrow = DocumentBorrow::whereIn('status', ['borrow_approve', 'return'])->get();
+        $with = ['approvers.user', 'creator', 'tasks.user', 'logs.user'];
+        $documents = DocumentIT::query()->where('status', 'done')->with($with)->get();
+        $documentsITUser = DocumentItUser::query()->where('status', 'done')->with($with)->get();
+        $documentsBorrow = DocumentBorrow::query()
+            ->whereIn('status', ['borrow_approve', 'return'])
+            ->with($with)
+            ->get();
         $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortBy('created_at');
         $action = 'approve';
 
@@ -136,7 +140,7 @@ class DocumentITAdminService
             }
         }
 
-        $documents = $documents->concat($documentsITUser)->sortBy('created_at');
+        $documents = $documents->concat($documentsITUser)->sortByDesc('created_at');
         $action = 'my';
 
         return view('admin.it.list', compact('documents', 'action'));
