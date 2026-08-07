@@ -1,69 +1,164 @@
 @extends("layouts.app")
 @section("content")
-    <div class="mx-auto max-w-5xl pb-10">
+    @php
+        $linkedCourse = $coursePlanItem ?? null;
+        $isFromCourse = $linkedCourse !== null;
+        $defaultTitle = old('training_name', $linkedCourse?->name ?? '');
+        $defaultPlanNo = old('plan_no', $linkedCourse?->number ?? '');
+        $defaultSource = old('source_type', $isFromCourse ? 'in_plan' : '');
+        $backRoute = $isFromCourse
+            ? route('document.course.show', $linkedCourse->course_plan_id)
+            : route('document.course');
+        $initialMentors = $isFromCourse
+            ? $linkedCourse->instructors
+                ->map(fn ($instructor) => [
+                    'userid' => $instructor->userid,
+                    'name' => $instructor->name,
+                    'position' => $instructor->position,
+                    'source_type' => $instructor->source_type,
+                ])
+                ->values()
+                ->all()
+            : [];
+    @endphp
+    <div class="mx-auto max-w-6xl pb-28">
         <!-- Header Section -->
         <x-document.page-header
-            title="ใบบันทึกการฝึกอบรมภาคอิสระ"
-            description="กรอกข้อมูลหลักสูตรและรายละเอียดผู้เข้าร่วมเพื่อขออนุมัติจัดฝึกอบรม"
+            title="{{ $isFromCourse ? 'สร้างฝึกอบรมจากแผนหลักสูตร' : 'สร้างฝึกอบรมนอกแผน' }}"
+            description="{{ $isFromCourse ? 'ผูกกับหลักสูตร '.$linkedCourse->number.'. '.$linkedCourse->name.' · '.$linkedCourse->coursePlan->department : 'สร้างใบบันทึกฝึกอบรมที่ไม่ได้อยู่ในแผนหลักสูตรประจำปี' }}"
             icon="fas fa-graduation-cap"
+            :back-route="$backRoute"
         />
+
+        @if ($isFromCourse)
+            <div class="alert alert-info mb-6">
+                <i class="fas fa-link"></i>
+                <div>
+                    <div class="font-bold">เชื่อมกับแผนหลักสูตรปี {{ $linkedCourse->coursePlan->year }}</div>
+                    <div class="text-sm">{{ $linkedCourse->coursePlan->department }} · ลำดับ {{ $linkedCourse->number }} · {{ $linkedCourse->name }}</div>
+                </div>
+            </div>
+        @endif
+
+        <nav class="bg-base-100 border-base-200 sticky top-3 z-20 mb-8 overflow-x-auto rounded-2xl border p-2 shadow-lg"
+            aria-label="ขั้นตอนการสร้างเอกสารฝึกอบรม">
+            <div class="flex min-w-max gap-1">
+                @foreach ([
+                    ['approval', '1', 'ผู้อนุมัติ', 'fas fa-user-check'],
+                    ['training-details', '2', 'รายละเอียด', 'fas fa-calendar-alt'],
+                    ['people', '3', 'บุคลากร', 'fas fa-users'],
+                    ['attachments', '4', 'เอกสารแนบ', 'fas fa-paperclip'],
+                    ['review-submit', '5', 'ตรวจสอบและส่ง', 'fas fa-paper-plane'],
+                ] as [$target, $step, $label, $icon])
+                    <a class="hover:bg-primary/10 focus-visible:ring-primary flex min-h-11 cursor-pointer items-center gap-2 rounded-xl px-4 text-sm font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2"
+                        href="#{{ $target }}">
+                        <span class="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-content">{{ $step }}</span>
+                        <i class="{{ $icon }} text-primary opacity-70"></i>
+                        {{ $label }}
+                    </a>
+                @endforeach
+            </div>
+        </nav>
 
         <form class="space-y-8" id="create-form" action="{{ route('document.training.create') }}" method="POST" enctype="multipart/form-data">
             @csrf
+            @if ($isFromCourse)
+                <input type="hidden" name="course_plan_item_id" value="{{ $linkedCourse->id }}">
+            @endif
 
-            <x-document.approver-form />
+            <section id="approval" class="scroll-mt-28">
+                <div class="mb-3 flex items-start gap-3 px-1">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-content">1</span>
+                    <div>
+                        <h2 class="font-bold">กำหนดผู้อนุมัติ</h2>
+                        <p class="text-base-content/60 text-sm">ตรวจสอบหัวหน้าแผนกที่จะอนุมัติเอกสารนี้</p>
+                    </div>
+                </div>
+                <x-document.approver-form />
+            </section>
 
             <!-- Training Details Card -->
-            <div class="card bg-base-100 border-base-200 border shadow-xl">
+            <section id="training-details" class="card bg-base-100 border-base-200 scroll-mt-28 border shadow-xl">
                 <div class="card-body p-0">
-                    <div class="bg-base-200/50 border-base-200 flex items-center gap-2 border-b px-8 py-4">
-                        <i class="fas fa-info-circle text-primary"></i>
-                        <span class="text-sm font-bold uppercase tracking-wider">ข้อมูลรายละเอียดการฝึกอบรม</span>
+                    <div class="bg-base-200/50 border-base-200 flex items-start gap-4 border-b px-6 py-5 md:px-8">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-content">2</span>
+                        <div>
+                            <h2 class="font-bold">รายละเอียดการฝึกอบรม</h2>
+                            <p class="text-base-content/60 mt-1 text-sm">ระบุชื่อ ที่มา วันเวลา และระยะเวลารวม</p>
+                        </div>
                     </div>
 
                     <div class="space-y-6 p-8">
                         <!-- Course Name -->
                         <div class="form-control">
                             <label class="label pt-0">
-                                <span class="label-text text-base-content/70 font-bold">ชื่อหลักสูตร <span class="text-error">*</span></span>
+                                <span class="label-text text-base-content/70 font-bold">2.1 ชื่อหลักสูตร <span class="text-error">*</span></span>
                             </label>
-                            <input class="input input-bordered focus:input-primary w-full shadow-sm transition-all" id="training_name" name="training_name" type="text" placeholder="ระบุชื่อหลักสูตรการฝึกอบรม" />
+                            <input class="input input-bordered focus:input-primary w-full shadow-sm transition-all" id="training_name" name="training_name" type="text" placeholder="ระบุชื่อหลักสูตรการฝึกอบรม" value="{{ $defaultTitle }}" />
                         </div>
 
                         <!-- Source/Origin -->
                         <div class="form-control">
                             <label class="label pb-1">
-                                <span class="label-text text-base-content/70 font-bold">ที่มาของหลักสูตร <span class="text-error">*</span></span>
+                                <span class="label-text text-base-content/70 font-bold">2.2 ที่มาของหลักสูตร <span class="text-error">*</span></span>
                             </label>
                             <div class="mt-2 space-y-4">
                                 <!-- In Plan -->
                                 <div class="bg-base-200/30 border-base-200 hover:border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4 transition-all">
-                                    <input class="radio radio-primary radio-sm" id="src_in_plan" type="radio" name="source_type" value="in_plan" />
+                                    <input class="radio radio-primary radio-sm" id="src_in_plan" type="radio" name="source_type" value="in_plan" @checked($defaultSource === 'in_plan') @disabled($isFromCourse) />
                                     <label class="flex flex-grow cursor-pointer items-center gap-2 font-medium" for="src_in_plan">
                                         จัดในแผน ลำดับที่
                                     </label>
-                                    <input class="input input-bordered input-sm focus:input-primary w-32" type="text" name="plan_no" placeholder="..." />
+                                    <input class="input input-bordered input-sm focus:input-primary w-32" type="text" name="plan_no" placeholder="..." value="{{ $defaultPlanNo }}" @readonly($isFromCourse) />
                                     <span class="text-xs italic opacity-50">(อ้างอิงลำดับที่ในแผนประจำปี)</span>
+                                    @if ($isFromCourse)
+                                        <input type="hidden" name="source_type" value="in_plan">
+                                    @endif
                                 </div>
 
                                 <!-- Substitute -->
-                                <div class="bg-base-200/30 border-base-200 hover:border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4 transition-all">
-                                    <input class="radio radio-primary radio-sm" id="src_sub" type="radio" name="source_type" value="substitute" />
-                                    <label class="flex cursor-pointer items-center gap-2 font-medium" for="src_sub">
-                                        จัดแทนเรื่อง
-                                    </label>
-                                    <input class="input input-bordered input-sm focus:input-primary flex-grow" type="text" name="substitute_topic" placeholder="ชื่อวิชาในแผนที่ถูกแทน" />
-                                    <span class="font-medium">เนื่องจาก</span>
-                                    <input class="input input-bordered input-sm focus:input-primary flex-grow" type="text" name="substitute_reason" placeholder="เหตุผลที่จัดแทน" />
+                                <div class="bg-base-200/30 border-base-200 hover:border-primary/20 space-y-3 rounded-xl border p-4 transition-all {{ $isFromCourse ? 'pointer-events-none opacity-40' : '' }}">
+                                    <div class="flex flex-wrap items-center gap-4">
+                                        <input class="radio radio-primary radio-sm" id="src_sub" type="radio" name="source_type" value="substitute" @checked($defaultSource === 'substitute') @disabled($isFromCourse) />
+                                        <label class="flex cursor-pointer items-center gap-2 font-medium" for="src_sub">
+                                            จัดแทนเรื่อง
+                                        </label>
+                                    </div>
+                                    <div class="grid gap-3 md:grid-cols-[1.4fr_1fr]">
+                                        <select class="select select-bordered select-sm focus:select-primary w-full" id="substitute_course_plan_item_id" name="substitute_course_plan_item_id" @disabled($isFromCourse)>
+                                            <option value="">เลือกหลักสูตรในแผนที่ถูกแทน</option>
+                                            @foreach (($substituteCourses ?? collect()) as $courseOption)
+                                                <option
+                                                    value="{{ $courseOption['id'] }}"
+                                                    data-name="{{ $courseOption['name'] }}"
+                                                    data-number="{{ $courseOption['number'] }}"
+                                                    data-instructors='@json($courseOption['instructors'])'
+                                                    @selected((string) old('substitute_course_plan_item_id') === (string) $courseOption['id'])
+                                                >
+                                                    {{ $courseOption['label'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <input class="input input-bordered input-sm focus:input-primary w-full" type="text" name="substitute_reason" id="substitute_reason" placeholder="เหตุผลที่จัดแทน" value="{{ old('substitute_reason') }}" @disabled($isFromCourse) />
+                                    </div>
+                                    <input type="hidden" name="substitute_topic" id="substitute_topic" value="{{ old('substitute_topic') }}">
+                                    @if (($substituteCourses ?? collect())->isEmpty() && ! $isFromCourse)
+                                        <p class="text-warning text-xs">ยังไม่มีหลักสูตรในแผนปีนี้สำหรับแผนกที่คุณมีสิทธิ์</p>
+                                    @endif
                                 </div>
 
                                 <!-- Out of Plan -->
-                                <div class="bg-base-200/30 border-base-200 hover:border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4 transition-all">
-                                    <input class="radio radio-primary radio-sm" id="src_out" type="radio" name="source_type" value="out_of_plan" />
-                                    <label class="flex cursor-pointer items-center gap-2 font-medium" for="src_out">
-                                        จัดนอกแผน เนื่องจาก
-                                    </label>
-                                    <input class="input input-bordered input-sm focus:input-primary flex-grow" type="text" name="out_of_plan_reason" placeholder="ระบุเหตุผลที่จัดนอกแผน" />
+                                <div class="bg-base-200/30 border-base-200 hover:border-primary/20 space-y-3 rounded-xl border p-4 transition-all {{ $isFromCourse ? 'pointer-events-none opacity-40' : '' }}">
+                                    <div class="flex flex-wrap items-center gap-4">
+                                        <input class="radio radio-primary radio-sm" id="src_out" type="radio" name="source_type" value="out_of_plan" @checked($defaultSource === 'out_of_plan') @disabled($isFromCourse) />
+                                        <label class="flex cursor-pointer items-center gap-2 font-medium" for="src_out">
+                                            จัดนอกแผน
+                                        </label>
+                                    </div>
+                                    <input class="input input-bordered input-sm focus:input-primary w-full" type="text" name="out_of_plan_reason" placeholder="ระบุเหตุผลที่จัดนอกแผน" value="{{ old('out_of_plan_reason') }}" @disabled($isFromCourse) />
+                                    <input type="hidden" name="department" value="{{ old('department', $defaultCourseDepartment ?? '') }}" @disabled($isFromCourse)>
+                                    <input type="hidden" name="year" value="{{ old('year', $defaultCourseYear ?? now()->year) }}" @disabled($isFromCourse)>
+                                    <p class="text-base-content/50 text-xs">ระบบจะเพิ่มหลักสูตรในแผนการฝึกของหน่วยงานให้อัตโนมัติ</p>
                                 </div>
                             </div>
                         </div>
@@ -72,7 +167,7 @@
                         <div class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <label class="label py-0">
-                                    <span class="label-text text-base-content/70 font-bold">วันและเวลาที่ฝึกอบรม <span class="text-error">*</span></span>
+                                    <span class="label-text text-base-content/70 font-bold">2.3 วันและเวลาที่ฝึกอบรม <span class="text-error">*</span></span>
                                 </label>
 
                                 <div class="bg-base-200/50 border-base-300 flex rounded-xl border p-1 shadow-inner">
@@ -165,7 +260,7 @@
                         <!-- Duration -->
                         <div class="form-control">
                             <label class="label mb-2">
-                                <span class="label-text text-base-content/70 text-xs font-bold uppercase tracking-wider">รวมเวลาทั้งหมด (Total Duration) <span class="text-error">*</span></span>
+                                <span class="label-text text-base-content/70 font-bold">2.4 รวมเวลาทั้งหมด <span class="text-error">*</span></span>
                             </label>
 
                             <div class="bg-primary/5 border-primary/20 ring-primary/5 flex w-fit items-center gap-6 rounded-2xl border p-4 shadow-sm ring-4">
@@ -203,16 +298,27 @@
 
                     </div>
                 </div>
-            </div>
+            </section>
 
             <!-- Mentors & Participants Grid -->
-            <div class="grid grid-cols-1 gap-8">
+            <section id="people" class="scroll-mt-28 space-y-4">
+                <div class="flex items-start gap-3 px-1">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-content">3</span>
+                    <div>
+                        <h2 class="font-bold">กำหนดบุคลากร</h2>
+                        <p class="text-base-content/60 text-sm">เพิ่มวิทยากรและผู้เข้าร่วมการฝึกอบรม</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-8">
                 <!-- Mentors -->
                 <div class="card bg-base-100 border-base-200 overflow-hidden border shadow-xl">
                     <div class="bg-base-200/50 border-base-200 flex items-center justify-between border-b px-8 py-4">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-user-tie text-primary"></i>
-                            <span class="text-sm font-bold uppercase tracking-wide">รายชื่อวิทยากร (Mentors)</span>
+                            <span class="text-sm font-bold">3.1 รายชื่อวิทยากร</span>
+                            @if ($isFromCourse && count($initialMentors) > 0)
+                                <span class="badge badge-info badge-sm">ดึงจากแผนหลักสูตรแล้ว</span>
+                            @endif
                         </div>
                         <button class="btn btn-primary btn-sm pulse-on-hover rounded-full" type="button" onclick="openMentorModal()">
                             <i class="fas fa-plus mr-1"></i> เพิ่มวิทยากร
@@ -241,7 +347,7 @@
                     <div class="bg-base-200/50 border-base-200 flex items-center justify-between border-b px-8 py-4">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-users text-primary"></i>
-                            <span class="text-sm font-bold uppercase tracking-wide">รายชื่อผู้เข้าร่วม (Participants) <span class="text-error">*</span></span>
+                            <span class="text-sm font-bold">3.2 รายชื่อผู้เข้าร่วม <span class="text-error">*</span></span>
                         </div>
                         <div class="flex items-center gap-2">
                             <button class="btn btn-outline btn-primary btn-sm pulse-on-hover rounded-full" type="button" onclick="openDepartmentModal()">
@@ -269,14 +375,18 @@
                         <div class="py-8 text-center text-sm italic opacity-40" id="participant-empty">ยังไม่มีรายชื่อผู้เข้าร่วม</div>
                     </div>
                 </div>
-            </div>
+                </div>
+            </section>
 
             <!-- Attachments -->
-            <div class="card bg-base-100 border-base-200 border shadow-xl">
+            <section id="attachments" class="card bg-base-100 border-base-200 scroll-mt-28 border shadow-xl">
                 <div class="card-body p-0">
-                    <div class="bg-base-200/50 border-base-200 flex items-center gap-2 border-b px-8 py-4">
-                        <i class="fas fa-paperclip text-primary"></i>
-                        <span class="text-sm font-bold uppercase tracking-wide">เอกสารประกอบการฝึกอบรม (Attachments)</span>
+                    <div class="bg-base-200/50 border-base-200 flex items-start gap-4 border-b px-6 py-5 md:px-8">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-content">4</span>
+                        <div>
+                            <h2 class="font-bold">เอกสารประกอบการฝึกอบรม</h2>
+                            <p class="text-base-content/60 mt-1 text-sm">แนบกำหนดการ เอกสารหลักสูตร หรือไฟล์ประกอบอื่น ๆ</p>
+                        </div>
                     </div>
                     <div class="p-8">
                         <div class="border-base-200 hover:border-primary/30 hover:bg-primary/5 group cursor-pointer rounded-2xl border-4 border-dashed p-10 text-center transition-all" id="drop-area">
@@ -293,14 +403,32 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <!-- Submit Button Area -->
-            <div class="sticky bottom-8 z-30 mt-10 flex justify-center">
-                <button class="btn btn-primary btn-lg gap-3 rounded-full px-12 shadow-2xl transition-all hover:scale-105 active:scale-95" type="submit" onclick="submitForm()">
-                    <i class="fas fa-paper-plane"></i>
-                    <span class="text-lg">สร้างเอกสารการฝึกอบรม</span>
-                </button>
+            <section id="review-submit" class="card bg-base-100 border-primary/30 scroll-mt-28 border shadow-xl">
+                <div class="card-body gap-4 md:flex-row md:items-center md:justify-between">
+                    <div class="flex items-start gap-3">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-primary-content">5</span>
+                        <div>
+                            <h2 class="font-bold">ตรวจสอบและส่งอนุมัติ</h2>
+                            <p class="text-base-content/60 mt-1 text-sm">ตรวจสอบข้อมูลทุกขั้นตอนก่อนสร้างเอกสาร ช่องที่มี <span class="text-error">*</span> จำเป็นต้องกรอก</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg min-h-12 cursor-pointer gap-3 px-8 shadow-lg" type="submit" onclick="submitForm()">
+                        <i class="fas fa-paper-plane"></i>
+                        สร้างเอกสารการฝึกอบรม
+                    </button>
+                </div>
+            </section>
+
+            <div class="bg-base-100/95 border-base-200 fixed right-0 bottom-0 left-0 z-30 border-t p-3 shadow-2xl backdrop-blur md:pl-72">
+                <div class="mx-auto flex max-w-6xl items-center justify-between gap-3">
+                    <a class="btn btn-ghost min-h-11" href="{{ $backRoute }}"><i class="fas fa-arrow-left"></i> ยกเลิก</a>
+                    <a class="btn btn-primary min-h-11 cursor-pointer" href="#review-submit">
+                        ไปขั้นตอนตรวจสอบ <i class="fas fa-arrow-down"></i>
+                    </a>
+                </div>
             </div>
         </form>
     </div>
@@ -310,11 +438,70 @@
     <script>
         let files = [];
         let fileInput;
+        const initialMentors = @json($initialMentors);
 
         document.addEventListener('DOMContentLoaded', function() {
             const dropArea = document.getElementById('drop-area');
             fileInput = document.getElementById('file_input');
             const fileDisplay = document.getElementById('file_display');
+
+            initialMentors.forEach((mentor) => {
+                addRowToTable('mentor-table', {
+                    userid: mentor.userid,
+                    name: mentor.name,
+                    position: mentor.position || '-',
+                }, 'mentors');
+            });
+
+            const substituteSelect = document.getElementById('substitute_course_plan_item_id');
+            const substituteTopic = document.getElementById('substitute_topic');
+            const srcSub = document.getElementById('src_sub');
+
+            function clearMentorTable() {
+                document.querySelectorAll('#mentor-table tbody tr').forEach((row) => row.remove());
+                toggleEmptyStates();
+            }
+
+            function applyCourseMentors(instructors) {
+                clearMentorTable();
+                (instructors || []).forEach((mentor) => {
+                    addRowToTable('mentor-table', {
+                        userid: mentor.userid,
+                        name: mentor.name,
+                        position: mentor.position || '-',
+                    }, 'mentors');
+                });
+            }
+
+            function syncSubstituteCourse() {
+                if (!substituteSelect) return;
+                const option = substituteSelect.options[substituteSelect.selectedIndex];
+                if (!option || !option.value) {
+                    if (substituteTopic) substituteTopic.value = '';
+                    return;
+                }
+
+                if (substituteTopic) {
+                    substituteTopic.value = option.dataset.name || option.textContent.trim();
+                }
+
+                if (srcSub && !srcSub.checked) {
+                    srcSub.checked = true;
+                }
+
+                try {
+                    applyCourseMentors(JSON.parse(option.dataset.instructors || '[]'));
+                } catch (e) {
+                    applyCourseMentors([]);
+                }
+            }
+
+            if (substituteSelect) {
+                substituteSelect.addEventListener('change', syncSubstituteCourse);
+                if (substituteSelect.value) {
+                    syncSubstituteCourse();
+                }
+            }
 
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 dropArea.addEventListener(eventName, preventDefaults, false);
@@ -759,6 +946,24 @@
             if (!document.querySelector('input[name="source_type"]:checked')) {
                 missingFields.push('ที่มาหลักสูตร');
                 errorField = errorField || 'input[name="source_type"]';
+            }
+
+            const selectedSource = document.querySelector('input[name="source_type"]:checked')?.value;
+            if (selectedSource === 'substitute') {
+                if (!document.getElementById('substitute_course_plan_item_id')?.value) {
+                    missingFields.push('หลักสูตรในแผนที่ถูกแทน');
+                    errorField = errorField || '#substitute_course_plan_item_id';
+                }
+                if (!document.getElementById('substitute_reason')?.value.trim()) {
+                    missingFields.push('เหตุผลที่จัดแทน');
+                    errorField = errorField || '#substitute_reason';
+                }
+            }
+            if (selectedSource === 'out_of_plan') {
+                if (!document.querySelector('input[name="out_of_plan_reason"]')?.value.trim()) {
+                    missingFields.push('เหตุผลที่จัดนอกแผน');
+                    errorField = errorField || 'input[name="out_of_plan_reason"]';
+                }
             }
 
             const dateMode = document.querySelector('input[name="date_mode"]:checked').value;

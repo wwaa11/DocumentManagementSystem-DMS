@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
             ['short_name' => 'media', 'name' => 'เอกสารขออนุมัติผลิตสื่อ'],
             ['short_name' => 'purchase', 'name' => 'แจ้งงานจัดซื้อ'],
             ['short_name' => 'cqi', 'name' => 'โครงการพพัฒนาคุณภาพ (CQI)', 'active' => false],
-            ['short_name' => 'training', 'name' => 'ฝึกอบรมภาคอิสระ'],
+            ['short_name' => 'training', 'name' => 'ฝึกอบรมภาคอิสระ', 'active' => false],
         ];
         foreach ($documentType as $type) {
             Document::create($type);

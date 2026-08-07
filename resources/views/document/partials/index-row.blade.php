@@ -102,10 +102,10 @@
     <td>
         @if ($document['flag'] == 'approve')
             <a class="btn btn-sm btn-accent"
-                href="{{ route('document.type.approve', ['document_type' => $document['document_tag']['document_tag'], 'document_id' => $document['id']]) }}">อนุมัติ</a>
+                href="{{ $document['approve_url'] ?? route('document.type.approve', ['document_type' => $document['document_tag']['document_tag'], 'document_id' => $document['id']]) }}">อนุมัติ</a>
         @else
             <a class="btn btn-sm btn-primary"
-                href="{{ route('document.type.view', ['document_type' => $document['document_tag']['document_tag'], 'document_id' => $document['id']]) }}">ดูเอกสาร</a>
+                href="{{ $document['view_url'] ?? route('document.type.view', ['document_type' => $document['document_tag']['document_tag'], 'document_id' => $document['id']]) }}">ดูเอกสาร</a>
         @endif
     </td>
 </tr>

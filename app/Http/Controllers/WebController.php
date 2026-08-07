@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Document;
 use App\Models\File;
 use App\Models\User;
+use App\Services\Course\CoursePlanService;
 use App\Services\DocumentResolver;
 use App\Services\DocumentWorkflowService;
 use App\Services\StaffApiClient;
@@ -25,6 +26,7 @@ class WebController extends Controller
         private DocumentResolver $documentResolver,
         private StaffApiClient $staffApi,
         private DocumentTrainingService $documentTrainingService,
+        private CoursePlanService $coursePlanService,
     ) {
         mb_internal_encoding('UTF-8');
     }
@@ -69,10 +71,19 @@ class WebController extends Controller
             if (! $documentData) {
                 continue;
             }
-            $document_id = $documentData->document_tag['document_tag'].$documentData->id;
+
+            $flag = $item->status == 'wait' ? 'approve' : 'my';
+            $tag = $documentData->document_tag['document_tag'] ?? '';
+
+            // Training documents appear only while waiting for this user's approval.
+            if ($tag === 'Training' && $flag !== 'approve') {
+                continue;
+            }
+
+            $document_id = $tag.$documentData->id;
             $detail = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100).'...' : $documentData->detail;
             $documents[$document_id] = [
-                'flag' => ($item->status == 'wait' ? 'approve' : 'my'),
+                'flag' => $flag,
                 'id' => $documentData->id,
                 'document_tag' => $documentData->document_tag,
                 'document_number' => $documentData->document_number,
@@ -100,6 +111,22 @@ class WebController extends Controller
                     'created_at' => $item->created_at,
                 ];
             }
+        }
+
+        foreach ($this->coursePlanService->pendingApprovalsFor(auth()->user()) as $plan) {
+            $documents['COURSE'.$plan->id] = [
+                'flag' => 'approve',
+                'id' => $plan->id,
+                'document_tag' => $plan->document_tag,
+                'document_number' => $plan->document_number,
+                'document_type_name' => $plan->document_type_name,
+                'title' => $plan->title,
+                'detail' => $plan->detail,
+                'status' => $plan->status,
+                'created_at' => $plan->created_at,
+                'approve_url' => route('document.course.show', $plan),
+                'view_url' => route('document.course.show', $plan),
+            ];
         }
 
         $documents = collect($documents)->filter(function ($document) use ($request) {
@@ -159,12 +186,12 @@ class WebController extends Controller
 
     public function createDocument(): View
     {
-        $document = Document::get();
+        $document = Document::query()->orderBy('id')->get();
 
         return view('document_create', compact('document'));
     }
 
-    public function createDocumentByType(string $document_type): View|RedirectResponse
+    public function createDocumentByType(Request $request, string $document_type): View|RedirectResponse
     {
         $data = [];
 
@@ -199,7 +226,61 @@ class WebController extends Controller
                         $departments[] = $value['department'];
                     }
                 }
-                $data = compact('departments');
+
+                $coursePlanItem = null;
+                $coursePlanItemId = $request->integer('course_plan_item_id') ?: null;
+
+                if ($coursePlanItemId) {
+                    $coursePlanItem = \App\Models\CoursePlanItem::query()
+                        ->with(['coursePlan', 'instructors', 'training'])
+                        ->find($coursePlanItemId);
+
+                    if (! $coursePlanItem) {
+                        return redirect()
+                            ->route('document.course')
+                            ->with('error', 'ไม่พบหลักสูตรในแผนประจำปี');
+                    }
+
+                    $plan = $coursePlanItem->coursePlan;
+                    $user = auth()->user();
+
+                    if (! $user->canCreateCourseForDepartment($plan->department)) {
+                        return redirect()
+                            ->route('document.course.show', $plan)
+                            ->with('error', 'คุณไม่มีสิทธิ์สร้างฝึกอบรมจากหลักสูตรนี้');
+                    }
+
+                    if ($coursePlanItem->hasTrainingDocument()) {
+                        return redirect()
+                            ->route('document.type.view', [
+                                'document_type' => 'Training',
+                                'document_id' => $coursePlanItem->training->id,
+                            ])
+                            ->with('error', 'หลักสูตรนี้มีใบบันทึกฝึกอบรมแล้ว');
+                    }
+                }
+
+                $substituteCourses = $this->coursePlanService->courseItemsForTraining(auth()->user());
+                $courseDepartments = auth()->user()->courseDepartments();
+                $defaultCourseDepartment = $request->string('department')->toString();
+
+                if ($defaultCourseDepartment === '' && in_array(auth()->user()->department, $courseDepartments, true)) {
+                    $defaultCourseDepartment = auth()->user()->department;
+                }
+
+                if ($defaultCourseDepartment === '') {
+                    $defaultCourseDepartment = $courseDepartments[0] ?? '';
+                }
+
+                $defaultCourseYear = $request->integer('year') ?: (int) now()->year;
+                $data = compact(
+                    'departments',
+                    'coursePlanItem',
+                    'substituteCourses',
+                    'courseDepartments',
+                    'defaultCourseDepartment',
+                    'defaultCourseYear',
+                );
                 break;
             default:
                 return redirect()->route('document.create');

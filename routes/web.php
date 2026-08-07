@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DocumentCourseController;
 use App\Http\Controllers\DocumentITController;
 use App\Http\Controllers\DocumentMediaController;
 use App\Http\Controllers\DocumentPurchaseController;
@@ -29,6 +30,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::prefix('admin')->middleware(['auth', 'role-manager'])->group(function () {
         Route::get('/role/list', [AdminController::class, 'RoleList'])->name('roles.list');
         Route::post('/role/update', [AdminController::class, 'RoleUpdate'])->name('roles.update');
+    });
+
+    Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
+        Route::get('/course-permissions', [DocumentCourseController::class, 'permissions'])->name('admin.course-permissions');
+        Route::post('/course-permissions', [DocumentCourseController::class, 'updatePermission'])->name('admin.course-permissions.update');
     });
 
     // Base Create Document
@@ -145,10 +151,17 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/reportlist', [DocumentUserController::class, 'adminReportDocuments'])->name('admin.user.reportlist');
     });
 
-
     // Course
     Route::get('/course', [DocumentCourseController::class, 'index'])->name('document.course');
-    
+    Route::get('/course/create', [DocumentCourseController::class, 'create'])->name('document.course.create');
+    Route::post('/course', [DocumentCourseController::class, 'store'])->name('document.course.store');
+    Route::get('/course/{course}/edit', [DocumentCourseController::class, 'edit'])->name('document.course.edit');
+    Route::put('/course/{course}', [DocumentCourseController::class, 'update'])->name('document.course.update');
+    Route::post('/course/{course}/approve', [DocumentCourseController::class, 'approve'])->name('document.course.approve');
+    Route::get('/course/{course}', [DocumentCourseController::class, 'show'])->name('document.course.show');
+    Route::post('/course/department-approvers', [DocumentCourseController::class, 'departmentApprovers'])->name('document.course.departmentApprovers');
+    Route::post('/course/department-positions', [DocumentCourseController::class, 'departmentPositions'])->name('document.course.departmentPositions');
+
     // Training
     Route::post('/training/create', [DocumentTrainingController::class, 'createDocument'])->name('document.training.create');
     Route::post('/training/create-training', [DocumentTrainingController::class, 'createProject'])->name('document.training.createTraining');

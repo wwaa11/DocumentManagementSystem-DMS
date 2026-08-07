@@ -16,8 +16,12 @@
         </div>
         <img class="h-16 w-auto" src="{{ asset('images/Side Logo.png') }}" alt="Logo">
         <div class="flex-1 text-center md:text-left">
-            <h2 class="text-primary text-3xl font-extrabold">ใบบันทึกการฝึกอบรมภาคอิสระ</h2>
-            <p class="text-base-content/50 font-medium">Internal Training Record Document</p>
+            <h2 class="text-primary text-3xl font-extrabold">
+                {{ $document->course_plan_item_id ? 'ใบบันทึกฝึกอบรมตามแผนหลักสูตร' : 'ใบบันทึกฝึกอบรมนอกแผน' }}
+            </h2>
+            <p class="text-base-content/50 font-medium">
+                {{ $document->course_plan_item_id ? 'Linked Course Training Document' : 'Out-of-Plan Training Document' }}
+            </p>
         </div>
     </div>
 

@@ -16,9 +16,24 @@ class DocumentTrainingController extends Controller
 
     public function createDocument(StoreDocumentTrainingRequest $request): RedirectResponse
     {
-        $this->documentTrainingService->createDocument($request);
+        try {
+            $document = $this->documentTrainingService->createDocument($request);
+        } catch (\InvalidArgumentException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
 
-        return redirect()->route('document.index')->with('success', 'สร้างเอกสารสำเร็จ!');
+        if ($document->course_plan_item_id) {
+            $document->load('coursePlanItem');
+            $planId = $document->coursePlanItem?->course_plan_id;
+
+            if ($planId) {
+                return redirect()
+                    ->route('document.course.show', $planId)
+                    ->with('success', 'สร้างใบบันทึกฝึกอบรมและอัปเดตแผนหลักสูตรแล้ว');
+            }
+        }
+
+        return redirect()->route('document.course')->with('success', 'สร้างเอกสารฝึกอบรมสำเร็จ!');
     }
 
     public function createProject(int|string $projectId): array

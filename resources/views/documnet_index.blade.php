@@ -79,7 +79,7 @@
                                 <option value="">ทั้งหมด</option>
                                 <option value="IT" @selected(request('document_tag') == 'IT')>IT</option>
                                 <option value="USER" @selected(request('document_tag') == 'USER')>USER</option>
-                                <option value="Training" @selected(request('document_tag') == 'Training')>Training</option>
+                                <option value="Training" @selected(request('document_tag') == 'Training')>Training (รออนุมัติ)</option>
                                 <option value="PURCHASE" @selected(request('document_tag') == 'PURCHASE')>PURCHASE</option>
                                 <option value="MEDIA" @selected(request('document_tag') == 'MEDIA')>MEDIA</option>
                             </select>

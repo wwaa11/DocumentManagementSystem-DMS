@@ -19,6 +19,8 @@ class User extends Authenticatable
         'division',
         'email',
         'role',
+        'can_create_course',
+        'course_departments',
     ];
 
     protected $hidden = [
@@ -29,6 +31,47 @@ class User extends Authenticatable
         'getapprover',
         'menu',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'can_create_course' => 'boolean',
+            'course_departments' => 'array',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function courseDepartments(): array
+    {
+        return array_values(array_filter(
+            $this->course_departments ?? [],
+            fn ($department): bool => filled($department)
+        ));
+    }
+
+    public function canCreateCourseForDepartment(?string $department = null): bool
+    {
+        if (! $this->can_create_course) {
+            return false;
+        }
+
+        $departments = $this->courseDepartments();
+
+        if ($departments === []) {
+            return false;
+        }
+
+        if ($department === null) {
+            return true;
+        }
+
+        return in_array($department, $departments, true);
+    }
 
     private function countList($listArray)
     {
@@ -106,6 +149,22 @@ class User extends Authenticatable
                     'type' => 'role',
                     'id' => 'role',
                     'link' => 'roles.list',
+                    'count' => false,
+                ],
+            ],
+            'course-permissions' => [
+                [
+                    'title' => 'Course Permissions',
+                    'type' => 'course',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Course Create Access',
+                    'type' => 'course',
+                    'id' => 'permissions',
+                    'link' => 'admin.course-permissions',
                     'count' => false,
                 ],
             ],
@@ -422,7 +481,7 @@ class User extends Authenticatable
                 'count' => [],
                 'lists' => [],
                 'groups' => $this->menuGroups([
-                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['approvers', 'roles'], 'counts' => []],
+                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['approvers', 'roles', 'course-permissions'], 'counts' => []],
                     ['key' => 'it', 'label' => 'IT', 'menus' => ['it-approve', 'it-hardware', 'it'], 'counts' => ['it']],
                     ['key' => 'purchase', 'label' => 'Purchase', 'menus' => ['purchase-approve', 'purchase-head', 'purchase'], 'counts' => ['purchase']],
                     ['key' => 'media', 'label' => 'Media', 'menus' => ['media-head', 'media'], 'counts' => ['media']],
@@ -573,15 +632,6 @@ class User extends Authenticatable
                 'status',
                 'created_at',
             );
-        $trainings = DocumentTraining::where('requester', $userId)
-            ->select(
-                'id',
-                'requester',
-                'title',
-                'detail',
-                'status',
-                'created_at',
-            );
 
         $purchases = DocumentPurchase::where('requester', $userId)
             ->select(
@@ -615,9 +665,6 @@ class User extends Authenticatable
             $document[] = $item;
         }
         foreach ($borrows->get() as $item) {
-            $document[] = $item;
-        }
-        foreach ($trainings->get() as $item) {
             $document[] = $item;
         }
         foreach ($purchases->get() as $item) {
