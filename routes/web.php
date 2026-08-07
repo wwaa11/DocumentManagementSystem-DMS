@@ -145,6 +145,10 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/reportlist', [DocumentUserController::class, 'adminReportDocuments'])->name('admin.user.reportlist');
     });
 
+
+    // Course
+    Route::get('/course', [DocumentCourseController::class, 'index'])->name('document.course');
+    
     // Training
     Route::post('/training/create', [DocumentTrainingController::class, 'createDocument'])->name('document.training.create');
     Route::post('/training/create-training', [DocumentTrainingController::class, 'createProject'])->name('document.training.createTraining');

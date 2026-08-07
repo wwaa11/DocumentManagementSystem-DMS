@@ -100,6 +100,12 @@
                             สร้างเอกสาร
                         </a>
                     </li>
+                    <li>
+                        <a class="nav-link" data-route="document.course" href="{{ route('document.course') }}">
+                            <i class="fas fa-book w-4 text-center opacity-70"></i>
+                            หลักสูตรการฝึกอบรม ประจำปี
+                        </a>
+                    </li>
 
                     @if (auth()->user()->role !== 'user' && auth()->user()->menu)
                         @if (! empty($menuGroups))
