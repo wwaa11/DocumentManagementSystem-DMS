@@ -18,9 +18,9 @@
     @endif
     <strong>รายละเอียด</strong>
     @if( (str_contains($document->detail, "<br>") || str_contains($document->detail, "\n")) )
-    <p class="border-secondary rounded-md border p-4 whitespace-pre-wrap">{!! $document->detail !!}</p>
+    <p class="border-secondary rounded-md border p-4 whitespace-pre-wrap min-h-[200px]" >{!! $document->detail !!}</p>
     @else
-    <p class="border-secondary rounded-md border p-4">{{ $document->detail }}</p>
+    <p class="border-secondary rounded-md border p-4 min-h-[200px]">{{ $document->detail }}</p>
     @endif
     @if ($type == 'BORROW')
         <strong>วันที่ขอยืมอุปกรณ์</strong>

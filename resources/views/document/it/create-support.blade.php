@@ -89,6 +89,7 @@
                         <div>
                             <span class="label-text">ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ</span>
                             <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                            <div class="text-sm text-red-500">*ต้องแนบเอกสารอนุมัติ</div>
                         </div>
                     </div>
                 </div>

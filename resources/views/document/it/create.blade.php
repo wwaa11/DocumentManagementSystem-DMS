@@ -239,6 +239,13 @@
                                 errorMessage = 'กรุณาระบุรายละเอียดอื่นๆ (SSB)';
                                 errorField = '#request_other_ssb';
                             }
+                        } else if (requestDetail === 'ขอเพิ่ม คอมพิวเตอร์ / Notebook / Printer / อุปกรณ์ต่อพ่วงต่างๆ') {
+                            const fileInput = document.getElementById('file_input');
+                            if (!fileInput || fileInput.files.length === 0) {
+                                isValid = false;
+                                errorMessage = 'ต้องมีเอกสารอนุมัติ แนบมาด้วย';
+                                errorField = '#file_input';
+                            }
                         }
                     }
 

@@ -102,10 +102,36 @@ class ApproverAdminService
             ->where('level', 1)
             ->update([
                 'userid' => $validated['userid'],
-                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_at' => now(),
                 'updated_userid' => auth()->user()->userid,
                 'updated_username' => auth()->user()->name,
             ]);
+
+        $this->upsertStaffEmail($validated['userid'], $validated['email']);
+    }
+
+    private function upsertStaffEmail(string $userid, string $email): void
+    {
+        $emailsQuery = DB::connection('staff')->table('emails');
+
+        if ($emailsQuery->where('userid', $userid)->exists()) {
+            DB::connection('staff')
+                ->table('emails')
+                ->where('userid', $userid)
+                ->update([
+                    'email' => $email,
+                    'updated_at' => now(),
+                ]);
+
+            return;
+        }
+
+        DB::connection('staff')->table('emails')->insert([
+            'userid' => $userid,
+            'email' => $email,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     /**

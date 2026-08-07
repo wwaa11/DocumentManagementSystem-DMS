@@ -95,7 +95,7 @@ class DocumentITAdminService
             ->whereIn('status', ['borrow_approve', 'return'])
             ->with($with)
             ->get();
-        $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortBy('created_at');
+        $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortByDesc('created_at');
         $action = 'approve';
 
         return view('admin.it.list', compact('documents', 'action'));
