@@ -1,7 +1,10 @@
 @extends('layouts.app')
 @section('content')
-    <div class="justify-center gap-3 lg:flex">
-        <div class="card bg-base-100 mb-4 shadow-xl max-w-3xl">
+    <div class="mb-3 flex justify-end no-print">
+        <x-document.print-button />
+    </div>
+    <div class="document-print-area justify-center gap-3 lg:flex">
+        <div class="card bg-base-100 mb-4 max-w-3xl shadow-xl">
             @if ($type == 'IT' || $type == 'BORROW')
                 @include('document.it.detail')
             @elseif ($type == 'USER')
@@ -14,20 +17,25 @@
                 @include('document.media.detail')
             @endif
         </div>
-        <div class="card bg-base-100 mb-4 shadow-xl max-w-xl">
+        <div class="card bg-base-100 mb-4 max-w-xl shadow-xl">
             <div class="card-body">
                 @if ($type == 'Training')
                     {{-- @include('document.training.management') --}}
                 @elseif ($document->status == 'wait_approval')
-                    <div class="flex flex-col gap-3">
+                    <div class="no-print flex flex-col gap-3">
                         <button class="btn btn-error w-full" onclick="cancelDocument()">ยกเลิกใบงาน</button>
                         <div class="divider"></div>
                     </div>
                 @elseif ($document->status == 'pending')
-                    <div class="flex flex-col gap-3">
+                    <div class="no-print flex flex-col gap-3">
                         <button class="btn-soft btn-neutral w-full">ใบงานอยู่ระหว่างดำเนินการ<br>ไม่สามาถยกเลิกใบงานได้</button>
                         <div class="divider"></div>
                     </div>
+                @endif
+
+                @if ($type !== 'USER')
+                    <x-document.process-logs :document="$document" />
+                    <div class="divider"></div>
                 @endif
 
                 @if ($type == 'USER')

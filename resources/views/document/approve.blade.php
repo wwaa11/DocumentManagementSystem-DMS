@@ -1,6 +1,9 @@
 @extends("layouts.app")
 @section("content")
-    <div class="justify-center gap-3 lg:flex">
+    <div class="mb-3 flex justify-end no-print">
+        <x-document.print-button />
+    </div>
+    <div class="document-print-area justify-center gap-3 lg:flex">
         <div class="card bg-base-100 mb-4 shadow-xl lg:max-w-[600px]">
             @if ($type == "IT" || $type == "BORROW")
                 @include("document.it.detail")
@@ -16,9 +19,15 @@
         </div>
         <div class="card bg-base-100 mb-4 shadow-xl">
             <div class="card-body min-w-[400px]">
-                <button class="btn btn-primary w-full" type="button" onclick="approveDocument()">Approve</button>
-                <button class="btn btn-error w-full" type="button" onclick="rejectDocument()">Reject</button>
-                <div class="divider"></div>
+                <div class="no-print flex flex-col gap-3">
+                    <button class="btn btn-primary w-full" type="button" onclick="approveDocument()">Approve</button>
+                    <button class="btn btn-error w-full" type="button" onclick="rejectDocument()">Reject</button>
+                    <div class="divider"></div>
+                </div>
+                @if ($type !== 'USER')
+                    <x-document.process-logs :document="$document" />
+                    <div class="divider"></div>
+                @endif
                 @if ($type == 'IT' || $type == 'BORROW' || $type == 'PURCHASE' || $type == 'Training' || $type == 'MEDIA')
                     <x-document.activity-logs :logs="$document->logs" />
                 @elseif ($type == 'USER')

@@ -83,7 +83,7 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center no-print">
                                     @if ($document->status == 'pending')
                                         <button
                                             class="btn btn-error btn-sm gap-2 shadow-sm w-24"

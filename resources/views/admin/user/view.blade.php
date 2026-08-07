@@ -1,7 +1,10 @@
 @extends('layouts.app')
 @section('content')
-    <div class="justify-center gap-3 lg:flex">
-        <div class="card bg-base-100 mb-4 shadow-xl max-w-3xl">
+    <div class="mb-3 flex justify-end no-print">
+        <x-document.print-button />
+    </div>
+    <div class="document-print-area justify-center gap-3 lg:flex">
+        <div class="card bg-base-100 mb-4 max-w-3xl shadow-xl">
             <div class="card-body">
                 <x-ui.back-button />
                 <x-document.detail-masthead
@@ -29,34 +32,23 @@
                 <x-document.task-timeline :tasks="$document->tasks" />
             </div>
         </div>
-        <div class="card bg-base-100 mb-4 shadow-xl max-w-xl">
+        <div class="card bg-base-100 mb-4 max-w-xl shadow-xl">
             <div class="card-body">
-                <h5 class="card-title">รายการดำเนินงาน</h5>
-                @if ($document->logs()->where('action', 'process')->count() > 0)
-                    @foreach ($document->logs()->whereIn('action', ['process', 'reject'])->get() as $log)
-                        @php
-                            $actionCss = $log->action == 'process' ? 'primary' : 'accent';
-                        @endphp
-                        <div class="rounded-box border-{{ $actionCss }} w-full border p-2">
-                            <textarea class="textarea w-full border-0 focus:outline-none" rows="10" readonly>{!! $log->details !!}</textarea>
-                            <div class="text-{{ $actionCss }} flex justify-between text-xs">
-                                <div>{{ $log->userid }} {{ $log->user->name }}</div>
-                                <div>{{ $log->created_at->format('Y-m-d H:i:s') }}</div>
+                <x-document.process-logs :document="$document">
+                    @foreach ($document->documentUser->gettAlllogs() as $item)
+                        <div class="rounded-box border-accent text-accent mb-2 w-full border p-2">
+                            <div>การดำเนินการจากแผนก IT</div>
+                            <div class="py-3">{{ $item->details }}</div>
+                            <div class="flex justify-between text-xs">
+                                <div>{{ $item->user->name ?? $item->userid }}</div>
+                                <div>{{ $item->created_at->format('d/m/Y H:i:s') }}</div>
                             </div>
                         </div>
                     @endforeach
-                @endif
-                @foreach ($document->documentUser->gettAlllogs() as $item)
-                    <div class="rounded-box border-accent text-accent w-full border p-2">
-                        <div>การดำเนินการจากแผนก IT</div>
-                        <div class="py-3">{{ $item->details }}</div>
-                        <div class="flex justify-between text-xs">
-                            <div>{{ $item->user->name ?? $item->userid }}</div>
-                            <div>{{ $item->created_at->format('d/m/Y H:i:s') }}</div>
-                        </div>
-                    </div>
-                @endforeach
-                @include("admin.user.actions.$action")
+                </x-document.process-logs>
+                <div class="no-print">
+                    @include("admin.user.actions.$action")
+                </div>
                 <div class="divider"></div>
                 <x-document.activity-logs :logs="$document->logs" />
             </div>

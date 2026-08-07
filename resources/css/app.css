@@ -238,3 +238,59 @@
         }
     }
 }
+
+@media print {
+    @page {
+        margin: 12mm;
+    }
+
+    body {
+        background: white !important;
+        background-image: none !important;
+        min-height: auto !important;
+    }
+
+    .no-print,
+    .app-sidebar,
+    .app-topbar,
+    .drawer-toggle,
+    .drawer-side,
+    .drawer-overlay {
+        display: none !important;
+    }
+
+    .app-shell.drawer,
+    .drawer-content.app-main,
+    .app-content {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: auto !important;
+    }
+
+    .document-print-area {
+        display: block !important;
+    }
+
+    .document-print-area > .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin-bottom: 1rem !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .card {
+        box-shadow: none !important;
+    }
+
+    textarea {
+        overflow: visible !important;
+        height: auto !important;
+        min-height: auto !important;
+    }
+}

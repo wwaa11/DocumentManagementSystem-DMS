@@ -208,7 +208,9 @@
         </div>
     </div>
 
-    @include('document.training.management')
+    <div class="no-print">
+        @include('document.training.management')
+    </div>
 
     <!-- Approval Chain Section -->
     <div class="pt-4">

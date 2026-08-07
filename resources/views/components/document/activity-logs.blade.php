@@ -17,7 +17,10 @@
             @forelse ($logs as $log)
                 <tr>
                     <td class="whitespace-nowrap">{{ $log->created_at->format('d/m/Y H:i') }}</td>
-                    <td>{{ Str::limit($log->details, 100) }}</td>
+                    <td>
+                        <span class="print:hidden">{{ Str::limit($log->details, 100) }}</span>
+                        <span class="hidden whitespace-pre-wrap break-words print:inline">{{ $log->details }}</span>
+                    </td>
                     <td class="whitespace-nowrap">{{ $log->user->name ?? $log->userid }}</td>
                 </tr>
             @empty

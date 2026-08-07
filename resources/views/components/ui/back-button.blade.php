@@ -9,6 +9,6 @@
         : 'text-accent w-24 cursor-pointer';
 @endphp
 
-<button type="button" {{ $attributes->merge(['class' => $classes, 'onclick' => 'window.history.back()']) }}>
+<button type="button" {{ $attributes->merge(['class' => $classes.' no-print', 'onclick' => 'window.history.back()']) }}>
     <i class="fas fa-arrow-left"></i> {{ $label }}
 </button>

@@ -9,7 +9,7 @@
                     <p class="truncate text-sm font-medium">{{ $file->original_filename }}</p>
                     <p class="text-base-content/70 text-xs">{{ number_format($file->size / 1024, 2) }} KB</p>
                 </div>
-                <div class="flex shrink-0 flex-wrap items-center gap-2">
+                <div class="no-print flex shrink-0 flex-wrap items-center gap-2">
                     @if ($file->isImage())
                         <button
                             class="btn btn-xs btn-accent"
