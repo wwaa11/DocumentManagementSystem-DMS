@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link rel="icon" href="{{ asset('images/icon.ico') }}" type="image/x-icon">
     <link href="https://fonts.bunny.net/css?family=dm-sans:400,500,600,700" rel="stylesheet" />
-    <script src="https://kit.fontawesome.com/a20e89230f.js" crossorigin="anonymous"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
