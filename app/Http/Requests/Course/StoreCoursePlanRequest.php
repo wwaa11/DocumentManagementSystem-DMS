@@ -31,6 +31,7 @@ class StoreCoursePlanRequest extends FormRequest
             'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'department' => ['required', 'string'],
             'courses' => ['required', 'array', 'min:1'],
+            'courses.*.id' => ['nullable', 'integer', 'exists:course_plan_items,id'],
             'courses.*.number' => ['required', 'string', 'max:50'],
             'courses.*.name' => ['required', 'string', 'max:255'],
             'courses.*.origin' => ['required', 'string'],

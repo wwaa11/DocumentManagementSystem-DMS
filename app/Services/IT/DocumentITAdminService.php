@@ -151,6 +151,7 @@ class DocumentITAdminService
         $search = $request->get('search');
         $status = $request->get('status');
         $type = $request->get('type');
+        $department = $request->get('department');
         $start_date = $request->get('start_date');
         $end_date = $request->get('end_date');
 
@@ -164,6 +165,11 @@ class DocumentITAdminService
         }
         if ($status) {
             $itQuery->where('status', $status);
+        }
+        if ($department) {
+            $itQuery->whereHas('creator', function ($q) use ($department) {
+                $q->where('department', $department);
+            });
         }
         if ($start_date) {
             $itQuery->whereDate('created_at', '>=', $start_date);
@@ -186,6 +192,11 @@ class DocumentITAdminService
         if ($status) {
             $itUserQuery->where('status', $status);
         }
+        if ($department) {
+            $itUserQuery->whereHas('documentUser.creator', function ($q) use ($department) {
+                $q->where('department', $department);
+            });
+        }
         if ($start_date) {
             $itUserQuery->whereDate('created_at', '>=', $start_date);
         }
@@ -205,6 +216,11 @@ class DocumentITAdminService
         if ($status) {
             $borrowQuery->where('status', $status);
         }
+        if ($department) {
+            $borrowQuery->whereHas('creator', function ($q) use ($department) {
+                $q->where('department', $department);
+            });
+        }
         if ($start_date) {
             $borrowQuery->whereDate('created_at', '>=', $start_date);
         }
@@ -216,8 +232,14 @@ class DocumentITAdminService
         $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortByDESC('created_at');
         $action = 'all';
         $documents = $this->workflow->paginateCollection($documents, 10, $request);
+        $departments = User::query()
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
 
-        return view('admin.it.list', compact('documents', 'action', 'search', 'type', 'status', 'start_date', 'end_date'));
+        return view('admin.it.list', compact('documents', 'action', 'search', 'type', 'status', 'department', 'departments', 'start_date', 'end_date'));
     }
 
     public function adminviewDocument(string $type, int|string $document_id, string $action): View

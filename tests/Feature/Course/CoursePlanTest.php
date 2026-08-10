@@ -114,6 +114,16 @@ class CoursePlanTest extends TestCase
         $this->assertArrayHasKey('approver_level3', $validator->errors()->toArray());
     }
 
+    public function test_course_plan_accepts_existing_item_ids_so_links_are_preserved(): void
+    {
+        $rules = (new StoreCoursePlanRequest)->rules();
+
+        $this->assertSame(
+            ['nullable', 'integer', 'exists:course_plan_items,id'],
+            $rules['courses.*.id']
+        );
+    }
+
     public function test_store_course_plan_validation_passes_with_multiple_courses(): void
     {
         $validator = Validator::make([

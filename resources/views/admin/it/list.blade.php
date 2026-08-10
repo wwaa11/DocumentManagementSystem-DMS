@@ -13,7 +13,7 @@
         <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
             @if ($action == 'all')
                 <div class="border-base-content/5 bg-base-200/30 border-b px-4 py-3">
-                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-6" action="{{ route('admin.it.alllist') }}" method="GET">
+                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-7" action="{{ route('admin.it.alllist') }}" method="GET">
                         <div class="form-control col-span-1 md:col-span-2">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ค้นหา</span></label>
                             <input class="input input-bordered input-sm w-full" type="text" name="search" value="{{ $search ?? '' }}" placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด...">
@@ -40,6 +40,15 @@
                             </select>
                         </div>
                         <div class="form-control">
+                            <label class="label pt-0"><span class="label-text text-xs font-semibold">แผนกที่สร้าง</span></label>
+                            <select class="select select-bordered select-sm w-full" name="department">
+                                <option value="">ทั้งหมด</option>
+                                @foreach ($departments ?? [] as $dept)
+                                    <option value="{{ $dept }}" {{ isset($department) && $department == $dept ? 'selected' : '' }}>{{ $dept }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่เริ่ม</span></label>
                             <input class="input input-bordered input-sm w-full" type="date" name="start_date" value="{{ $start_date ?? '' }}">
                         </div>
@@ -47,7 +56,7 @@
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่สิ้นสุด</span></label>
                             <input class="input input-bordered input-sm w-full" type="date" name="end_date" value="{{ $end_date ?? '' }}">
                         </div>
-                        <div class="col-span-1 flex justify-end gap-2 md:col-span-6">
+                        <div class="col-span-1 flex justify-end gap-2 md:col-span-7">
                             <button class="btn btn-primary btn-sm px-8" type="submit">
                                 <i class="fas fa-search mr-1"></i> ค้นหา
                             </button>

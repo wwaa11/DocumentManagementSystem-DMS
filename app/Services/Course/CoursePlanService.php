@@ -253,14 +253,17 @@ class CoursePlanService
     }
 
     /**
+     * Existing items are updated in place so linked training documents keep their reference.
+     *
      * @param  list<array<string, mixed>>  $courses
      */
     private function syncCourses(CoursePlan $plan, array $courses): void
     {
-        $plan->items()->delete();
+        $existingItems = $plan->items()->get()->keyBy('id');
+        $keptItemIds = [];
 
         foreach (array_values($courses) as $index => $course) {
-            $item = $plan->items()->create([
+            $attributes = [
                 'number' => $course['number'],
                 'name' => $course['name'],
                 'origin' => $course['origin'],
@@ -269,7 +272,20 @@ class CoursePlanService
                 'schedule_months' => array_map('intval', $course['schedule_months']),
                 'estimated_cost' => $course['estimated_cost'] ?? null,
                 'sort_order' => $index,
-            ]);
+            ];
+
+            $item = isset($course['id']) ? $existingItems->get((int) $course['id']) : null;
+
+            if ($item) {
+                $item->update($attributes);
+                $item->instructors()->delete();
+                $item->targetPositions()->delete();
+                $item->responsibles()->delete();
+            } else {
+                $item = $plan->items()->create($attributes);
+            }
+
+            $keptItemIds[] = $item->id;
 
             foreach ($course['instructors'] as $instructor) {
                 $item->instructors()->create([
@@ -294,6 +310,8 @@ class CoursePlanService
                 ]);
             }
         }
+
+        $plan->items()->whereNotIn('id', $keptItemIds)->delete();
     }
 
     /**

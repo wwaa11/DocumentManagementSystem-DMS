@@ -6,6 +6,7 @@
         if ($existingCourses === null && ($plan ?? null)) {
             $existingCourses = $plan->items->map(function ($item) {
                 return [
+                    'id' => $item->id,
                     'number' => $item->number,
                     'name' => $item->name,
                     'origin' => $item->origin,
@@ -229,6 +230,7 @@
 
     <template id="course-card-template">
         <article class="course-card card bg-base-100 border-base-200 overflow-hidden border shadow-xl" data-course-index="__INDEX__">
+            <input type="hidden" data-field="id" value="">
             <div class="card-body p-0">
                 <div class="bg-base-200/60 border-base-200 flex items-center justify-between border-b px-5 py-4 md:px-6">
                     <div class="flex items-center gap-2">
@@ -401,6 +403,7 @@
                     label.textContent = String(index + 1);
                 });
 
+                card.querySelectorAll('[data-field="id"]').forEach((el) => el.name = `courses[${index}][id]`);
                 card.querySelectorAll('[data-field="number"]').forEach((el) => el.name = `courses[${index}][number]`);
                 card.querySelectorAll('[data-field="name"]').forEach((el) => el.name = `courses[${index}][name]`);
                 card.querySelectorAll('[data-field="origin"]').forEach((el) => el.name = `courses[${index}][origin]`);
@@ -507,6 +510,7 @@
         }
 
         function bindCourseCard(card, data = {}) {
+            card.querySelector('[data-field="id"]').value = data.id || '';
             card.querySelector('[data-field="number"]').value = data.number || '';
             card.querySelector('[data-field="name"]').value = data.name || '';
             card.querySelector('[data-field="origin"]').value = data.origin || '';
