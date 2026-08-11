@@ -90,7 +90,10 @@ class DocumentITAdminService
     {
         $with = ['approvers.user', 'creator', 'tasks.user', 'logs.user'];
         $documents = DocumentIT::query()->where('status', 'done')->with($with)->get();
-        $documentsITUser = DocumentItUser::query()->where('status', 'done')->with($with)->get();
+        $documentsITUser = DocumentItUser::query()
+            ->where('status', 'done')
+            ->with([...$with, 'documentUser'])
+            ->get();
         $documentsBorrow = DocumentBorrow::query()
             ->whereIn('status', ['borrow_approve', 'return'])
             ->with($with)

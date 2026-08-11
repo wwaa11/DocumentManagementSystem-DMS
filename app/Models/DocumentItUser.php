@@ -1,7 +1,12 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class DocumentItUser extends Model
 {
@@ -33,7 +38,7 @@ class DocumentItUser extends Model
     {
         return [
             'document_tag' => 'USER',
-            'colour'       => 'warning',
+            'colour' => 'warning',
         ];
     }
 
@@ -42,49 +47,74 @@ class DocumentItUser extends Model
         return 'ขอรหัสผู้ใช้งานคอมพิวเตอร์/ขอสิทธิใช้งานโปรแกรม';
     }
 
-    public function getDetailAttribute()
+    public function getDetailAttribute(): ?string
     {
-        return $this->documentUser->detail;
+        return $this->documentUser?->detail;
     }
 
-    public function getListDetailAttribute()
+    public function getListDetailAttribute(): ?string
     {
-        return strlen($this->documentUser->detail) > 100 ? mb_substr($this->documentUser->detail, 0, 100) . '...' : $this->documentUser->detail;
+        $detail = $this->documentUser?->detail;
+
+        if ($detail === null) {
+            return null;
+        }
+
+        return strlen($detail) > 100 ? mb_substr($detail, 0, 100).'...' : $detail;
     }
 
-    public function documentUser()
+    public function documentUser(): BelongsTo
     {
         return $this->belongsTo(DocumentUser::class, 'document_user_id', 'id');
     }
 
-    public function creator()
+    /**
+     * The requester is stored on the parent document, so it is resolved through it
+     * instead of proxying to `documentUser`, which cannot be eager loaded.
+     */
+    public function creator(): HasOneThrough
     {
-        return $this->documentUser->creator();
+        return $this->hasOneThrough(
+            User::class,
+            DocumentUser::class,
+            'id',
+            'userid',
+            'document_user_id',
+            'requester',
+        );
     }
 
-    public function assigned_user()
+    public function assigned_user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_user_id', 'userid');
     }
 
-    public function approvers()
+    /**
+     * Approvers are attached to the parent document. Keying the relation on
+     * `document_user_id` keeps the parent's morph type while remaining eager loadable.
+     */
+    public function approvers(): HasMany
     {
-        return $this->documentUser->approvers();
+        return $this->hasMany(Approver::class, 'approvable_id', 'document_user_id')
+            ->withAttributes(['approvable_type' => DocumentUser::class]);
     }
 
-    public function files()
+    /**
+     * Files are attached to the parent document, see `approvers()`.
+     */
+    public function files(): HasMany
     {
-        return $this->documentUser->files();
+        return $this->hasMany(File::class, 'fileable_id', 'document_user_id')
+            ->withAttributes(['fileable_type' => DocumentUser::class]);
     }
 
-    public function tasks()
+    public function tasks(): MorphMany
     {
         return $this->morphMany(Task::class, 'taskable');
     }
 
-    public function logs()
+    public function logs(): MorphMany
     {
         return $this->morphMany(Log::class, 'loggable');
     }
-
 }
