@@ -66,6 +66,7 @@ class DocumentTrainingService
             $document->hours = $request->duration_hours;
             $document->minutes = $request->duration_minutes ?? 0;
             $document->detail = $detail;
+            $document->project_type = 'multiple';
             $document->course_plan_item_id = $coursePlanItem?->id;
             $document->save();
 
@@ -241,6 +242,7 @@ class DocumentTrainingService
     {
         $project = DocumentTraining::find($projectId);
         $participants = $project->participants()->pluck('participant')->toArray();
+        $lecturers = $project->mentors()->pluck('mentor')->filter()->values()->toArray();
         $dates = $project->dates()->get();
 
         $firstDate = $dates->first();
@@ -248,7 +250,7 @@ class DocumentTrainingService
 
         $postData = [
             'document_id' => $project->id,
-            'type' => 'multiple',
+            'type' => $project->project_type ?: 'multiple',
             'title' => $project->title,
             'detail' => $project->detail,
             'project_start_register' => $firstDate->dateString.' '.$firstDate->start_time,
@@ -260,6 +262,10 @@ class DocumentTrainingService
             ])->toArray(),
             'users' => $participants,
         ];
+
+        if ($lecturers !== []) {
+            $postData['lecturers'] = $lecturers;
+        }
 
         $response = $this->trainingApi->createProject($postData);
 
@@ -314,32 +320,94 @@ class DocumentTrainingService
         ];
     }
 
-    public function approveAttendance(int|string $projectId, mixed $transactionId, ?string $userid = null): ?array
+    public function approveAttendance(int|string $projectId, array $options = []): ?array
     {
         $project = DocumentTraining::find($projectId);
 
-        if (! $project) {
+        if (! $project || $project->training_id === null) {
             return null;
         }
 
-        $response = $this->trainingApi->approveTransaction($transactionId);
+        $payload = $this->buildApprovePayload($project, $options);
+        $response = $this->trainingApi->approveTransactions($payload);
 
-        if ($response->successful()) {
-            $payload = $response->json();
+        if (! $response->successful()) {
+            $body = $response->json();
 
-            $project->logs()->create([
-                'userid' => auth()->user()->userid,
-                'action' => 'approve_attendance',
-                'details' => 'อนุมัติการเข้าร่วม '.$userid.' สำเร็จ!',
-            ]);
+            return [
+                'success' => false,
+                'status' => 'failed',
+                'message' => is_array($body) ? ($body['message'] ?? 'อนุมัติการเข้าร่วมไม่สำเร็จ!') : 'อนุมัติการเข้าร่วมไม่สำเร็จ!',
+                'approved' => $body['approved'] ?? [],
+                'skipped' => $body['skipped'] ?? [],
+                'failed' => $body['failed'] ?? [],
+            ];
+        }
 
-            return $payload;
+        $result = $response->json() ?? [];
+        $approvedCount = count($result['approved'] ?? []);
+        $failedCount = count($result['failed'] ?? []);
+
+        $project->logs()->create([
+            'userid' => auth()->user()->userid,
+            'action' => 'approve_attendance',
+            'details' => $this->approveLogDetail($options, $approvedCount, $failedCount),
+        ]);
+
+        return array_merge([
+            'success' => ($result['failed'] ?? []) === [],
+            'message' => $result['message'] ?? 'อนุมัติการเข้าร่วมสำเร็จ!',
+        ], $result);
+    }
+
+    /**
+     * @param  array{transaction_id?: int|string|null, transaction_ids?: list<int|string>|null, approve_all?: bool, userid?: ?string}  $options
+     * @return array<string, mixed>
+     */
+    private function buildApprovePayload(DocumentTraining $project, array $options): array
+    {
+        if (! empty($options['approve_all'])) {
+            return [
+                'project_id' => $project->training_id,
+                'approve_all' => true,
+            ];
+        }
+
+        $transactionIds = array_values(array_filter(
+            array_map('intval', $options['transaction_ids'] ?? []),
+            fn (int $id): bool => $id > 0,
+        ));
+
+        if ($transactionIds !== []) {
+            return ['transaction_ids' => $transactionIds];
+        }
+
+        if (! empty($options['transaction_id'])) {
+            return ['transaction_id' => (int) $options['transaction_id']];
         }
 
         return [
-            'status' => 'failed',
-            'message' => 'อนุมัติการเข้าร่วมไม่สำเร็จ!',
+            'project_id' => $project->training_id,
+            'approve_all' => true,
         ];
+    }
+
+    /**
+     * @param  array{transaction_id?: int|string|null, transaction_ids?: list<int|string>|null, approve_all?: bool, userid?: ?string}  $options
+     */
+    private function approveLogDetail(array $options, int $approvedCount, int $failedCount): string
+    {
+        if (! empty($options['approve_all'])) {
+            return "อนุมัติการเข้าร่วมทั้งโครงการ สำเร็จ {$approvedCount} รายการ".($failedCount > 0 ? " / ไม่สำเร็จ {$failedCount}" : '');
+        }
+
+        if (! empty($options['transaction_ids'])) {
+            return 'อนุมัติการเข้าร่วมแบบกลุ่ม '.count($options['transaction_ids']).' รายการ (สำเร็จ '.$approvedCount.')';
+        }
+
+        $userid = $options['userid'] ?? $options['transaction_id'] ?? '-';
+
+        return 'อนุมัติการเข้าร่วม '.$userid.' สำเร็จ!';
     }
 
     public function closeProject(int|string $projectId): ?array
@@ -371,11 +439,35 @@ class DocumentTrainingService
             DocumentTrainingParticipant::where('id', $participantId)
                 ->where('document_training_id', $projectId)
                 ->update([
-                    'assetment_date' => $data['date'],
-                    'assetment_type' => $data['type'],
-                    'score' => $data['score'],
+                    'assetment_date' => $data['date'] ?: null,
+                    'assetment_type' => $this->normalizeAssessmentType($data['type'] ?? null),
+                    'score' => $data['score'] !== '' && $data['score'] !== null ? (string) $data['score'] : null,
                 ]);
         }
+    }
+
+    /**
+     * Persist assessment methods as a sorted unique string, e.g. "P+I".
+     */
+    private function normalizeAssessmentType(mixed $type): ?string
+    {
+        $values = is_array($type)
+            ? $type
+            : preg_split('/[+,|\\s]+/', (string) $type, -1, PREG_SPLIT_NO_EMPTY);
+
+        $allowed = ['P', 'O', 'I'];
+        $selected = [];
+
+        foreach ($values as $value) {
+            $code = strtoupper(trim((string) $value));
+            if (in_array($code, $allowed, true) && ! in_array($code, $selected, true)) {
+                $selected[] = $code;
+            }
+        }
+
+        usort($selected, fn (string $a, string $b): int => array_search($a, $allowed, true) <=> array_search($b, $allowed, true));
+
+        return $selected === [] ? null : implode('+', $selected);
     }
 
     public function downloadPdf(int|string $id): BinaryFileResponse|StreamedResponse|\Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse

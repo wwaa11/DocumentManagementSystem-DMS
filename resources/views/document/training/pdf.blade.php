@@ -147,7 +147,7 @@
                 <th style="width: 160px;">ชื่อ-นามสกุล</th>
                 <th>ตำแหน่ง</th>
                 <th>แผนก</th>
-                <th style="width: 40px;">วิธี</th>
+                <th style="width: 55px;">วิธี</th>
                 <th style="width: 40px;">ผล</th>
             </tr>
         </thead>

@@ -96,6 +96,7 @@
                             </label>
                             <input class="input input-bordered focus:input-primary w-full shadow-sm transition-all" id="training_name" name="training_name" type="text" placeholder="ระบุชื่อหลักสูตรการฝึกอบรม" value="{{ $defaultTitle }}" />
                         </div>
+                        <input type="hidden" name="project_type" value="multiple">
 
                         <!-- Source/Origin -->
                         <div class="form-control">
@@ -316,6 +317,7 @@
                         <div class="flex items-center gap-2">
                             <i class="fas fa-user-tie text-primary"></i>
                             <span class="text-sm font-bold">3.1 รายชื่อวิทยากร</span>
+                            <span class="badge badge-ghost badge-sm">ส่งไป HRD เป็น lecturers</span>
                             @if ($isFromCourse && count($initialMentors) > 0)
                                 <span class="badge badge-info badge-sm">ดึงจากแผนหลักสูตรแล้ว</span>
                             @endif

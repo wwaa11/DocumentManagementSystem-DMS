@@ -114,6 +114,7 @@ class CourseTrainingLinkTest extends TestCase
             'specific_end_time' => ['12:00'],
             'duration_hours' => 3,
             'duration_minutes' => 0,
+            'project_type' => 'multiple',
             'approver' => [
                 'userid' => $user->userid,
                 'name' => $user->name,

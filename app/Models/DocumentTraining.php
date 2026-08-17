@@ -16,6 +16,7 @@ class DocumentTraining extends Model
         'status',
         'hrapprove',
         'course_plan_item_id',
+        'project_type',
     ];
 
     protected function casts(): array
@@ -33,6 +34,18 @@ class DocumentTraining extends Model
     public function coursePlanItem()
     {
         return $this->belongsTo(CoursePlanItem::class);
+    }
+
+    /**
+     * A training project can only be reshaped while the document is running
+     * and the signed-in user owns one of its tasks.
+     */
+    public function isScheduleEditableBy(?User $user): bool
+    {
+        return $user !== null
+            && $this->status === 'pending'
+            && $this->training_id !== null
+            && $this->tasks()->where('task_user', $user->userid)->exists();
     }
 
     public function getDocumentTagAttribute()

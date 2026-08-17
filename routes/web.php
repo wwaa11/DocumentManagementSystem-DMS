@@ -50,6 +50,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Search User , Department , Position
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
+    Route::post('/user/departments', [WebController::class, 'userDepartments'])->name('user.departments');
     Route::post('/user/position', [WebController::class, 'userPosition'])->name('user.position');
     Route::post('/user/getuserFormDepartment', [WebController::class, 'getuserFormDepartment'])->name('user.formDepartment');
     Route::post('/user/getuserFormDepartmentPosition', [WebController::class, 'getuserFormDepartmentPosition'])->name('user.formDepartmentPosition');
@@ -170,5 +171,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/training/approve-attendance', [DocumentTrainingController::class, 'approveAttendance'])->name('document.training.approveAttendance');
     Route::post('/training/close-project', [DocumentTrainingController::class, 'closeProject'])->name('document.training.closeProject');
     Route::post('/training/save-assessment', [DocumentTrainingController::class, 'saveAssessment'])->name('document.training.saveAssessment');
+    Route::post('/training/project-detail', [DocumentTrainingController::class, 'projectDetail'])->name('document.training.projectDetail');
+    Route::post('/training/assessment/participants', [DocumentTrainingController::class, 'assessmentParticipants'])->name('document.training.assessment.participants');
+    Route::post('/training/date/add', [DocumentTrainingController::class, 'storeTrainingDate'])->name('document.training.date.add');
+    Route::post('/training/date/edit', [DocumentTrainingController::class, 'updateTrainingDate'])->name('document.training.date.edit');
+    Route::post('/training/date/remove', [DocumentTrainingController::class, 'removeTrainingDate'])->name('document.training.date.remove');
+    Route::post('/training/time/add', [DocumentTrainingController::class, 'storeTrainingTime'])->name('document.training.time.add');
+    Route::post('/training/time/edit', [DocumentTrainingController::class, 'updateTrainingTime'])->name('document.training.time.edit');
+    Route::post('/training/time/remove', [DocumentTrainingController::class, 'removeTrainingTime'])->name('document.training.time.remove');
+    Route::post('/training/participant/add', [DocumentTrainingController::class, 'storeTrainingParticipant'])->name('document.training.participant.add');
+    Route::post('/training/participant/remove', [DocumentTrainingController::class, 'removeTrainingParticipant'])->name('document.training.participant.remove');
+    Route::post('/training/lecturer/add', [DocumentTrainingController::class, 'storeTrainingLecturer'])->name('document.training.lecturer.add');
+    Route::post('/training/lecturer/remove', [DocumentTrainingController::class, 'removeTrainingLecturer'])->name('document.training.lecturer.remove');
     Route::get('/training/download-pdf/{id}', [DocumentTrainingController::class, 'downloadPDF'])->name('document.training.downloadPDF');
 });

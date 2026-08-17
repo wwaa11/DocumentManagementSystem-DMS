@@ -300,6 +300,24 @@ class WebController extends Controller
         return response()->json(['status' => true, 'user' => $response['user']]);
     }
 
+    public function userDepartments(): JsonResponse
+    {
+        $response = $this->staffApi->getDepartments();
+
+        if (! $response->successful()) {
+            return response()->json(['status' => false, 'departments' => []]);
+        }
+
+        $departments = [];
+        foreach ($response->json('departments') ?? [] as $value) {
+            if (isset($value['department'])) {
+                $departments[] = $value['department'];
+            }
+        }
+
+        return response()->json(['status' => true, 'departments' => $departments]);
+    }
+
     public function userPosition(Request $request): array|JsonResponse
     {
         $response = $this->staffApi->getDepartmentPositions((string) $request->input('department'))->json();
