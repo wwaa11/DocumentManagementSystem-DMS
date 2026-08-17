@@ -418,8 +418,16 @@ class DocumentTrainingService
             return null;
         }
 
-        $project->status = 'done';
+        $project->status = 'complete';
         $project->save();
+
+        $project->tasks()->where('step', 3)->update([
+            'status' => 'approve',
+            'task_name' => 'จบการฝึกอบรม',
+            'task_user' => auth()->user()->userid,
+            'task_position' => auth()->user()->position,
+            'date' => date('Y-m-d H:i:s'),
+        ]);
 
         $project->logs()->create([
             'userid' => auth()->user()->userid,
