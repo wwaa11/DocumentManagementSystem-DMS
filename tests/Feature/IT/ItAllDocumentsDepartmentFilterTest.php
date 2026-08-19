@@ -33,4 +33,97 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         $this->assertStringContainsString("->where('department', \$department)", $body);
         $this->assertStringContainsString("'department', 'departments'", $body);
     }
+
+    public function test_all_documents_list_has_process_userid_filter(): void
+    {
+        $source = file_get_contents(resource_path('views/admin/it/list.blade.php'));
+
+        $this->assertStringContainsString('ดำเนินการโดย', $source);
+        $this->assertStringContainsString('name="process_userid"', $source);
+        $this->assertStringContainsString('@foreach ($processUsers ?? [] as $processUser)', $source);
+    }
+
+    public function test_admin_all_documents_filters_by_process_log_userid(): void
+    {
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'adminAllDocuments');
+        $body = file_get_contents($method->getFileName());
+        $body = implode("\n", array_slice(
+            explode("\n", $body),
+            $method->getStartLine() - 1,
+            $method->getEndLine() - $method->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString("\$request->get('process_userid')", $body);
+        $this->assertStringContainsString('$this->filterByProcessUserid($itQuery, $process_userid)', $body);
+        $this->assertStringContainsString('$this->filterByProcessUserid($itUserQuery, $process_userid)', $body);
+        $this->assertStringContainsString('$this->filterByProcessUserid($borrowQuery, $process_userid)', $body);
+        $this->assertStringContainsString("'process_userid', 'processUsers'", $body);
+
+        $filterMethod = new ReflectionMethod(DocumentITAdminService::class, 'filterByProcessUserid');
+        $filterBody = file_get_contents($filterMethod->getFileName());
+        $filterBody = implode("\n", array_slice(
+            explode("\n", $filterBody),
+            $filterMethod->getStartLine() - 1,
+            $filterMethod->getEndLine() - $filterMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString("whereHas('logs'", $filterBody);
+        $this->assertStringContainsString("->where('action', 'process')", $filterBody);
+        $this->assertStringContainsString("->where('userid', \$processUserid)", $filterBody);
+        $this->assertStringContainsString("withMax(['logs as last_process_at'", $filterBody);
+        $this->assertStringContainsString('$this->sortAllDocuments($documents, $process_userid)', $body);
+        $this->assertStringContainsString('filled($process_userid) ? 100 : 10', $body);
+        $this->assertStringContainsString("'end_date', 'typeCounts'", $body);
+    }
+
+    public function test_admin_all_documents_defaults_type_to_all(): void
+    {
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'adminAllDocuments');
+        $body = file_get_contents($method->getFileName());
+        $body = implode("\n", array_slice(
+            explode("\n", $body),
+            $method->getStartLine() - 1,
+            $method->getEndLine() - $method->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString("\$request->get('type') ?: 'ALL'", $body);
+        $this->assertStringContainsString('$this->mergeDocumentCollections($documents, $documentsITUser, $documentsBorrow)', $body);
+    }
+
+    public function test_merge_document_collections_keeps_overlapping_ids(): void
+    {
+        $service = $this->app->make(DocumentITAdminService::class);
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'mergeDocumentCollections');
+        $method->setAccessible(true);
+
+        $itDocuments = collect([5 => (object) ['id' => 5, 'tag' => 'IT']]);
+        $ituDocuments = collect([5 => (object) ['id' => 5, 'tag' => 'USER']]);
+
+        $merged = $method->invoke($service, $itDocuments, $ituDocuments);
+
+        $this->assertCount(2, $merged);
+        $this->assertSame(['IT', 'USER'], $merged->pluck('tag')->all());
+    }
+
+    public function test_sort_all_documents_by_process_log_puts_recent_itu_first(): void
+    {
+        $service = $this->app->make(DocumentITAdminService::class);
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'sortAllDocuments');
+        $method->setAccessible(true);
+
+        $itDocument = (object) [
+            'tag' => 'IT',
+            'created_at' => '2026-08-19 10:00:00',
+            'last_process_at' => '2026-01-01 10:00:00',
+        ];
+        $ituDocument = (object) [
+            'tag' => 'USER',
+            'created_at' => '2025-01-01 10:00:00',
+            'last_process_at' => '2026-08-18 10:00:00',
+        ];
+
+        $sorted = $method->invoke($service, collect([$itDocument, $ituDocument]), '440106');
+
+        $this->assertSame(['USER', 'IT'], $sorted->pluck('tag')->all());
+    }
 }

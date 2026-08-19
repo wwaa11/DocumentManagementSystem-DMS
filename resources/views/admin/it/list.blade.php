@@ -13,7 +13,7 @@
         <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
             @if ($action == 'all')
                 <div class="border-base-content/5 bg-base-200/30 border-b px-4 py-3">
-                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-7" action="{{ route('admin.it.alllist') }}" method="GET">
+                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-4" action="{{ route('admin.it.alllist') }}" method="GET">
                         <div class="form-control col-span-1 md:col-span-2">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ค้นหา</span></label>
                             <input class="input input-bordered input-sm w-full" type="text" name="search" value="{{ $search ?? '' }}" placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด...">
@@ -21,7 +21,7 @@
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ประเภท</span></label>
                             <select class="select select-bordered select-sm w-full" name="type">
-                                <option value="ALL">ทั้งหมด</option>
+                                <option value="ALL" {{ ! isset($type) || $type == 'ALL' ? 'selected' : '' }}>ทั้งหมด</option>
                                 <option value="IT" {{ isset($type) && $type == 'IT' ? 'selected' : '' }}>แจ้งงาน/สนับสนุน</option>
                                 <option value="USER" {{ isset($type) && $type == 'USER' ? 'selected' : '' }}>ขอสิทธิใช้งาน</option>
                                 <option value="BORROW" {{ isset($type) && $type == 'BORROW' ? 'selected' : '' }}>ยืม/คืนอุปกรณ์</option>
@@ -49,6 +49,17 @@
                             </select>
                         </div>
                         <div class="form-control">
+                            <label class="label pt-0"><span class="label-text text-xs font-semibold">ดำเนินการโดย</span></label>
+                            <select class="select select-bordered select-sm w-full" name="process_userid">
+                                <option value="">ทั้งหมด</option>
+                                @foreach ($processUsers ?? [] as $processUser)
+                                    <option value="{{ $processUser->userid }}" {{ isset($process_userid) && $process_userid == $processUser->userid ? 'selected' : '' }}>
+                                        {{ $processUser->userid }} : {{ $processUser->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่เริ่ม</span></label>
                             <input class="input input-bordered input-sm w-full" type="date" name="start_date" value="{{ $start_date ?? '' }}">
                         </div>
@@ -56,7 +67,7 @@
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่สิ้นสุด</span></label>
                             <input class="input input-bordered input-sm w-full" type="date" name="end_date" value="{{ $end_date ?? '' }}">
                         </div>
-                        <div class="col-span-1 flex justify-end gap-2 md:col-span-7">
+                        <div class="col-span-1 flex justify-end gap-2 md:col-span-4">
                             <button class="btn btn-primary btn-sm px-8" type="submit">
                                 <i class="fas fa-search mr-1"></i> ค้นหา
                             </button>
@@ -65,6 +76,14 @@
                             </a>
                         </div>
                     </form>
+                    @if (($typeCounts['IT'] ?? 0) + ($typeCounts['USER'] ?? 0) + ($typeCounts['BORROW'] ?? 0) > 0)
+                        <p class="text-base-content/60 mt-3 text-xs">
+                            พบ {{ $documents->total() }} รายการ
+                            · แจ้งงาน/สนับสนุน {{ $typeCounts['IT'] ?? 0 }}
+                            · ขอสิทธิใช้งาน {{ $typeCounts['USER'] ?? 0 }}
+                            · ยืม/คืนอุปกรณ์ {{ $typeCounts['BORROW'] ?? 0 }}
+                        </p>
+                    @endif
                 </div>
             @endif
             <table class="table">

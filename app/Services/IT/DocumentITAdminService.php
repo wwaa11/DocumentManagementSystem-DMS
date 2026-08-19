@@ -9,9 +9,11 @@ use App\Models\Hardware;
 use App\Models\Log;
 use App\Models\User;
 use App\Services\DocumentWorkflowService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class DocumentITAdminService
@@ -80,7 +82,7 @@ class DocumentITAdminService
 
             return $task;
         });
-        $documents = $documents->concat($documentsborrow)->sortBy('created_at');
+        $documents = $this->mergeDocumentCollections($documents, $documentsborrow)->sortBy('created_at');
         $action = 'hardware';
 
         return view('admin.it.list', compact('documents', 'action'));
@@ -98,7 +100,7 @@ class DocumentITAdminService
             ->whereIn('status', ['borrow_approve', 'return'])
             ->with($with)
             ->get();
-        $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortByDesc('created_at');
+        $documents = $this->mergeDocumentCollections($documents, $documentsITUser, $documentsBorrow)->sortByDesc('created_at');
         $action = 'approve';
 
         return view('admin.it.list', compact('documents', 'action'));
@@ -118,7 +120,7 @@ class DocumentITAdminService
 
             return ! $task;
         });
-        $documents = $documents->concat($documentsITUser)->sortBy('created_at');
+        $documents = $this->mergeDocumentCollections($documents, $documentsITUser)->sortBy('created_at');
         $action = 'new';
 
         return view('admin.it.list', compact('documents', 'action'));
@@ -136,14 +138,15 @@ class DocumentITAdminService
             ->whereIn('status', ['process', 'pending'])
             ->get();
 
-        foreach ($documents->concat($documentsITUser) as $document) {
+        $documents = $this->mergeDocumentCollections($documents, $documentsITUser);
+        foreach ($documents as $document) {
             if ($document->status === 'pending') {
                 $document->status = 'process';
                 $document->save();
             }
         }
 
-        $documents = $documents->concat($documentsITUser)->sortByDesc('created_at');
+        $documents = $documents->sortByDesc('created_at');
         $action = 'my';
 
         return view('admin.it.list', compact('documents', 'action'));
@@ -153,8 +156,9 @@ class DocumentITAdminService
     {
         $search = $request->get('search');
         $status = $request->get('status');
-        $type = $request->get('type');
+        $type = $request->get('type') ?: 'ALL';
         $department = $request->get('department');
+        $process_userid = $request->get('process_userid');
         $start_date = $request->get('start_date');
         $end_date = $request->get('end_date');
 
@@ -174,6 +178,7 @@ class DocumentITAdminService
                 $q->where('department', $department);
             });
         }
+        $this->filterByProcessUserid($itQuery, $process_userid);
         if ($start_date) {
             $itQuery->whereDate('created_at', '>=', $start_date);
         }
@@ -200,6 +205,7 @@ class DocumentITAdminService
                 $q->where('department', $department);
             });
         }
+        $this->filterByProcessUserid($itUserQuery, $process_userid);
         if ($start_date) {
             $itUserQuery->whereDate('created_at', '>=', $start_date);
         }
@@ -224,6 +230,7 @@ class DocumentITAdminService
                 $q->where('department', $department);
             });
         }
+        $this->filterByProcessUserid($borrowQuery, $process_userid);
         if ($start_date) {
             $borrowQuery->whereDate('created_at', '>=', $start_date);
         }
@@ -232,17 +239,92 @@ class DocumentITAdminService
         }
         $documentsBorrow = ($type == 'ALL' || $type == 'BORROW') ? $borrowQuery->get() : collect();
 
-        $documents = $documents->concat($documentsITUser)->concat($documentsBorrow)->sortByDESC('created_at');
+        $documents = $this->mergeDocumentCollections($documents, $documentsITUser, $documentsBorrow);
+        $documents = $this->sortAllDocuments($documents, $process_userid);
+        $typeCounts = [
+            'IT' => $documents->filter(fn ($document): bool => $document instanceof DocumentIT)->count(),
+            'USER' => $documents->filter(fn ($document): bool => $document instanceof DocumentItUser)->count(),
+            'BORROW' => $documents->filter(fn ($document): bool => $document instanceof DocumentBorrow)->count(),
+        ];
         $action = 'all';
-        $documents = $this->workflow->paginateCollection($documents, 10, $request);
+        $perPage = filled($process_userid) ? 100 : 10;
+        $documents = $this->workflow->paginateCollection($documents, $perPage, $request);
         $departments = User::query()
             ->whereNotNull('department')
             ->where('department', '!=', '')
             ->distinct()
             ->orderBy('department')
             ->pluck('department');
+        $processUsers = User::query()
+            ->whereIn('role', ['admin', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'])
+            ->orderBy('userid')
+            ->get(['userid', 'name']);
 
-        return view('admin.it.list', compact('documents', 'action', 'search', 'type', 'status', 'department', 'departments', 'start_date', 'end_date'));
+        return view('admin.it.list', compact('documents', 'action', 'search', 'type', 'status', 'department', 'departments', 'process_userid', 'processUsers', 'start_date', 'end_date', 'typeCounts'));
+    }
+
+    /**
+     * @param  Collection<int|string, mixed>  ...$documentGroups
+     * @return Collection<int, mixed>
+     */
+    private function mergeDocumentCollections(Collection ...$documentGroups): Collection
+    {
+        $merged = collect();
+
+        foreach ($documentGroups as $documents) {
+            foreach ($documents as $document) {
+                $merged->push($document);
+            }
+        }
+
+        return $merged->values();
+    }
+
+    /**
+     * @param  Collection<int, mixed>  $documents
+     * @return Collection<int, mixed>
+     */
+    private function sortAllDocuments(Collection $documents, ?string $processUserid): Collection
+    {
+        if (filled($processUserid)) {
+            return $documents
+                ->sortByDesc(fn ($document): int => $this->documentProcessSortTimestamp($document))
+                ->values();
+        }
+
+        return $documents->sortByDesc('created_at')->values();
+    }
+
+    private function documentProcessSortTimestamp(mixed $document): int
+    {
+        $value = $document->last_process_at ?? $document->created_at;
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->getTimestamp();
+        }
+
+        if (blank($value)) {
+            return 0;
+        }
+
+        $timestamp = strtotime((string) $value);
+
+        return $timestamp === false ? 0 : $timestamp;
+    }
+
+    private function filterByProcessUserid(Builder $query, ?string $processUserid): void
+    {
+        if (blank($processUserid)) {
+            return;
+        }
+
+        $constrainProcessLogs = function (Builder $logsQuery) use ($processUserid): void {
+            $logsQuery->where('action', 'process')
+                ->where('userid', $processUserid);
+        };
+
+        $query->whereHas('logs', $constrainProcessLogs)
+            ->withMax(['logs as last_process_at' => $constrainProcessLogs], 'created_at');
     }
 
     public function adminviewDocument(string $type, int|string $document_id, string $action): View
