@@ -159,6 +159,7 @@ class DocumentITAdminService
         $type = $request->get('type') ?: 'ALL';
         $department = $request->get('department');
         $process_userid = $request->get('process_userid');
+        $process_log = $request->get('process_log');
         $start_date = $request->get('start_date');
         $end_date = $request->get('end_date');
 
@@ -178,7 +179,7 @@ class DocumentITAdminService
                 $q->where('department', $department);
             });
         }
-        $this->filterByProcessUserid($itQuery, $process_userid);
+        $this->filterByProcessLogs($itQuery, $process_userid, $process_log);
         if ($start_date) {
             $itQuery->whereDate('created_at', '>=', $start_date);
         }
@@ -205,7 +206,7 @@ class DocumentITAdminService
                 $q->where('department', $department);
             });
         }
-        $this->filterByProcessUserid($itUserQuery, $process_userid);
+        $this->filterByProcessLogs($itUserQuery, $process_userid, $process_log);
         if ($start_date) {
             $itUserQuery->whereDate('created_at', '>=', $start_date);
         }
@@ -230,7 +231,7 @@ class DocumentITAdminService
                 $q->where('department', $department);
             });
         }
-        $this->filterByProcessUserid($borrowQuery, $process_userid);
+        $this->filterByProcessLogs($borrowQuery, $process_userid, $process_log);
         if ($start_date) {
             $borrowQuery->whereDate('created_at', '>=', $start_date);
         }
@@ -240,14 +241,14 @@ class DocumentITAdminService
         $documentsBorrow = ($type == 'ALL' || $type == 'BORROW') ? $borrowQuery->get() : collect();
 
         $documents = $this->mergeDocumentCollections($documents, $documentsITUser, $documentsBorrow);
-        $documents = $this->sortAllDocuments($documents, $process_userid);
+        $documents = $this->sortAllDocuments($documents, $process_userid, $process_log);
         $typeCounts = [
             'IT' => $documents->filter(fn ($document): bool => $document instanceof DocumentIT)->count(),
             'USER' => $documents->filter(fn ($document): bool => $document instanceof DocumentItUser)->count(),
             'BORROW' => $documents->filter(fn ($document): bool => $document instanceof DocumentBorrow)->count(),
         ];
         $action = 'all';
-        $perPage = filled($process_userid) ? 100 : 10;
+        $perPage = filled($process_userid) || filled($process_log) ? 100 : 10;
         $documents = $this->workflow->paginateCollection($documents, $perPage, $request);
         $departments = User::query()
             ->whereNotNull('department')
@@ -260,7 +261,7 @@ class DocumentITAdminService
             ->orderBy('userid')
             ->get(['userid', 'name']);
 
-        return view('admin.it.list', compact('documents', 'action', 'search', 'type', 'status', 'department', 'departments', 'process_userid', 'processUsers', 'start_date', 'end_date', 'typeCounts'));
+        return view('admin.it.list', compact('documents', 'action', 'search', 'type', 'status', 'department', 'departments', 'process_userid', 'processUsers', 'process_log', 'start_date', 'end_date', 'typeCounts'));
     }
 
     /**
@@ -284,9 +285,9 @@ class DocumentITAdminService
      * @param  Collection<int, mixed>  $documents
      * @return Collection<int, mixed>
      */
-    private function sortAllDocuments(Collection $documents, ?string $processUserid): Collection
+    private function sortAllDocuments(Collection $documents, ?string $processUserid, ?string $processLog = null): Collection
     {
-        if (filled($processUserid)) {
+        if (filled($processUserid) || filled($processLog)) {
             return $documents
                 ->sortByDesc(fn ($document): int => $this->documentProcessSortTimestamp($document))
                 ->values();
@@ -312,15 +313,22 @@ class DocumentITAdminService
         return $timestamp === false ? 0 : $timestamp;
     }
 
-    private function filterByProcessUserid(Builder $query, ?string $processUserid): void
+    private function filterByProcessLogs(Builder $query, ?string $processUserid, ?string $processLog): void
     {
-        if (blank($processUserid)) {
+        if (blank($processUserid) && blank($processLog)) {
             return;
         }
 
-        $constrainProcessLogs = function (Builder $logsQuery) use ($processUserid): void {
-            $logsQuery->where('action', 'process')
-                ->where('userid', $processUserid);
+        $constrainProcessLogs = function (Builder $logsQuery) use ($processUserid, $processLog): void {
+            $logsQuery->where('action', 'process');
+
+            if (filled($processUserid)) {
+                $logsQuery->where('userid', $processUserid);
+            }
+
+            if (filled($processLog)) {
+                $logsQuery->where('details', 'LIKE', "%{$processLog}%");
+            }
         };
 
         $query->whereHas('logs', $constrainProcessLogs)

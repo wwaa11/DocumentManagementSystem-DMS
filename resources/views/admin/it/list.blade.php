@@ -14,9 +14,13 @@
             @if ($action == 'all')
                 <div class="border-base-content/5 bg-base-200/30 border-b px-4 py-3">
                     <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-4" action="{{ route('admin.it.alllist') }}" method="GET">
-                        <div class="form-control col-span-1 md:col-span-2">
+                        <div class="form-control col-span-1">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ค้นหา</span></label>
                             <input class="input input-bordered input-sm w-full" type="text" name="search" value="{{ $search ?? '' }}" placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด...">
+                        </div>
+                        <div class="form-control col-span-1 ">
+                            <label class="label pt-0"><span class="label-text text-xs font-semibold">รายการดำเนินงาน</span></label>
+                            <input class="input input-bordered input-sm w-full" type="text" name="process_log" value="{{ $process_log ?? '' }}" placeholder="ค้นหาบันทึกการดำเนินการ...">
                         </div>
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ประเภท</span></label>

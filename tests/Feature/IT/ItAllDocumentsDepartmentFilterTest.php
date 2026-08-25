@@ -41,6 +41,8 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         $this->assertStringContainsString('ดำเนินการโดย', $source);
         $this->assertStringContainsString('name="process_userid"', $source);
         $this->assertStringContainsString('@foreach ($processUsers ?? [] as $processUser)', $source);
+        $this->assertStringContainsString('รายการดำเนินงาน', $source);
+        $this->assertStringContainsString('name="process_log"', $source);
     }
 
     public function test_admin_all_documents_filters_by_process_log_userid(): void
@@ -54,12 +56,13 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         ));
 
         $this->assertStringContainsString("\$request->get('process_userid')", $body);
-        $this->assertStringContainsString('$this->filterByProcessUserid($itQuery, $process_userid)', $body);
-        $this->assertStringContainsString('$this->filterByProcessUserid($itUserQuery, $process_userid)', $body);
-        $this->assertStringContainsString('$this->filterByProcessUserid($borrowQuery, $process_userid)', $body);
-        $this->assertStringContainsString("'process_userid', 'processUsers'", $body);
+        $this->assertStringContainsString("\$request->get('process_log')", $body);
+        $this->assertStringContainsString('$this->filterByProcessLogs($itQuery, $process_userid, $process_log)', $body);
+        $this->assertStringContainsString('$this->filterByProcessLogs($itUserQuery, $process_userid, $process_log)', $body);
+        $this->assertStringContainsString('$this->filterByProcessLogs($borrowQuery, $process_userid, $process_log)', $body);
+        $this->assertStringContainsString("'process_userid', 'processUsers', 'process_log'", $body);
 
-        $filterMethod = new ReflectionMethod(DocumentITAdminService::class, 'filterByProcessUserid');
+        $filterMethod = new ReflectionMethod(DocumentITAdminService::class, 'filterByProcessLogs');
         $filterBody = file_get_contents($filterMethod->getFileName());
         $filterBody = implode("\n", array_slice(
             explode("\n", $filterBody),
@@ -70,9 +73,10 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         $this->assertStringContainsString("whereHas('logs'", $filterBody);
         $this->assertStringContainsString("->where('action', 'process')", $filterBody);
         $this->assertStringContainsString("->where('userid', \$processUserid)", $filterBody);
+        $this->assertStringContainsString("->where('details', 'LIKE', \"%{\$processLog}%\")", $filterBody);
         $this->assertStringContainsString("withMax(['logs as last_process_at'", $filterBody);
-        $this->assertStringContainsString('$this->sortAllDocuments($documents, $process_userid)', $body);
-        $this->assertStringContainsString('filled($process_userid) ? 100 : 10', $body);
+        $this->assertStringContainsString('$this->sortAllDocuments($documents, $process_userid, $process_log)', $body);
+        $this->assertStringContainsString('filled($process_userid) || filled($process_log) ? 100 : 10', $body);
         $this->assertStringContainsString("'end_date', 'typeCounts'", $body);
     }
 
