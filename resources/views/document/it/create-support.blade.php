@@ -194,6 +194,17 @@
                     </div>
                 </div>
             </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_software_4">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_software_4" onclick="setDataApprove('support', false, 'ITS')" value="สหกรณ์" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">สหกรณ์</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
+                    </div>
+                </div>
+            </label>
             <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_software_3">
                 <div class="card-body p-4">
                     <div class="flex w-full items-center">
