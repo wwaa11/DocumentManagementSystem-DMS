@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div class="card-body hidden" id="body-{{ $key }}">
-                @if ($doc->shouldDisplayChat())
+                @if ($doc instanceof \App\Models\DocumentItUser && $doc->shouldDisplayChat())
                     <x-document.chat
                         document-type="USER"
                         :document-id="$doc->id"
