@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IT\StoreDocumentMessageRequest;
 use App\Models\Document;
 use App\Models\File;
 use App\Models\User;
 use App\Services\Course\CoursePlanService;
 use App\Services\DocumentResolver;
 use App\Services\DocumentWorkflowService;
+use App\Services\IT\DocumentMessageService;
 use App\Services\StaffApiClient;
 use App\Services\Training\DocumentTrainingService;
 use Illuminate\Http\JsonResponse;
@@ -27,6 +29,7 @@ class WebController extends Controller
         private StaffApiClient $staffApi,
         private DocumentTrainingService $documentTrainingService,
         private CoursePlanService $coursePlanService,
+        private DocumentMessageService $documentMessageService,
     ) {
         mb_internal_encoding('UTF-8');
     }
@@ -394,6 +397,10 @@ class WebController extends Controller
             return redirect()->route('document.index')->with('error', 'ไม่พบประเภทเอกสาร');
         }
 
+        if ($type === 'IT') {
+            $document->load('messages');
+        }
+
         return view('document.view', compact('document', 'type'));
     }
 
@@ -530,5 +537,15 @@ class WebController extends Controller
         return response()->json([
             'status' => 'success',
         ]);
+    }
+
+    public function documentMessages(string $type, int|string $document_id): JsonResponse
+    {
+        return $this->documentMessageService->getMessages($type, $document_id);
+    }
+
+    public function storeDocumentMessage(StoreDocumentMessageRequest $request, string $type, int|string $document_id): JsonResponse
+    {
+        return $this->documentMessageService->storeMessage($request, $type, $document_id);
     }
 }

@@ -28,13 +28,27 @@
                     </div>
                 @elseif ($document->status == 'pending')
                     <div class="no-print flex flex-col gap-3">
-                        <button class="btn-soft btn-neutral w-full">ใบงานอยู่ระหว่างดำเนินการ<br>ไม่สามาถยกเลิกใบงานได้</button>
+                        @if (filled($document->assigned_user_id))
+                            <button class="btn btn-warning btn-soft w-full" type="button">รอข้อมูลจากคุณ<br>กรุณาตอบกลับผ่านแชทด้านล่าง</button>
+                        @else
+                            <button class="btn-soft btn-neutral w-full" type="button">ใบงานอยู่ระหว่างดำเนินการ<br>ไม่สามารถยกเลิกใบงานได้</button>
+                        @endif
                         <div class="divider"></div>
                     </div>
                 @endif
 
                 @if ($type !== 'USER')
                     <x-document.process-logs :document="$document" />
+                    <div class="divider"></div>
+                @endif
+
+                @if ($type === 'IT' && $document->shouldDisplayChat())
+                    <x-document.chat
+                        document-type="IT"
+                        :document-id="$document->id"
+                        :messages-url="route('document.messages.index', ['IT', $document->id])"
+                        :store-url="route('document.messages.store', ['IT', $document->id])"
+                    />
                     <div class="divider"></div>
                 @endif
 

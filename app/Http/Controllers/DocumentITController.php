@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IT\SetDocumentPendingRequest;
+use App\Http\Requests\IT\StoreDocumentMessageRequest;
 use App\Services\IT\DocumentITAdminService;
 use App\Services\IT\DocumentITService;
+use App\Services\IT\DocumentMessageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +17,7 @@ class DocumentITController extends Controller
     public function __construct(
         private DocumentITService $documentITService,
         private DocumentITAdminService $documentITAdminService,
+        private DocumentMessageService $documentMessageService,
     ) {}
 
     public function createDocument(Request $request): RedirectResponse
@@ -189,5 +193,20 @@ class DocumentITController extends Controller
     public function adminReportDocuments(Request $request): View
     {
         return $this->documentITAdminService->adminReportDocuments($request);
+    }
+
+    public function documentMessages(string $type, int|string $document_id): JsonResponse
+    {
+        return $this->documentMessageService->getMessages($type, $document_id);
+    }
+
+    public function storeDocumentMessage(StoreDocumentMessageRequest $request, string $type, int|string $document_id): JsonResponse
+    {
+        return $this->documentMessageService->storeMessage($request, $type, $document_id);
+    }
+
+    public function setDocumentPending(SetDocumentPendingRequest $request): JsonResponse
+    {
+        return $this->documentMessageService->setPending($request);
     }
 }

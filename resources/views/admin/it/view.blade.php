@@ -10,6 +10,17 @@
         <div class="card bg-base-100 mb-4 max-w-xl shadow-xl">
             <div class="card-body">
                 <x-document.process-logs :document="$document" />
+                @if (($type === 'IT' || $type === 'USER') && $document->shouldDisplayChat())
+                    <div class="divider"></div>
+                    <x-document.chat
+                        :document-type="$type"
+                        :document-id="$document->id"
+                        :messages-url="route('admin.it.messages.index', [$type, $document->id])"
+                        :store-url="route('admin.it.messages.store', [$type, $document->id])"
+                        :show-pending-action="$action === 'my' && $document->assigned_user_id === auth()->user()->userid && $document->status === 'process'"
+                        :pending-url="route('admin.it.set-pending')"
+                    />
+                @endif
                 <div class="no-print">
                     @include("admin.it.actions.$action")
                 </div>

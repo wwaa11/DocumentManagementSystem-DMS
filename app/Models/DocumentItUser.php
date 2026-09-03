@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDocumentChat;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class DocumentItUser extends Model
 {
+    use HasDocumentChat;
+
     protected $table = 'document_itusers';
 
     private $documentStatuses = [
@@ -116,5 +119,10 @@ class DocumentItUser extends Model
     public function logs(): MorphMany
     {
         return $this->morphMany(Log::class, 'loggable');
+    }
+
+    public function messages(): MorphMany
+    {
+        return $this->morphMany(DocumentMessage::class, 'messagable');
     }
 }

@@ -139,13 +139,6 @@ class DocumentITAdminService
             ->get();
 
         $documents = $this->mergeDocumentCollections($documents, $documentsITUser);
-        foreach ($documents as $document) {
-            if ($document->status === 'pending') {
-                $document->status = 'process';
-                $document->save();
-            }
-        }
-
         $documents = $documents->sortByDesc('created_at');
         $action = 'my';
 
@@ -338,9 +331,9 @@ class DocumentITAdminService
     public function adminviewDocument(string $type, int|string $document_id, string $action): View
     {
         if ($type == 'IT') {
-            $document = DocumentIT::find($document_id);
+            $document = DocumentIT::with('messages')->find($document_id);
         } elseif ($type == 'USER') {
-            $document = DocumentItUser::find($document_id);
+            $document = DocumentItUser::with('messages')->find($document_id);
         } elseif ($type == 'BORROW') {
             $document = DocumentBorrow::find($document_id);
         }
@@ -924,10 +917,11 @@ class DocumentITAdminService
     {
         $start_date = $request->get('start_date', date('Y-m-01'));
         $end_date = $request->get('end_date', date('Y-m-d'));
+        $excludedStatuses = ['cancel', 'not_approval'];
 
-        $itDocs = DocumentIT::query();
-        $itUserDocs = DocumentItUser::query();
-        $borrowDocs = DocumentBorrow::query();
+        $itDocs = DocumentIT::query()->whereNotIn('status', $excludedStatuses);
+        $itUserDocs = DocumentItUser::query()->whereNotIn('status', $excludedStatuses);
+        $borrowDocs = DocumentBorrow::query()->whereNotIn('status', $excludedStatuses);
 
         if ($start_date) {
             $itDocs->whereDate('created_at', '>=', $start_date);
@@ -958,6 +952,16 @@ class DocumentITAdminService
             $deptStats[$dept] = ($deptStats[$dept] ?? 0) + 1;
         }
         arsort($deptStats);
+
+        $codeStats = [];
+        foreach (collect($itDocs)->merge($itUserDocs)->merge($borrowDocs) as $doc) {
+            $code = strtoupper(substr($doc->document_number ?? '', 0, 3));
+            if ($code === '') {
+                $code = 'N/A';
+            }
+            $codeStats[$code] = ($codeStats[$code] ?? 0) + 1;
+        }
+        arsort($codeStats);
 
         $logsQuery = Log::whereIn('action', ['accept', 'process', 'transfer', 'work']);
         if ($start_date) {
@@ -1016,6 +1020,6 @@ class DocumentITAdminService
             $allStats[$key] = $itStats[$key] + $userStats[$key] + $borrowStats[$key];
         }
 
-        return view('admin.it.report', compact('deptStats', 'adminStats', 'allStats', 'itStats', 'userStats', 'borrowStats', 'start_date', 'end_date'));
+        return view('admin.it.report', compact('deptStats', 'codeStats', 'adminStats', 'allStats', 'itStats', 'userStats', 'borrowStats', 'start_date', 'end_date'));
     }
 }

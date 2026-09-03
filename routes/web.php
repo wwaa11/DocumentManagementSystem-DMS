@@ -47,6 +47,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/document/{document_type}/approve/{document_id}', [WebController::class, 'approveDocumentRequest'])->name('document.type.approve.request');
     Route::get('/document/files/{file}', [WebController::class, 'fileShow'])->name('document.files.show');
     Route::get('/document/files/download/{file}', [WebController::class, 'fileDownload'])->name('document.files.download');
+    Route::get('/document/messages/{type}/{document_id}', [WebController::class, 'documentMessages'])->name('document.messages.index');
+    Route::post('/document/messages/{type}/{document_id}', [WebController::class, 'storeDocumentMessage'])->name('document.messages.store');
 
     // Search User , Department , Position
     Route::post('/user/search', [WebController::class, 'userSearch'])->name('user.search');
@@ -112,6 +114,9 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('/admin/process', [DocumentITController::class, 'processDocument'])->name('admin.it.process');
         Route::post('/admin/complete', [DocumentITController::class, 'completeDocument'])->name('admin.it.complete');
         Route::post('/admin/completeall', [DocumentITController::class, 'completeAllDocument'])->name('admin.it.completeall');
+        Route::get('/admin/messages/{type}/{document_id}', [DocumentITController::class, 'documentMessages'])->name('admin.it.messages.index');
+        Route::post('/admin/messages/{type}/{document_id}', [DocumentITController::class, 'storeDocumentMessage'])->name('admin.it.messages.store');
+        Route::post('/admin/set-pending', [DocumentITController::class, 'setDocumentPending'])->name('admin.it.set-pending');
         // Borrow
         Route::get('/admin/borrowlist', [DocumentITController::class, 'adminBorrowDocuments'])->name('admin.it.borrowlist');
         Route::post('/admin/borrowlist/add', [DocumentITController::class, 'adminBorrowAdd'])->name('admin.it.borrowlist.add');

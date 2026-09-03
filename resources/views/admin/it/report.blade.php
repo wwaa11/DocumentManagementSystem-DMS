@@ -118,7 +118,7 @@
             </div>
         </div>
 
-        <div class="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div class="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             <!-- 1. Department request document and how many -->
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body">
@@ -157,7 +157,45 @@
                 </div>
             </div>
 
-            <!-- 2. Stat by user take close transfer -->
+            <!-- 2. Document count by code prefix (ITS, ITJ, ITU, etc.) -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title mb-4 flex items-center">
+                        <i class="fas fa-barcode text-accent mr-2"></i>
+                        จำนวนการแจ้งงานแยกตามรหัสเอกสาร
+                    </h2>
+                    <div class="h-80 overflow-y-auto">
+                        <table class="table-zebra table">
+                            <thead class="bg-base-100 sticky top-0 italic">
+                                <tr>
+                                    <th>รหัสเอกสาร</th>
+                                    <th class="text-center">จำนวนเอกสาร</th>
+                                    <th>% ของจำนวนเอกสาร</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($codeStats as $code => $count)
+                                    <tr>
+                                        <td class="font-medium">{{ $code }}</td>
+                                        <td class="text-center font-bold">{{ $count }}</td>
+                                        <td class="text-center">
+                                            {{ $allStats["total"] > 0 ? round($count / $allStats["total"] * 100, 2) : 0 }}%
+                                            <progress class="progress progress-accent w-full" value="{{ $count }}" max="{{ $allStats["total"] }}"></progress>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                @if (count($codeStats) == 0)
+                                    <tr>
+                                        <td class="text-center" colspan="3">ไม่พบข้อมูลในส่วงเวลาที่เลือก</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Stat by user take close transfer -->
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body">
                     <h2 class="card-title mb-4 flex items-center">

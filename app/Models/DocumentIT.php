@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDocumentChat;
 use Illuminate\Database\Eloquent\Model;
 
 class DocumentIT extends Model
 {
+    use HasDocumentChat;
+
     protected $table = 'document_its';
 
     private $documentStatuses = [
@@ -99,5 +102,10 @@ class DocumentIT extends Model
     {
         // 'loggable' must match the prefix used in the activity_logs table migration
         return $this->morphMany(Log::class, 'loggable');
+    }
+
+    public function messages()
+    {
+        return $this->morphMany(DocumentMessage::class, 'messagable');
     }
 }

@@ -41,6 +41,16 @@
                 </div>
             </div>
             <div class="card-body hidden" id="body-{{ $key }}">
+                @if ($doc->shouldDisplayChat())
+                    <x-document.chat
+                        document-type="USER"
+                        :document-id="$doc->id"
+                        :title="'สนทนา · ' . $doc->document_number"
+                        :messages-url="route('document.messages.index', ['USER', $doc->id])"
+                        :store-url="route('document.messages.store', ['USER', $doc->id])"
+                    />
+                    <div class="divider"></div>
+                @endif
                 <ul class="steps steps-vertical">
                     @foreach ($doc->tasks as $task)
                         @php

@@ -4,6 +4,7 @@
     $map = [
         'wait_approval' => ['text' => 'รออนุมัติจากหัวหน้าแผนก', 'class' => 'badge-warning'],
         'pending' => ['text' => 'รอการดำเนินการ', 'class' => 'badge-info'],
+        'pending-user' => ['text' => 'รอข้อมูลจากผู้แจ้ง', 'class' => 'badge-warning'],
         'process' => ['text' => 'กำลังดำเนินการ', 'class' => 'badge-primary'],
         'done' => ['text' => 'เอกสารรออนุมัติ', 'class' => 'badge-secondary'],
         'complete' => ['text' => 'เสร็จสมบูรณ์', 'class' => 'badge-success'],
