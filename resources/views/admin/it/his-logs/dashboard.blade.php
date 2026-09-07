@@ -38,6 +38,12 @@
                         <a class="btn btn-ghost btn-sm border-base-content/15 gap-2" href="{{ route('admin.it.hislogs.index') }}">
                             <i class="fas fa-list"></i> All Logs
                         </a>
+                        <a
+                            class="btn btn-success btn-sm gap-2 text-success-content"
+                            href="{{ route('admin.it.hislogs.export', array_merge(request()->only(['start_date', 'end_date']), ['dashboard' => 1])) }}"
+                        >
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </a>
                     </div>
                 </div>
 
@@ -64,6 +70,14 @@
                         </div>
                         <div class="mt-3 flex gap-2">
                             <button class="btn btn-primary btn-sm flex-1" type="submit">ใช้ตัวกรอง</button>
+                            <a
+                                class="btn btn-success btn-sm gap-2 text-success-content"
+                                href="{{ route('admin.it.hislogs.export', array_merge(request()->only(['start_date', 'end_date']), ['dashboard' => 1])) }}"
+                                aria-label="Export Excel"
+                                title="Export Excel"
+                            >
+                                <i class="fas fa-file-excel"></i>
+                            </a>
                             <a class="btn btn-ghost btn-sm border-base-content/15" href="{{ route('admin.it.hislogs.dashboard') }}" aria-label="ล้างตัวกรอง">
                                 <i class="fas fa-undo"></i>
                             </a>

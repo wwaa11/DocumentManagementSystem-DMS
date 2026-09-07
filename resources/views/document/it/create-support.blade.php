@@ -386,6 +386,17 @@
                     </div>
                 </div>
             </label>
+            <label class="hover:bg-primary/5 rounded-box cursor-pointer p-4 transition-all hover:shadow-md" for="request_erp_5">
+                <div class="card-body p-4">
+                    <div class="flex items-center">
+                        <input class="radio radio-primary mr-3" id="request_erp_5" onclick="setDataApprove('support', false, 'ITJ')" value="แจ้ง เพิ่ม/แก้ไข/ปรับปรุง/CR โปรแกรม ERP ส่งต่อ บริษัท ICE" name="request_type_detail" type="radio" />
+                        <div>
+                            <span class="label-text">แจ้ง เพิ่ม/แก้ไข/ปรับปรุง/CR โปรแกรม ERP ส่งต่อ บริษัท ICE</span>
+                            <div class="text-sm text-red-500">*ต้องการขออนุมัติจากแผนก</div>
+                        </div>
+                    </div>
+                </div>
+            </label>
         </div>
     </div>
 

@@ -31,7 +31,7 @@
             <div class="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-2xl"></div>
             <div class="pointer-events-none absolute -bottom-16 right-20 h-36 w-36 rounded-full bg-success/10 blur-2xl"></div>
 
-            <div class="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+            <div class="relative">
                 <div class="max-w-2xl">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
                         <span class="badge badge-primary badge-outline gap-1">
@@ -48,7 +48,7 @@
                     </div>
                     <h1 class="text-primary text-3xl font-bold tracking-tight sm:text-4xl">All Logs</h1>
                     <p class="text-base-content/65 mt-2 text-sm leading-relaxed sm:text-base">
-                        รายการ HIS Logs ทั้งหมด — กรอง แก้ไข และนำเข้าจาก Excel
+                        รายการ HIS Logs ทั้งหมด — กรอง แก้ไข และส่งออกเป็น Excel
                     </p>
                     <div class="mt-5 flex flex-wrap gap-2">
                         <a class="btn btn-primary btn-sm gap-2" href="{{ route('admin.it.hislogs.create') }}">
@@ -57,29 +57,7 @@
                         <a class="btn btn-ghost btn-sm border-base-content/15 gap-2" href="{{ route('admin.it.hislogs.dashboard') }}">
                             <i class="fas fa-chart-pie"></i> Dashboard
                         </a>
-                        <a class="btn btn-ghost btn-sm border-base-content/15 gap-2" href="{{ asset('HIS_Log_Dashboard.xlsx') }}" download>
-                            <i class="fas fa-download"></i> ไฟล์ตัวอย่าง
-                        </a>
                     </div>
-                </div>
-
-                <div class="w-full xl:max-w-sm">
-                    <form class="bg-base-100/90 border-base-200 rounded-xl border p-4 shadow-sm backdrop-blur" action="{{ route('admin.it.hislogs.import') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="mb-3 flex items-center gap-2">
-                            <span class="bg-success/10 text-success flex h-8 w-8 items-center justify-center rounded-lg">
-                                <i class="fas fa-file-excel text-sm"></i>
-                            </span>
-                            <div>
-                                <p class="text-sm font-semibold">Import Excel</p>
-                                <p class="text-base-content/50 text-xs">ชีต HIS_Log ตามไฟล์ตัวอย่าง</p>
-                            </div>
-                        </div>
-                        <input class="file-input file-input-bordered file-input-sm w-full" type="file" name="excel_file" accept=".xlsx,.xls" required aria-label="เลือกไฟล์ Excel">
-                        <button class="btn btn-success btn-sm mt-3 w-full gap-2 text-success-content" type="submit">
-                            <i class="fas fa-cloud-upload-alt"></i> นำเข้าข้อมูล
-                        </button>
-                    </form>
                 </div>
             </div>
         </section>
@@ -222,9 +200,17 @@
                             แสดง {{ $logs->firstItem() ?? 0 }}–{{ $logs->lastItem() ?? 0 }} จาก {{ number_format($logs->total()) }} รายการ
                         </p>
                     </div>
-                    <a class="btn btn-primary btn-sm gap-2 self-start" href="{{ route('admin.it.hislogs.create') }}">
-                        <i class="fas fa-plus"></i> สร้างใหม่
-                    </a>
+                    <div class="flex flex-wrap items-center gap-2 self-start">
+                        <a
+                            class="btn btn-success btn-sm gap-2 text-success-content"
+                            href="{{ route('admin.it.hislogs.export', request()->query()) }}"
+                        >
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </a>
+                        <a class="btn btn-primary btn-sm gap-2" href="{{ route('admin.it.hislogs.create') }}">
+                            <i class="fas fa-plus"></i> สร้างใหม่
+                        </a>
+                    </div>
                 </div>
 
                 <div class="border-base-200 overflow-x-auto rounded-xl border">
@@ -316,7 +302,7 @@
                                             </span>
                                             <div>
                                                 <p class="font-semibold">ยังไม่มีข้อมูล HIS Log</p>
-                                                <p class="text-base-content/50 mt-1 text-sm">สร้างรายการใหม่ หรือนำเข้าจากไฟล์ Excel</p>
+                                                <p class="text-base-content/50 mt-1 text-sm">สร้างรายการใหม่เพื่อเริ่มบันทึก HIS Log</p>
                                             </div>
                                             <a class="btn btn-primary btn-sm gap-2" href="{{ route('admin.it.hislogs.create') }}">
                                                 <i class="fas fa-plus"></i> สร้าง HIS Log

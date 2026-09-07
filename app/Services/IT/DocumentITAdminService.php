@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentITAdminService
 {
@@ -145,18 +146,177 @@ class DocumentITAdminService
         return view('admin.it.list', compact('documents', 'action'));
     }
 
+    /**
+     * @return array<string, array<string, string>>
+     */
+    public function documentSubtypes(): array
+    {
+        return [
+            'IT' => [
+                'HARDWARE' => 'HARDWARE',
+                'SOFTWARE' => 'SOFTWARE',
+                'SSB' => 'SSB',
+                'HIS' => 'HIS (MonkeyTech)',
+                'ERP' => 'ERP (NetSuite)',
+                'RESET_PASSWORD' => 'Reset Password',
+                'OTHER' => 'อื่นๆ',
+            ],
+            'USER' => [
+                'ขอแก้ไขสิทธิการใช้งาน' => 'ขอแก้ไขสิทธิการใช้งาน',
+                'เลขาแพทย์' => 'เลขาแพทย์',
+                'ฝ่ายบุคคล' => 'ฝ่ายบุคคล',
+            ],
+            'BORROW' => [
+                'Notebook' => 'Notebook',
+                'Computer' => 'Computer',
+                'Printer' => 'Printer',
+                'Projector' => 'Projector',
+                'Ipad/Tablet' => 'Ipad/Tablet',
+                'OTHER' => 'อื่นๆ',
+            ],
+        ];
+    }
+
     public function adminAllDocuments(Request $request): View
     {
-        $search = $request->get('search');
-        $status = $request->get('status');
-        $type = $request->get('type') ?: 'ALL';
-        $department = $request->get('department');
-        $process_userid = $request->get('process_userid');
-        $process_log = $request->get('process_log');
-        $start_date = $request->get('start_date');
-        $end_date = $request->get('end_date');
+        $filters = $this->resolveAllDocumentsFilters($request);
+        $documents = $this->buildFilteredAllDocuments($filters);
+        $typeCounts = [
+            'IT' => $documents->filter(fn ($document): bool => $document instanceof DocumentIT)->count(),
+            'USER' => $documents->filter(fn ($document): bool => $document instanceof DocumentItUser)->count(),
+            'BORROW' => $documents->filter(fn ($document): bool => $document instanceof DocumentBorrow)->count(),
+        ];
+        $action = 'all';
+        $perPage = filled($filters['process_userid']) || filled($filters['process_log']) ? 100 : 10;
+        $documents = $this->workflow->paginateCollection($documents, $perPage, $request);
+        $departments = User::query()
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
+        $processUsers = User::query()
+            ->whereIn('role', ['admin', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'])
+            ->orderBy('userid')
+            ->get(['userid', 'name']);
 
-        $itQuery = DocumentIT::query();
+        return view('admin.it.list', [
+            'documents' => $documents,
+            'action' => $action,
+            'search' => $filters['search'],
+            'type' => $filters['type'],
+            'subtype' => $filters['subtype'],
+            'documentSubtypes' => $filters['documentSubtypes'],
+            'status' => $filters['status'],
+            'department' => $filters['department'],
+            'departments' => $departments,
+            'process_userid' => $filters['process_userid'],
+            'processUsers' => $processUsers,
+            'process_log' => $filters['process_log'],
+            'start_date' => $filters['start_date'],
+            'end_date' => $filters['end_date'],
+            'typeCounts' => $typeCounts,
+        ]);
+    }
+
+    public function exportAllDocuments(Request $request): StreamedResponse
+    {
+        $filters = $this->resolveAllDocumentsFilters($request);
+        $documents = $this->buildFilteredAllDocuments($filters);
+        $rows = [$this->allDocumentsExportHeaders()];
+
+        foreach ($documents as $document) {
+            $rows[] = $this->buildAllDocumentsExportRow($document);
+        }
+
+        $exporter = new HisLogExcelExporter;
+        $filename = 'it-all-documents-'.now()->format('Y-m-d_His').'.xlsx';
+
+        return response()->streamDownload(
+            static function () use ($exporter, $rows): void {
+                echo $exporter->buildSheets([
+                    'All Documents' => $rows,
+                ]);
+            },
+            $filename,
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ]
+        );
+    }
+
+    /**
+     * @return array{
+     *     search: mixed,
+     *     status: mixed,
+     *     type: string,
+     *     subtype: mixed,
+     *     department: mixed,
+     *     process_userid: mixed,
+     *     process_log: mixed,
+     *     start_date: mixed,
+     *     end_date: mixed,
+     *     documentSubtypes: array<string, array<string, string>>
+     * }
+     */
+    private function resolveAllDocumentsFilters(Request $request): array
+    {
+        $type = $request->get('type') ?: 'ALL';
+        $subtype = $request->get('subtype');
+        $documentSubtypes = $this->documentSubtypes();
+
+        if ($type === 'ALL' || ! isset($documentSubtypes[$type][$subtype])) {
+            $subtype = null;
+        }
+
+        return [
+            'search' => $request->get('search'),
+            'status' => $request->get('status'),
+            'type' => $type,
+            'subtype' => $subtype,
+            'department' => $request->get('department'),
+            'process_userid' => $request->get('process_userid'),
+            'process_log' => $request->get('process_log'),
+            'start_date' => $request->get('start_date'),
+            'end_date' => $request->get('end_date'),
+            'documentSubtypes' => $documentSubtypes,
+        ];
+    }
+
+    /**
+     * @param  array{
+     *     search: mixed,
+     *     status: mixed,
+     *     type: string,
+     *     subtype: mixed,
+     *     department: mixed,
+     *     process_userid: mixed,
+     *     process_log: mixed,
+     *     start_date: mixed,
+     *     end_date: mixed,
+     *     documentSubtypes: array<string, array<string, string>>
+     * }  $filters
+     * @return Collection<int, DocumentIT|DocumentItUser|DocumentBorrow>
+     */
+    private function buildFilteredAllDocuments(array $filters): Collection
+    {
+        [
+            'search' => $search,
+            'status' => $status,
+            'type' => $type,
+            'subtype' => $subtype,
+            'department' => $department,
+            'process_userid' => $process_userid,
+            'process_log' => $process_log,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+        ] = $filters;
+
+        $itWith = ['creator', 'approvers.user', 'logs' => fn ($query) => $query->where('action', 'process')->orderBy('created_at'), 'logs.user'];
+        $itUserWith = ['documentUser.creator', 'approvers.user', 'logs' => fn ($query) => $query->where('action', 'process')->orderBy('created_at'), 'logs.user'];
+        $borrowWith = ['creator', 'approvers.user', 'logs' => fn ($query) => $query->where('action', 'process')->orderBy('created_at'), 'logs.user'];
+
+        $itQuery = DocumentIT::query()->with($itWith);
         if ($search) {
             $itQuery->where(function ($q) use ($search) {
                 $q->where('document_number', 'LIKE', "%{$search}%")
@@ -179,9 +339,12 @@ class DocumentITAdminService
         if ($end_date) {
             $itQuery->whereDate('created_at', '<=', $end_date);
         }
+        if ($subtype && $type === 'IT') {
+            $this->applyItSubtypeFilter($itQuery, $subtype);
+        }
         $documents = ($type == 'ALL' || $type == 'IT') ? $itQuery->get() : collect();
 
-        $itUserQuery = DocumentItUser::query();
+        $itUserQuery = DocumentItUser::query()->with($itUserWith);
         if ($search) {
             $itUserQuery->where(function ($q) use ($search) {
                 $q->where('document_number', 'LIKE', "%{$search}%")
@@ -206,9 +369,14 @@ class DocumentITAdminService
         if ($end_date) {
             $itUserQuery->whereDate('created_at', '<=', $end_date);
         }
+        if ($subtype && $type === 'USER') {
+            $itUserQuery->whereHas('documentUser', function ($q) use ($subtype): void {
+                $q->where('title', $subtype);
+            });
+        }
         $documentsITUser = ($type == 'ALL' || $type == 'USER') ? $itUserQuery->get() : collect();
 
-        $borrowQuery = DocumentBorrow::query();
+        $borrowQuery = DocumentBorrow::query()->with($borrowWith);
         if ($search) {
             $borrowQuery->where(function ($q) use ($search) {
                 $q->where('document_number', 'LIKE', "%{$search}%")
@@ -231,30 +399,170 @@ class DocumentITAdminService
         if ($end_date) {
             $borrowQuery->whereDate('created_at', '<=', $end_date);
         }
+        if ($subtype && $type === 'BORROW') {
+            $this->applyBorrowSubtypeFilter($borrowQuery, $subtype);
+        }
         $documentsBorrow = ($type == 'ALL' || $type == 'BORROW') ? $borrowQuery->get() : collect();
 
         $documents = $this->mergeDocumentCollections($documents, $documentsITUser, $documentsBorrow);
-        $documents = $this->sortAllDocuments($documents, $process_userid, $process_log);
-        $typeCounts = [
-            'IT' => $documents->filter(fn ($document): bool => $document instanceof DocumentIT)->count(),
-            'USER' => $documents->filter(fn ($document): bool => $document instanceof DocumentItUser)->count(),
-            'BORROW' => $documents->filter(fn ($document): bool => $document instanceof DocumentBorrow)->count(),
-        ];
-        $action = 'all';
-        $perPage = filled($process_userid) || filled($process_log) ? 100 : 10;
-        $documents = $this->workflow->paginateCollection($documents, $perPage, $request);
-        $departments = User::query()
-            ->whereNotNull('department')
-            ->where('department', '!=', '')
-            ->distinct()
-            ->orderBy('department')
-            ->pluck('department');
-        $processUsers = User::query()
-            ->whereIn('role', ['admin', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'])
-            ->orderBy('userid')
-            ->get(['userid', 'name']);
 
-        return view('admin.it.list', compact('documents', 'action', 'search', 'type', 'status', 'department', 'departments', 'process_userid', 'processUsers', 'process_log', 'start_date', 'end_date', 'typeCounts'));
+        return $this->sortAllDocuments($documents, $process_userid, $process_log);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allDocumentsExportHeaders(): array
+    {
+        return [
+            'เลขที่',
+            'ชื่อเอกสาร',
+            'รายละเอียด',
+            'ผู้ขอ / แผนก / วันที่ขอ',
+            'ผู้อนุมัติ',
+            'สถานะ',
+            'บันทึกการดำเนินการ',
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function buildAllDocumentsExportRow(DocumentIT|DocumentItUser|DocumentBorrow $document): array
+    {
+        $creator = $document->creator;
+        $createdAt = $document->created_at?->format('d/m/Y H:i:s') ?? '';
+
+        return [
+            $document->document_number ?? '',
+            $this->formatExportTitle($document),
+            strip_tags((string) ($document->detail ?? '')),
+            trim(implode(' / ', array_filter([
+                $creator?->name,
+                $creator?->department,
+                $createdAt,
+            ], fn (?string $value): bool => filled($value)))),
+            $this->formatExportApprovers($document),
+            $this->formatDocumentStatus((string) $document->status),
+            $this->formatExportLogs($document),
+        ];
+    }
+
+    private function formatExportTitle(DocumentIT|DocumentItUser|DocumentBorrow $document): string
+    {
+        if ($document instanceof DocumentItUser) {
+            return (string) ($document->documentUser?->title ?? '');
+        }
+
+        $title = $document->title ?? '';
+
+        if (is_array($title)) {
+            return implode(' | ', $title);
+        }
+
+        return (string) $title;
+    }
+
+    private function formatExportApprovers(DocumentIT|DocumentItUser|DocumentBorrow $document): string
+    {
+        $approvers = $document->approvers ?? collect();
+
+        if ($approvers->isEmpty()) {
+            return '';
+        }
+
+        return $approvers
+            ->map(function ($approver): string {
+                $name = $approver->user->name ?? $approver->userid;
+                $status = match ($approver->status) {
+                    'approve' => 'อนุมัติ',
+                    'reject', 'cancel' => 'ไม่อนุมัติ',
+                    default => 'รออนุมัติ',
+                };
+
+                return "{$name} ({$status})";
+            })
+            ->implode("\n");
+    }
+
+    private function formatExportLogs(DocumentIT|DocumentItUser|DocumentBorrow $document): string
+    {
+        $logs = ($document->logs ?? collect())
+            ->filter(fn (Log $log): bool => $log->action === 'process');
+
+        if ($logs->isEmpty()) {
+            return '';
+        }
+
+        return $logs
+            ->map(function (Log $log): string {
+                $timestamp = $log->created_at?->format('d/m/Y H:i:s') ?? '';
+                $name = $log->user->name ?? $log->userid ?? '-';
+
+                return "[{$timestamp}] {$name}: {$log->details}";
+            })
+            ->implode("\n");
+    }
+
+    private function formatDocumentStatus(string $status): string
+    {
+        return match ($status) {
+            'wait_approval' => 'รออนุมัติจากหัวหน้าแผนก',
+            'not_approval' => 'หน่วยงานไม่อนุมัติ',
+            'cancel' => 'ผู้ขอยกเลิกเอกสาร',
+            'pending' => 'รอการดำเนินการ',
+            'reject' => 'ยกเลิกเอกสาร',
+            'process' => 'กำลังดำเนินการ',
+            'done' => 'เอกสารรออนุมัติ',
+            'complete' => 'เอกสารเสร็จสมบูรณ์',
+            'borrow_approve' => 'รออนุมัติการยืมอุปกรณ์',
+            'borrow' => 'อุปกรณ์อยู่ระหว่างการยืม',
+            'return_approve' => 'รอรับอุปกรณ์คืน',
+            'return' => 'รออนุมัติการคืนอุปกรณ์',
+            default => $status,
+        };
+    }
+
+    private function applyItSubtypeFilter(Builder $query, string $subtype): void
+    {
+        if ($subtype === 'OTHER') {
+            $knownSubtypes = ['HARDWARE', 'SOFTWARE', 'SSB', 'HIS', 'ERP', 'RESET_PASSWORD'];
+
+            $query->where(function (Builder $q) use ($knownSubtypes): void {
+                foreach ($knownSubtypes as $knownSubtype) {
+                    $q->where('title', 'NOT LIKE', $knownSubtype.'%');
+                }
+            });
+
+            return;
+        }
+
+        if ($subtype === 'RESET_PASSWORD') {
+            $query->where('title', 'RESET_PASSWORD');
+
+            return;
+        }
+
+        $query->where(function (Builder $q) use ($subtype): void {
+            $q->where('title', 'LIKE', $subtype.'|%')
+                ->orWhere('title', $subtype);
+        });
+    }
+
+    private function applyBorrowSubtypeFilter(Builder $query, string $subtype): void
+    {
+        $knownSubtypes = ['Notebook', 'Computer', 'Printer', 'Projector', 'Ipad/Tablet'];
+
+        if ($subtype === 'OTHER') {
+            $query->where(function (Builder $q) use ($knownSubtypes): void {
+                $q->whereNull('title')
+                    ->orWhereNotIn('title', $knownSubtypes);
+            });
+
+            return;
+        }
+
+        $query->where('title', $subtype);
     }
 
     /**

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\IT\ImportHisLogRequest;
 use App\Http\Requests\IT\StoreHisLogRequest;
 use App\Models\HisLog;
 use App\Services\IT\HisLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class HisLogController extends Controller
 {
@@ -44,8 +44,8 @@ class HisLogController extends Controller
         return $this->hisLogService->dashboard($request);
     }
 
-    public function import(ImportHisLogRequest $request): RedirectResponse
+    public function export(Request $request): StreamedResponse
     {
-        return $this->hisLogService->import($request);
+        return $this->hisLogService->export($request);
     }
 }

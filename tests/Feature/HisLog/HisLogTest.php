@@ -2,15 +2,14 @@
 
 namespace Tests\Feature\HisLog;
 
-use App\Http\Requests\IT\ImportHisLogRequest;
 use App\Http\Requests\IT\StoreHisLogRequest;
 use App\Models\HisLog;
 use App\Models\User;
-use App\Services\IT\HisLogService;
+use App\Services\IT\HisLogExcelExporter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
-use ReflectionMethod;
 use Tests\TestCase;
+use ZipArchive;
 
 class HisLogTest extends TestCase
 {
@@ -55,14 +54,6 @@ class HisLogTest extends TestCase
         $this->assertArrayHasKey('module', $validator->errors()->toArray());
     }
 
-    public function test_import_request_requires_excel_file(): void
-    {
-        $validator = Validator::make([], (new ImportHisLogRequest)->rules(), (new ImportHisLogRequest)->messages());
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('excel_file', $validator->errors()->toArray());
-    }
-
     public function test_it_menu_contains_his_logs_pages(): void
     {
         $user = new User([
@@ -87,35 +78,6 @@ class HisLogTest extends TestCase
         ));
     }
 
-    public function test_excel_parser_reads_his_log_sheet(): void
-    {
-        $source = public_path('HIS_Log_Dashboard.xlsx');
-        $this->assertFileExists($source);
-
-        $service = app(HisLogService::class);
-        $method = new ReflectionMethod(HisLogService::class, 'readHisLogSheet');
-        $method->setAccessible(true);
-
-        /** @var list<array<int, string|null>> $rows */
-        $rows = $method->invoke($service, $source);
-
-        $this->assertNotEmpty($rows);
-        $this->assertSame('Assessment', $rows[0][3]);
-        $this->assertSame('Closed', $rows[0][8]);
-
-        $mapMethod = new ReflectionMethod(HisLogService::class, 'mapImportRow');
-        $mapMethod->setAccessible(true);
-
-        /** @var array<string, mixed>|null $payload */
-        $payload = $mapMethod->invoke($service, $rows[0]);
-
-        $this->assertNotNull($payload);
-        $this->assertSame('Assessment', $payload['module']);
-        $this->assertSame('เช้า', $payload['shift']);
-        $this->assertSame('08:02', $payload['time']);
-        $this->assertSame('2026-07-01', $payload['reported_at']);
-    }
-
     public function test_module_and_fixer_options_are_configured(): void
     {
         $this->assertContains('OPD', HisLog::moduleOptions());
@@ -129,6 +91,8 @@ class HisLogTest extends TestCase
         $this->assertTrue(Route::has('admin.it.hislogs.index'));
         $this->assertTrue(Route::has('admin.it.hislogs.edit'));
         $this->assertTrue(Route::has('admin.it.hislogs.update'));
+        $this->assertTrue(Route::has('admin.it.hislogs.export'));
+        $this->assertFalse(Route::has('admin.it.hislogs.import'));
         $this->assertSame(
             url('/it/admin/his-logs'),
             route('admin.it.hislogs.index')
@@ -137,5 +101,97 @@ class HisLogTest extends TestCase
             url('/it/admin/his-logs/1/edit'),
             route('admin.it.hislogs.edit', ['hisLog' => 1])
         );
+        $this->assertSame(
+            url('/it/admin/his-logs/export'),
+            route('admin.it.hislogs.export')
+        );
+    }
+
+    public function test_excel_exporter_builds_valid_workbook(): void
+    {
+        $exporter = new HisLogExcelExporter;
+        $content = $exporter->build([
+            [
+                'No.',
+                'วันที่แจ้ง',
+                'ผู้แจ้ง/แผนก',
+                'module',
+                'รายละเอียดปัญหา',
+                'ผู้รับเรื่อง',
+                'ผู้แก้ไข',
+                'วิธีแก้ไข/root cause',
+                'สถานะ',
+                'shif',
+                'time',
+            ],
+            [
+                1,
+                '2026-07-01',
+                'Lab',
+                'Assessment',
+                'ทดสอบปัญหา',
+                'IT Support',
+                'Fixer',
+                'แก้แล้ว',
+                'Closed',
+                'เช้า',
+                '08:02',
+            ],
+        ]);
+
+        $this->assertNotEmpty($content);
+        $this->assertSame('PK', substr($content, 0, 2));
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'hislog_export_test_');
+        $this->assertNotFalse($tempPath);
+
+        $path = $tempPath.'.xlsx';
+        $this->assertTrue(rename($tempPath, $path));
+        file_put_contents($path, $content);
+
+        $zip = new ZipArchive;
+        $this->assertTrue($zip->open($path));
+        $this->assertNotFalse($zip->getFromName('xl/worksheets/sheet1.xml'));
+        $this->assertNotFalse($zip->getFromName('xl/sharedStrings.xml'));
+        $zip->close();
+
+        @unlink($path);
+    }
+
+    public function test_excel_exporter_builds_dashboard_and_log_sheets(): void
+    {
+        $exporter = new HisLogExcelExporter;
+        $content = $exporter->buildSheets([
+            'Dashboard' => [
+                ['HIS Log Dashboard Summary'],
+                ['ช่วงเวลา', '2026-07-01 → 2026-07-31'],
+                ['Metric', 'Value'],
+                ['Total Cases', 10],
+                ['Closed', 8],
+            ],
+            'HIS_Log' => [
+                ['No.', 'module'],
+                [1, 'OPD'],
+            ],
+        ]);
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'hislog_dashboard_export_test_');
+        $this->assertNotFalse($tempPath);
+
+        $path = $tempPath.'.xlsx';
+        $this->assertTrue(rename($tempPath, $path));
+        file_put_contents($path, $content);
+
+        $zip = new ZipArchive;
+        $this->assertTrue($zip->open($path));
+        $workbook = $zip->getFromName('xl/workbook.xml');
+        $this->assertNotFalse($workbook);
+        $this->assertStringContainsString('Dashboard', (string) $workbook);
+        $this->assertStringContainsString('HIS_Log', (string) $workbook);
+        $this->assertNotFalse($zip->getFromName('xl/worksheets/sheet1.xml'));
+        $this->assertNotFalse($zip->getFromName('xl/worksheets/sheet2.xml'));
+        $zip->close();
+
+        @unlink($path);
     }
 }

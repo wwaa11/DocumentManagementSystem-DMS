@@ -103,6 +103,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/newdocument', [DocumentITController::class, 'adminNewDocuments'])->name('admin.it.newlist');
         Route::get('/admin/mydocument', [DocumentITController::class, 'adminMyDocuments'])->name('admin.it.mylist');
         Route::get('/admin/alldocument', [DocumentITController::class, 'adminAllDocuments'])->name('admin.it.alllist');
+        Route::get('/admin/alldocument/export', [DocumentITController::class, 'exportAllDocuments'])->name('admin.it.alllist.export');
         Route::get('/admin/view/{type}/{document_id}/{action}', [DocumentITController::class, 'adminviewDocument'])->name('admin.it.view');
         // Count IT Documents
         Route::get('/admin/count/{type}', [DocumentITController::class, 'adminDocumentCount'])->name('admin.it.count');
@@ -132,7 +133,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/his-logs/create', [HisLogController::class, 'create'])->name('admin.it.hislogs.create');
         Route::post('/admin/his-logs', [HisLogController::class, 'store'])->name('admin.it.hislogs.store');
         Route::get('/admin/his-logs/dashboard', [HisLogController::class, 'dashboard'])->name('admin.it.hislogs.dashboard');
-        Route::post('/admin/his-logs/import', [HisLogController::class, 'import'])->name('admin.it.hislogs.import');
+        Route::get('/admin/his-logs/export', [HisLogController::class, 'export'])->name('admin.it.hislogs.export');
         Route::get('/admin/his-logs/{hisLog}/edit', [HisLogController::class, 'edit'])->name('admin.it.hislogs.edit');
         Route::put('/admin/his-logs/{hisLog}', [HisLogController::class, 'update'])->name('admin.it.hislogs.update');
     });

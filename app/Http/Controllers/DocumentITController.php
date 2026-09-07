@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentITController extends Controller
 {
@@ -57,6 +58,11 @@ class DocumentITController extends Controller
     public function adminAllDocuments(Request $request): View
     {
         return $this->documentITAdminService->adminAllDocuments($request);
+    }
+
+    public function exportAllDocuments(Request $request): StreamedResponse
+    {
+        return $this->documentITAdminService->exportAllDocuments($request);
     }
 
     public function adminviewDocument(string $type, int|string $document_id, string $action): View

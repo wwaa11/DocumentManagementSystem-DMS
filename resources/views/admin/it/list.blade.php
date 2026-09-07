@@ -24,11 +24,22 @@
                         </div>
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ประเภท</span></label>
-                            <select class="select select-bordered select-sm w-full" name="type">
+                            <select class="select select-bordered select-sm w-full" id="type-filter" name="type">
                                 <option value="ALL" {{ ! isset($type) || $type == 'ALL' ? 'selected' : '' }}>ทั้งหมด</option>
                                 <option value="IT" {{ isset($type) && $type == 'IT' ? 'selected' : '' }}>แจ้งงาน/สนับสนุน</option>
                                 <option value="USER" {{ isset($type) && $type == 'USER' ? 'selected' : '' }}>ขอสิทธิใช้งาน</option>
                                 <option value="BORROW" {{ isset($type) && $type == 'BORROW' ? 'selected' : '' }}>ยืม/คืนอุปกรณ์</option>
+                            </select>
+                        </div>
+                        <div class="form-control">
+                            <label class="label pt-0"><span class="label-text text-xs font-semibold">ประเภทย่อย</span></label>
+                            <select class="select select-bordered select-sm w-full" id="subtype-filter" name="subtype" {{ ! isset($type) || $type == 'ALL' ? 'disabled' : '' }}>
+                                <option value="">ทั้งหมด</option>
+                                @if (isset($type) && $type !== 'ALL' && isset($documentSubtypes[$type]))
+                                    @foreach ($documentSubtypes[$type] as $subtypeValue => $subtypeLabel)
+                                        <option value="{{ $subtypeValue }}" {{ isset($subtype) && $subtype == $subtypeValue ? 'selected' : '' }}>{{ $subtypeLabel }}</option>
+                                    @endforeach
+                                @endif
                             </select>
                         </div>
                         <div class="form-control">
@@ -75,6 +86,12 @@
                             <button class="btn btn-primary btn-sm px-8" type="submit">
                                 <i class="fas fa-search mr-1"></i> ค้นหา
                             </button>
+                            <a
+                                class="btn btn-success btn-sm gap-2 px-8 text-success-content"
+                                href="{{ route('admin.it.alllist.export', request()->query()) }}"
+                            >
+                                <i class="fas fa-file-excel"></i> Export Excel
+                            </a>
                             <a class="btn btn-ghost btn-sm border-base-content/20 px-8" href="{{ route('admin.it.alllist') }}">
                                 <i class="fas fa-redo mr-1"></i> ล้างค่า
                             </a>
@@ -323,6 +340,45 @@
                         });
                     }
                 });
+            }
+        </script>
+    @endif
+    @if ($action == 'all')
+        <script>
+            const itDocumentSubtypes = @json($documentSubtypes ?? []);
+            const selectedSubtype = @json($subtype ?? '');
+
+            function updateSubtypeOptions() {
+                const typeSelect = document.getElementById('type-filter');
+                const subtypeSelect = document.getElementById('subtype-filter');
+                const type = typeSelect.value;
+                const preserveSelection = typeSelect.dataset.initialType === type;
+
+                subtypeSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+
+                if (type && type !== 'ALL' && itDocumentSubtypes[type]) {
+                    subtypeSelect.disabled = false;
+
+                    Object.entries(itDocumentSubtypes[type]).forEach(([value, label]) => {
+                        const option = document.createElement('option');
+                        option.value = value;
+                        option.textContent = label;
+
+                        if (preserveSelection && value === selectedSubtype) {
+                            option.selected = true;
+                        }
+
+                        subtypeSelect.appendChild(option);
+                    });
+                } else {
+                    subtypeSelect.disabled = true;
+                }
+            }
+
+            const typeFilter = document.getElementById('type-filter');
+            if (typeFilter) {
+                typeFilter.dataset.initialType = typeFilter.value;
+                typeFilter.addEventListener('change', updateSubtypeOptions);
             }
         </script>
     @endif

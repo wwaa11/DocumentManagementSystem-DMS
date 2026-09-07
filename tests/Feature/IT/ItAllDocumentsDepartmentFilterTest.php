@@ -19,7 +19,7 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
 
     public function test_admin_all_documents_filters_by_creator_department(): void
     {
-        $method = new ReflectionMethod(DocumentITAdminService::class, 'adminAllDocuments');
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'buildFilteredAllDocuments');
         $body = file_get_contents($method->getFileName());
         $body = implode("\n", array_slice(
             explode("\n", $body),
@@ -27,11 +27,21 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
             $method->getEndLine() - $method->getStartLine() + 1
         ));
 
-        $this->assertStringContainsString("\$request->get('department')", $body);
         $this->assertStringContainsString("whereHas('creator'", $body);
         $this->assertStringContainsString("whereHas('documentUser.creator'", $body);
         $this->assertStringContainsString("->where('department', \$department)", $body);
-        $this->assertStringContainsString("'department', 'departments'", $body);
+
+        $adminMethod = new ReflectionMethod(DocumentITAdminService::class, 'adminAllDocuments');
+        $adminBody = file_get_contents($adminMethod->getFileName());
+        $adminBody = implode("\n", array_slice(
+            explode("\n", $adminBody),
+            $adminMethod->getStartLine() - 1,
+            $adminMethod->getEndLine() - $adminMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('$this->buildFilteredAllDocuments($filters)', $adminBody);
+        $this->assertStringContainsString("'department' => \$filters['department']", $adminBody);
+        $this->assertStringContainsString("'departments' => \$departments", $adminBody);
     }
 
     public function test_all_documents_list_has_process_userid_filter(): void
@@ -47,7 +57,7 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
 
     public function test_admin_all_documents_filters_by_process_log_userid(): void
     {
-        $method = new ReflectionMethod(DocumentITAdminService::class, 'adminAllDocuments');
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'buildFilteredAllDocuments');
         $body = file_get_contents($method->getFileName());
         $body = implode("\n", array_slice(
             explode("\n", $body),
@@ -55,12 +65,23 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
             $method->getEndLine() - $method->getStartLine() + 1
         ));
 
-        $this->assertStringContainsString("\$request->get('process_userid')", $body);
-        $this->assertStringContainsString("\$request->get('process_log')", $body);
         $this->assertStringContainsString('$this->filterByProcessLogs($itQuery, $process_userid, $process_log)', $body);
         $this->assertStringContainsString('$this->filterByProcessLogs($itUserQuery, $process_userid, $process_log)', $body);
         $this->assertStringContainsString('$this->filterByProcessLogs($borrowQuery, $process_userid, $process_log)', $body);
-        $this->assertStringContainsString("'process_userid', 'processUsers', 'process_log'", $body);
+        $this->assertStringContainsString('$this->sortAllDocuments($documents, $process_userid, $process_log)', $body);
+
+        $adminMethod = new ReflectionMethod(DocumentITAdminService::class, 'adminAllDocuments');
+        $adminBody = file_get_contents($adminMethod->getFileName());
+        $adminBody = implode("\n", array_slice(
+            explode("\n", $adminBody),
+            $adminMethod->getStartLine() - 1,
+            $adminMethod->getEndLine() - $adminMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('filled($filters[\'process_userid\']) || filled($filters[\'process_log\']) ? 100 : 10', $adminBody);
+        $this->assertStringContainsString("'process_userid' => \$filters['process_userid']", $adminBody);
+        $this->assertStringContainsString("'processUsers' => \$processUsers", $adminBody);
+        $this->assertStringContainsString("'process_log' => \$filters['process_log']", $adminBody);
 
         $filterMethod = new ReflectionMethod(DocumentITAdminService::class, 'filterByProcessLogs');
         $filterBody = file_get_contents($filterMethod->getFileName());
@@ -75,14 +96,13 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         $this->assertStringContainsString("->where('userid', \$processUserid)", $filterBody);
         $this->assertStringContainsString("->where('details', 'LIKE', \"%{\$processLog}%\")", $filterBody);
         $this->assertStringContainsString("withMax(['logs as last_process_at'", $filterBody);
-        $this->assertStringContainsString('$this->sortAllDocuments($documents, $process_userid, $process_log)', $body);
-        $this->assertStringContainsString('filled($process_userid) || filled($process_log) ? 100 : 10', $body);
-        $this->assertStringContainsString("'end_date', 'typeCounts'", $body);
+        $this->assertStringContainsString("'end_date' => \$filters['end_date']", $adminBody);
+        $this->assertStringContainsString("'typeCounts' => \$typeCounts", $adminBody);
     }
 
     public function test_admin_all_documents_defaults_type_to_all(): void
     {
-        $method = new ReflectionMethod(DocumentITAdminService::class, 'adminAllDocuments');
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'resolveAllDocumentsFilters');
         $body = file_get_contents($method->getFileName());
         $body = implode("\n", array_slice(
             explode("\n", $body),
@@ -91,7 +111,104 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         ));
 
         $this->assertStringContainsString("\$request->get('type') ?: 'ALL'", $body);
-        $this->assertStringContainsString('$this->mergeDocumentCollections($documents, $documentsITUser, $documentsBorrow)', $body);
+
+        $buildMethod = new ReflectionMethod(DocumentITAdminService::class, 'buildFilteredAllDocuments');
+        $buildBody = file_get_contents($buildMethod->getFileName());
+        $buildBody = implode("\n", array_slice(
+            explode("\n", $buildBody),
+            $buildMethod->getStartLine() - 1,
+            $buildMethod->getEndLine() - $buildMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('$this->mergeDocumentCollections($documents, $documentsITUser, $documentsBorrow)', $buildBody);
+    }
+
+    public function test_all_documents_list_has_subtype_filter(): void
+    {
+        $source = file_get_contents(resource_path('views/admin/it/list.blade.php'));
+
+        $this->assertStringContainsString('ประเภทย่อย', $source);
+        $this->assertStringContainsString('id="subtype-filter"', $source);
+        $this->assertStringContainsString('name="subtype"', $source);
+        $this->assertStringContainsString('id="type-filter"', $source);
+        $this->assertStringContainsString('itDocumentSubtypes', $source);
+    }
+
+    public function test_admin_all_documents_filters_by_subtype(): void
+    {
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'buildFilteredAllDocuments');
+        $body = file_get_contents($method->getFileName());
+        $body = implode("\n", array_slice(
+            explode("\n", $body),
+            $method->getStartLine() - 1,
+            $method->getEndLine() - $method->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('$this->applyItSubtypeFilter($itQuery, $subtype)', $body);
+        $this->assertStringContainsString("whereHas('documentUser'", $body);
+        $this->assertStringContainsString('$this->applyBorrowSubtypeFilter($borrowQuery, $subtype)', $body);
+    }
+
+    public function test_all_documents_export_route_and_button_exist(): void
+    {
+        $source = file_get_contents(resource_path('views/admin/it/list.blade.php'));
+
+        $this->assertTrue(\Illuminate\Support\Facades\Route::has('admin.it.alllist.export'));
+        $this->assertStringContainsString("route('admin.it.alllist.export', request()->query())", $source);
+        $this->assertStringContainsString('Export Excel', $source);
+    }
+
+    public function test_export_all_documents_uses_filtered_query_and_expected_columns(): void
+    {
+        $exportMethod = new ReflectionMethod(DocumentITAdminService::class, 'exportAllDocuments');
+        $exportBody = file_get_contents($exportMethod->getFileName());
+        $exportBody = implode("\n", array_slice(
+            explode("\n", $exportBody),
+            $exportMethod->getStartLine() - 1,
+            $exportMethod->getEndLine() - $exportMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('$this->resolveAllDocumentsFilters($request)', $exportBody);
+        $this->assertStringContainsString('$this->buildFilteredAllDocuments($filters)', $exportBody);
+        $this->assertStringContainsString('$this->allDocumentsExportHeaders()', $exportBody);
+        $this->assertStringContainsString('$this->buildAllDocumentsExportRow($document)', $exportBody);
+        $this->assertStringContainsString('HisLogExcelExporter', $exportBody);
+        $this->assertStringContainsString("->where('action', 'process')", file_get_contents(
+            (new ReflectionMethod(DocumentITAdminService::class, 'formatExportLogs'))->getFileName()
+        ));
+
+        $headersMethod = new ReflectionMethod(DocumentITAdminService::class, 'allDocumentsExportHeaders');
+        $headersMethod->setAccessible(true);
+        $headers = $headersMethod->invoke($this->app->make(DocumentITAdminService::class));
+
+        $this->assertSame([
+            'เลขที่',
+            'ชื่อเอกสาร',
+            'รายละเอียด',
+            'ผู้ขอ / แผนก / วันที่ขอ',
+            'ผู้อนุมัติ',
+            'สถานะ',
+            'บันทึกการดำเนินการ',
+        ], $headers);
+    }
+
+    public function test_document_subtypes_match_create_form_options(): void
+    {
+        $service = $this->app->make(DocumentITAdminService::class);
+        $subtypes = $service->documentSubtypes();
+
+        $this->assertSame(
+            ['HARDWARE', 'SOFTWARE', 'SSB', 'HIS', 'ERP', 'RESET_PASSWORD', 'OTHER'],
+            array_keys($subtypes['IT'])
+        );
+        $this->assertSame(
+            ['ขอแก้ไขสิทธิการใช้งาน', 'เลขาแพทย์', 'ฝ่ายบุคคล'],
+            array_keys($subtypes['USER'])
+        );
+        $this->assertSame(
+            ['Notebook', 'Computer', 'Printer', 'Projector', 'Ipad/Tablet', 'OTHER'],
+            array_keys($subtypes['BORROW'])
+        );
     }
 
     public function test_merge_document_collections_keeps_overlapping_ids(): void
