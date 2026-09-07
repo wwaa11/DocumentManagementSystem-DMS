@@ -173,8 +173,18 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         $this->assertStringContainsString('$this->allDocumentsExportHeaders()', $exportBody);
         $this->assertStringContainsString('$this->buildAllDocumentsExportRow($document)', $exportBody);
         $this->assertStringContainsString('HisLogExcelExporter', $exportBody);
-        $this->assertStringContainsString("->where('action', 'process')", file_get_contents(
-            (new ReflectionMethod(DocumentITAdminService::class, 'formatExportLogs'))->getFileName()
+
+        $rowMethod = new ReflectionMethod(DocumentITAdminService::class, 'buildAllDocumentsExportRow');
+        $rowBody = file_get_contents($rowMethod->getFileName());
+        $rowBody = implode("\n", array_slice(
+            explode("\n", $rowBody),
+            $rowMethod->getStartLine() - 1,
+            $rowMethod->getEndLine() - $rowMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('$this->partitionExportProcessLogs($document)', $rowBody);
+        $this->assertStringContainsString("stripos((string) \$log->details, 'GOLIVE')", file_get_contents(
+            (new ReflectionMethod(DocumentITAdminService::class, 'partitionExportProcessLogs'))->getFileName()
         ));
 
         $headersMethod = new ReflectionMethod(DocumentITAdminService::class, 'allDocumentsExportHeaders');
@@ -188,6 +198,7 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
             'ผู้ขอ / แผนก / วันที่ขอ',
             'ผู้อนุมัติ',
             'สถานะ',
+            'Log No',
             'บันทึกการดำเนินการ',
         ], $headers);
     }

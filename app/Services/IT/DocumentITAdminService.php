@@ -421,6 +421,7 @@ class DocumentITAdminService
             'ผู้ขอ / แผนก / วันที่ขอ',
             'ผู้อนุมัติ',
             'สถานะ',
+            'Log No',
             'บันทึกการดำเนินการ',
         ];
     }
@@ -432,6 +433,7 @@ class DocumentITAdminService
     {
         $creator = $document->creator;
         $createdAt = $document->created_at?->format('d/m/Y H:i:s') ?? '';
+        $partitionedLogs = $this->partitionExportProcessLogs($document);
 
         return [
             $document->document_number ?? '',
@@ -444,7 +446,8 @@ class DocumentITAdminService
             ], fn (?string $value): bool => filled($value)))),
             $this->formatExportApprovers($document),
             $this->formatDocumentStatus((string) $document->status),
-            $this->formatExportLogs($document),
+            $partitionedLogs['log_no'],
+            $partitionedLogs['process'],
         ];
     }
 
@@ -485,23 +488,41 @@ class DocumentITAdminService
             ->implode("\n");
     }
 
-    private function formatExportLogs(DocumentIT|DocumentItUser|DocumentBorrow $document): string
+    /**
+     * @return array{process: string, log_no: string}
+     */
+    private function partitionExportProcessLogs(DocumentIT|DocumentItUser|DocumentBorrow $document): array
     {
         $logs = ($document->logs ?? collect())
             ->filter(fn (Log $log): bool => $log->action === 'process');
 
-        if ($logs->isEmpty()) {
-            return '';
+        $processLogs = [];
+        $logNumbers = [];
+
+        foreach ($logs as $log) {
+            $formatted = $this->formatExportLogLine($log);
+
+            if (stripos((string) $log->details, 'GOLIVE') !== false) {
+                $logNumbers[] = (string) $log->details;
+
+                continue;
+            }
+
+            $processLogs[] = $formatted;
         }
 
-        return $logs
-            ->map(function (Log $log): string {
-                $timestamp = $log->created_at?->format('d/m/Y H:i:s') ?? '';
-                $name = $log->user->name ?? $log->userid ?? '-';
+        return [
+            'process' => implode("\n", $processLogs),
+            'log_no' => implode("\n", $logNumbers),
+        ];
+    }
 
-                return "[{$timestamp}] {$name}: {$log->details}";
-            })
-            ->implode("\n");
+    private function formatExportLogLine(Log $log): string
+    {
+        $timestamp = $log->created_at?->format('d/m/Y H:i:s') ?? '';
+        $name = $log->user->name ?? $log->userid ?? '-';
+
+        return "[{$timestamp}] {$name}: {$log->details}";
     }
 
     private function formatDocumentStatus(string $status): string
