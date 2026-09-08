@@ -21,6 +21,8 @@ class User extends Authenticatable
         'role',
         'can_create_course',
         'course_departments',
+        'can_view_department_documents',
+        'view_departments',
     ];
 
     protected $hidden = [
@@ -40,6 +42,8 @@ class User extends Authenticatable
         return [
             'can_create_course' => 'boolean',
             'course_departments' => 'array',
+            'can_view_department_documents' => 'boolean',
+            'view_departments' => 'array',
         ];
     }
 
@@ -52,6 +56,36 @@ class User extends Authenticatable
             $this->course_departments ?? [],
             fn ($department): bool => filled($department)
         ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function viewDepartments(): array
+    {
+        return array_values(array_filter(
+            $this->view_departments ?? [],
+            fn ($department): bool => filled($department)
+        ));
+    }
+
+    public function canViewDepartmentDocuments(?string $department = null): bool
+    {
+        if (! $this->can_view_department_documents) {
+            return false;
+        }
+
+        $departments = $this->viewDepartments();
+
+        if ($departments === []) {
+            return false;
+        }
+
+        if ($department === null) {
+            return true;
+        }
+
+        return in_array($department, $departments, true);
     }
 
     public function canCreateCourseForDepartment(?string $department = null): bool
@@ -165,6 +199,22 @@ class User extends Authenticatable
                     'type' => 'course',
                     'id' => 'permissions',
                     'link' => 'admin.course-permissions',
+                    'count' => false,
+                ],
+            ],
+            'document-view-permissions' => [
+                [
+                    'title' => 'Document Access',
+                    'type' => 'document-access',
+                    'id' => 'title',
+                    'link' => null,
+                    'count' => false,
+                ],
+                [
+                    'title' => 'Department Document Access',
+                    'type' => 'document-access',
+                    'id' => 'permissions',
+                    'link' => 'admin.document-view-permissions',
                     'count' => false,
                 ],
             ],
@@ -481,7 +531,7 @@ class User extends Authenticatable
                 'count' => [],
                 'lists' => [],
                 'groups' => $this->menuGroups([
-                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['approvers', 'roles', 'course-permissions'], 'counts' => []],
+                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['approvers', 'roles', 'course-permissions', 'document-view-permissions'], 'counts' => []],
                     ['key' => 'it', 'label' => 'IT', 'menus' => ['it-approve', 'it-hardware', 'it'], 'counts' => ['it']],
                     ['key' => 'purchase', 'label' => 'Purchase', 'menus' => ['purchase-approve', 'purchase-head', 'purchase'], 'counts' => ['purchase']],
                     ['key' => 'media', 'label' => 'Media', 'menus' => ['media-head', 'media'], 'counts' => ['media']],
@@ -597,22 +647,65 @@ class User extends Authenticatable
         return (object) $filteredDocumentList->values();
     }
 
-    public function getMyDocuments()
+    /**
+     * @return list<object>
+     */
+    public function getMyDocuments(): array
     {
-        $userId = auth()->user()->userid;
+        return $this->collectListedDocuments(
+            fn ($query) => $query->where('requester', $this->userid)
+        );
+    }
 
-        $users = DocumentUser::where('requester', $userId)
-            ->select(
+    /**
+     * Documents created by users in departments this user is allowed to view.
+     *
+     * @return list<object>
+     */
+    public function getDepartmentDocuments(): array
+    {
+        if (! $this->canViewDepartmentDocuments()) {
+            return [];
+        }
+
+        $departments = $this->viewDepartments();
+        $userId = $this->userid;
+
+        return $this->collectListedDocuments(function ($query) use ($departments, $userId): void {
+            $query->where('requester', '!=', $userId)
+                ->whereHas('creator', function ($creator) use ($departments): void {
+                    $creator->whereIn('department', $departments);
+                })
+                ->with('creator');
+        });
+    }
+
+    /**
+     * @param  callable(\Illuminate\Database\Eloquent\Builder): mixed  $scope
+     * @return list<object>
+     */
+    private function collectListedDocuments(callable $scope): array
+    {
+        $queries = [
+            DocumentUser::query()->select(
                 'id',
                 'requester',
                 'title',
                 'detail',
                 'created_at',
-            );
-
-        $its = DocumentIT::where('requester', $userId)
-            ->where('type', 'support')
-            ->select(
+            ),
+            DocumentIT::query()
+                ->where('type', 'support')
+                ->select(
+                    'id',
+                    'requester',
+                    'document_number',
+                    'title',
+                    'detail',
+                    'status',
+                    'created_at',
+                ),
+            DocumentBorrow::query()->select(
                 'id',
                 'requester',
                 'document_number',
@@ -620,21 +713,8 @@ class User extends Authenticatable
                 'detail',
                 'status',
                 'created_at',
-            );
-
-        $borrows = DocumentBorrow::where('requester', $userId)
-            ->select(
-                'id',
-                'requester',
-                'document_number',
-                'title',
-                'detail',
-                'status',
-                'created_at',
-            );
-
-        $purchases = DocumentPurchase::where('requester', $userId)
-            ->select(
+            ),
+            DocumentPurchase::query()->select(
                 'id',
                 'requester',
                 'document_number',
@@ -643,10 +723,8 @@ class User extends Authenticatable
                 'detail',
                 'status',
                 'created_at',
-            );
-
-        $medias = DocumentMedia::where('requester', $userId)
-            ->select(
+            ),
+            DocumentMedia::query()->select(
                 'id',
                 'requester',
                 'document_number',
@@ -655,26 +733,17 @@ class User extends Authenticatable
                 'detail',
                 'status',
                 'created_at',
-            );
+            ),
+        ];
 
         $document = [];
-        foreach ($its->get() as $item) {
-            $document[] = $item;
-        }
-        foreach ($users->get() as $item) {
-            $document[] = $item;
-        }
-        foreach ($borrows->get() as $item) {
-            $document[] = $item;
-        }
-        foreach ($purchases->get() as $item) {
-            $document[] = $item;
-        }
-        foreach ($medias->get() as $item) {
-            $document[] = $item;
+        foreach ($queries as $query) {
+            $scope($query);
+            foreach ($query->get() as $item) {
+                $document[] = $item;
+            }
         }
 
-        // sort by created_at
         usort($document, function ($a, $b) {
             return strtotime($b->created_at) - strtotime($a->created_at);
         });

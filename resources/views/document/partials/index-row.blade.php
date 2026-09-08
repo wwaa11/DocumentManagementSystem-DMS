@@ -69,6 +69,14 @@
                 </div>
             @endif
         </div>
+        @if (($document['flag'] ?? '') === 'dept' && ($document['requester_name'] ?? null))
+            <div class="text-base-content/50 text-xs">
+                {{ $document['requester_name'] }}
+                @if ($document['requester_department'] ?? null)
+                    · {{ $document['requester_department'] }}
+                @endif
+            </div>
+        @endif
         @if ($document['document_number'])
             <div class="badge badge-soft badge-{{ $document['document_tag']['colour'] }}">
                 {{ $document['document_number'] }}

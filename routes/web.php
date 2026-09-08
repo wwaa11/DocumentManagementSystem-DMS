@@ -35,6 +35,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         Route::get('/course-permissions', [DocumentCourseController::class, 'permissions'])->name('admin.course-permissions');
         Route::post('/course-permissions', [DocumentCourseController::class, 'updatePermission'])->name('admin.course-permissions.update');
+        Route::get('/document-view-permissions', [AdminController::class, 'documentViewPermissions'])->name('admin.document-view-permissions');
+        Route::post('/document-view-permissions', [AdminController::class, 'updateDocumentViewPermission'])->name('admin.document-view-permissions.update');
     });
 
     // Base Create Document

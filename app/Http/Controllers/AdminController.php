@@ -3,16 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\UpdateApproverRequest;
+use App\Http\Requests\Admin\UpdateDocumentViewPermissionRequest;
 use App\Http\Requests\Admin\UpdateRoleRequest;
 use App\Services\Admin\ApproverAdminService;
+use App\Services\Admin\DocumentViewPermissionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use InvalidArgumentException;
 
 class AdminController extends Controller
 {
-    public function __construct(private ApproverAdminService $approverAdminService) {}
+    public function __construct(
+        private ApproverAdminService $approverAdminService,
+        private DocumentViewPermissionService $documentViewPermissionService,
+    ) {}
 
     public function ApproverList(): View
     {
@@ -53,10 +59,29 @@ class AdminController extends Controller
     {
         try {
             $this->approverAdminService->updateRole($request->validated());
-        } catch (\InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException $exception) {
             return redirect()->back()->withErrors(['role' => $exception->getMessage()]);
         }
 
         return redirect()->back()->with('success', 'Role updated successfully!');
+    }
+
+    public function documentViewPermissions(Request $request): View
+    {
+        return view(
+            'admin.document-view-permissions',
+            $this->documentViewPermissionService->listPermissionUsers($request->input('search'))
+        );
+    }
+
+    public function updateDocumentViewPermission(UpdateDocumentViewPermissionRequest $request): RedirectResponse
+    {
+        try {
+            $this->documentViewPermissionService->updateUserViewPermission($request->validated());
+        } catch (InvalidArgumentException $exception) {
+            return redirect()->back()->withErrors(['view_departments' => $exception->getMessage()]);
+        }
+
+        return redirect()->back()->with('success', 'อัปเดตสิทธิ์ดูเอกสารแผนกสำเร็จ');
     }
 }

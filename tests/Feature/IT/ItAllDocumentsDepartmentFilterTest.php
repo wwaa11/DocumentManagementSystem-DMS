@@ -222,6 +222,45 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         );
     }
 
+    public function test_new_documents_list_has_filters(): void
+    {
+        $source = file_get_contents(resource_path('views/admin/it/list.blade.php'));
+
+        $this->assertStringContainsString("in_array(\$action, ['all', 'new'])", $source);
+        $this->assertStringContainsString("route('admin.it.newlist')", $source);
+        $this->assertStringContainsString('name="search"', $source);
+        $this->assertStringContainsString('id="type-filter"', $source);
+        $this->assertStringContainsString('id="subtype-filter"', $source);
+        $this->assertStringContainsString('name="department"', $source);
+    }
+
+    public function test_admin_new_documents_uses_filtered_query(): void
+    {
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'adminNewDocuments');
+        $body = file_get_contents($method->getFileName());
+        $body = implode("\n", array_slice(
+            explode("\n", $body),
+            $method->getStartLine() - 1,
+            $method->getEndLine() - $method->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('$this->resolveNewDocumentsFilters($request)', $body);
+        $this->assertStringContainsString('$this->buildFilteredNewDocuments($filters)', $body);
+
+        $buildMethod = new ReflectionMethod(DocumentITAdminService::class, 'buildFilteredNewDocuments');
+        $buildBody = file_get_contents($buildMethod->getFileName());
+        $buildBody = implode("\n", array_slice(
+            explode("\n", $buildBody),
+            $buildMethod->getStartLine() - 1,
+            $buildMethod->getEndLine() - $buildMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString("->where('status', 'pending')", $buildBody);
+        $this->assertStringContainsString('->whereNull(\'assigned_user_id\')', $buildBody);
+        $this->assertStringContainsString("->where('task_user', 'IT Unit Support')", $buildBody);
+        $this->assertStringContainsString('$this->applyItSubtypeFilter($itQuery, $subtype)', $buildBody);
+    }
+
     public function test_merge_document_collections_keeps_overlapping_ids(): void
     {
         $service = $this->app->make(DocumentITAdminService::class);

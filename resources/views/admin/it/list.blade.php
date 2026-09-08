@@ -11,24 +11,28 @@
             </div>
         @endif
         <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
-            @if ($action == 'all')
+            @if (in_array($action, ['all', 'new']))
                 <div class="border-base-content/5 bg-base-200/30 border-b px-4 py-3">
-                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-4" action="{{ route('admin.it.alllist') }}" method="GET">
+                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-4" action="{{ $action == 'all' ? route('admin.it.alllist') : route('admin.it.newlist') }}" method="GET">
                         <div class="form-control col-span-1">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ค้นหา</span></label>
                             <input class="input input-bordered input-sm w-full" type="text" name="search" value="{{ $search ?? '' }}" placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด...">
                         </div>
-                        <div class="form-control col-span-1 ">
-                            <label class="label pt-0"><span class="label-text text-xs font-semibold">รายการดำเนินงาน</span></label>
-                            <input class="input input-bordered input-sm w-full" type="text" name="process_log" value="{{ $process_log ?? '' }}" placeholder="ค้นหาบันทึกการดำเนินการ...">
-                        </div>
+                        @if ($action == 'all')
+                            <div class="form-control col-span-1 ">
+                                <label class="label pt-0"><span class="label-text text-xs font-semibold">รายการดำเนินงาน</span></label>
+                                <input class="input input-bordered input-sm w-full" type="text" name="process_log" value="{{ $process_log ?? '' }}" placeholder="ค้นหาบันทึกการดำเนินการ...">
+                            </div>
+                        @endif
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ประเภท</span></label>
                             <select class="select select-bordered select-sm w-full" id="type-filter" name="type">
                                 <option value="ALL" {{ ! isset($type) || $type == 'ALL' ? 'selected' : '' }}>ทั้งหมด</option>
                                 <option value="IT" {{ isset($type) && $type == 'IT' ? 'selected' : '' }}>แจ้งงาน/สนับสนุน</option>
                                 <option value="USER" {{ isset($type) && $type == 'USER' ? 'selected' : '' }}>ขอสิทธิใช้งาน</option>
-                                <option value="BORROW" {{ isset($type) && $type == 'BORROW' ? 'selected' : '' }}>ยืม/คืนอุปกรณ์</option>
+                                @if ($action == 'all')
+                                    <option value="BORROW" {{ isset($type) && $type == 'BORROW' ? 'selected' : '' }}>ยืม/คืนอุปกรณ์</option>
+                                @endif
                             </select>
                         </div>
                         <div class="form-control">
@@ -42,18 +46,20 @@
                                 @endif
                             </select>
                         </div>
-                        <div class="form-control">
-                            <label class="label pt-0"><span class="label-text text-xs font-semibold">สถานะ</span></label>
-                            <select class="select select-bordered select-sm w-full" name="status">
-                                <option value="">ทั้งหมด</option>
-                                <option value="wait_approval" {{ isset($status) && $status == 'wait_approval' ? 'selected' : '' }}>รออนุมัติจากหัวหน้าแผนก</option>
-                                <option value="pending" {{ isset($status) && $status == 'pending' ? 'selected' : '' }}>รอการดำเนินการ</option>
-                                <option value="process" {{ isset($status) && $status == 'process' ? 'selected' : '' }}>กำลังดำเนินการ</option>
-                                <option value="done" {{ isset($status) && $status == 'done' ? 'selected' : '' }}>เอกสารรออนุมัติ</option>
-                                <option value="complete" {{ isset($status) && $status == 'complete' ? 'selected' : '' }}>เสร็จสมบูรณ์</option>
-                                <option value="reject" {{ isset($status) && $status == 'reject' ? 'selected' : '' }}>ยกเลิกเอกสาร</option>
-                            </select>
-                        </div>
+                        @if ($action == 'all')
+                            <div class="form-control">
+                                <label class="label pt-0"><span class="label-text text-xs font-semibold">สถานะ</span></label>
+                                <select class="select select-bordered select-sm w-full" name="status">
+                                    <option value="">ทั้งหมด</option>
+                                    <option value="wait_approval" {{ isset($status) && $status == 'wait_approval' ? 'selected' : '' }}>รออนุมัติจากหัวหน้าแผนก</option>
+                                    <option value="pending" {{ isset($status) && $status == 'pending' ? 'selected' : '' }}>รอการดำเนินการ</option>
+                                    <option value="process" {{ isset($status) && $status == 'process' ? 'selected' : '' }}>กำลังดำเนินการ</option>
+                                    <option value="done" {{ isset($status) && $status == 'done' ? 'selected' : '' }}>เอกสารรออนุมัติ</option>
+                                    <option value="complete" {{ isset($status) && $status == 'complete' ? 'selected' : '' }}>เสร็จสมบูรณ์</option>
+                                    <option value="reject" {{ isset($status) && $status == 'reject' ? 'selected' : '' }}>ยกเลิกเอกสาร</option>
+                                </select>
+                            </div>
+                        @endif
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">แผนกที่สร้าง</span></label>
                             <select class="select select-bordered select-sm w-full" name="department">
@@ -63,17 +69,19 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-control">
-                            <label class="label pt-0"><span class="label-text text-xs font-semibold">ดำเนินการโดย</span></label>
-                            <select class="select select-bordered select-sm w-full" name="process_userid">
-                                <option value="">ทั้งหมด</option>
-                                @foreach ($processUsers ?? [] as $processUser)
-                                    <option value="{{ $processUser->userid }}" {{ isset($process_userid) && $process_userid == $processUser->userid ? 'selected' : '' }}>
-                                        {{ $processUser->userid }} : {{ $processUser->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                        @if ($action == 'all')
+                            <div class="form-control">
+                                <label class="label pt-0"><span class="label-text text-xs font-semibold">ดำเนินการโดย</span></label>
+                                <select class="select select-bordered select-sm w-full" name="process_userid">
+                                    <option value="">ทั้งหมด</option>
+                                    @foreach ($processUsers ?? [] as $processUser)
+                                        <option value="{{ $processUser->userid }}" {{ isset($process_userid) && $process_userid == $processUser->userid ? 'selected' : '' }}>
+                                            {{ $processUser->userid }} : {{ $processUser->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่เริ่ม</span></label>
                             <input class="input input-bordered input-sm w-full" type="date" name="start_date" value="{{ $start_date ?? '' }}">
@@ -86,23 +94,31 @@
                             <button class="btn btn-primary btn-sm px-8" type="submit">
                                 <i class="fas fa-search mr-1"></i> ค้นหา
                             </button>
-                            <a
-                                class="btn btn-success btn-sm gap-2 px-8 text-success-content"
-                                href="{{ route('admin.it.alllist.export', request()->query()) }}"
-                            >
-                                <i class="fas fa-file-excel"></i> Export Excel
-                            </a>
-                            <a class="btn btn-ghost btn-sm border-base-content/20 px-8" href="{{ route('admin.it.alllist') }}">
+                            @if ($action == 'all')
+                                <a
+                                    class="btn btn-success btn-sm gap-2 px-8 text-success-content"
+                                    href="{{ route('admin.it.alllist.export', request()->query()) }}"
+                                >
+                                    <i class="fas fa-file-excel"></i> Export Excel
+                                </a>
+                            @endif
+                            <a class="btn btn-ghost btn-sm border-base-content/20 px-8" href="{{ $action == 'all' ? route('admin.it.alllist') : route('admin.it.newlist') }}">
                                 <i class="fas fa-redo mr-1"></i> ล้างค่า
                             </a>
                         </div>
                     </form>
                     @if (($typeCounts['IT'] ?? 0) + ($typeCounts['USER'] ?? 0) + ($typeCounts['BORROW'] ?? 0) > 0)
                         <p class="text-base-content/60 mt-3 text-xs">
-                            พบ {{ $documents->total() }} รายการ
+                            @if ($action == 'all')
+                                พบ {{ $documents->total() }} รายการ
+                            @else
+                                พบ {{ $documents->count() }} รายการ
+                            @endif
                             · แจ้งงาน/สนับสนุน {{ $typeCounts['IT'] ?? 0 }}
                             · ขอสิทธิใช้งาน {{ $typeCounts['USER'] ?? 0 }}
-                            · ยืม/คืนอุปกรณ์ {{ $typeCounts['BORROW'] ?? 0 }}
+                            @if ($action == 'all')
+                                · ยืม/คืนอุปกรณ์ {{ $typeCounts['BORROW'] ?? 0 }}
+                            @endif
                         </p>
                     @endif
                 </div>
@@ -343,7 +359,7 @@
             }
         </script>
     @endif
-    @if ($action == 'all')
+    @if (in_array($action, ['all', 'new']))
         <script>
             const itDocumentSubtypes = @json($documentSubtypes ?? []);
             const selectedSubtype = @json($subtype ?? '');

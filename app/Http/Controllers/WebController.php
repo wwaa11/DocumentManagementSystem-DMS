@@ -65,8 +65,10 @@ class WebController extends Controller
 
     public function myDocument(Request $request): View
     {
-        $my_documents = auth()->user()->getMyDocuments();
-        $approveDocuments = auth()->user()->getApproveDocument();
+        $user = auth()->user();
+        $canViewDepartmentDocuments = $user->canViewDepartmentDocuments();
+        $my_documents = $user->getMyDocuments();
+        $approveDocuments = $user->getApproveDocument();
         $documents = [];
 
         foreach ($approveDocuments as $item) {
@@ -84,35 +86,20 @@ class WebController extends Controller
             }
 
             $document_id = $tag.$documentData->id;
-            $detail = strlen($documentData->detail) > 100 ? mb_substr($documentData->detail, 0, 100).'...' : $documentData->detail;
-            $documents[$document_id] = [
-                'flag' => $flag,
-                'id' => $documentData->id,
-                'document_tag' => $documentData->document_tag,
-                'document_number' => $documentData->document_number,
-                'document_type_name' => $documentData->document_type_name,
-                'title' => $documentData->title,
-                'detail' => $detail,
-                'status' => $documentData->status,
-                'created_at' => $documentData->created_at,
-            ];
+            $documents[$document_id] = $this->mapIndexDocument($documentData, $flag);
         }
 
         foreach ($my_documents as $item) {
             $document_id = $item->document_tag['document_tag'].$item->id;
             if (! isset($documents[$document_id])) {
-                $detail = strlen($item->detail) > 100 ? mb_substr($item->detail, 0, 100).'...' : $item->detail;
-                $documents[$document_id] = [
-                    'flag' => 'my',
-                    'id' => $item->id,
-                    'document_tag' => $item->document_tag,
-                    'document_number' => $item->document_number,
-                    'document_type_name' => $item->document_type_name,
-                    'title' => $item->title,
-                    'detail' => $detail,
-                    'status' => $item->status,
-                    'created_at' => $item->created_at,
-                ];
+                $documents[$document_id] = $this->mapIndexDocument($item, 'my');
+            }
+        }
+
+        foreach ($user->getDepartmentDocuments() as $item) {
+            $document_id = $item->document_tag['document_tag'].$item->id;
+            if (! isset($documents[$document_id])) {
+                $documents[$document_id] = $this->mapIndexDocument($item, 'dept');
             }
         }
 
@@ -177,6 +164,11 @@ class WebController extends Controller
         } elseif ($flag === 'my') {
             $pendingApprovals = collect();
             $otherDocuments = $otherDocuments->where('flag', 'my')->values();
+        } elseif ($flag === 'dept') {
+            $pendingApprovals = collect();
+            $otherDocuments = $canViewDepartmentDocuments
+                ? $otherDocuments->where('flag', 'dept')->values()
+                : collect();
         }
 
         $paginatedDocuments = $this->workflow->paginateCollection($otherDocuments->all(), 10, $request);
@@ -184,7 +176,30 @@ class WebController extends Controller
         return view('documnet_index', [
             'documents' => $paginatedDocuments,
             'pendingApprovals' => $pendingApprovals,
+            'canViewDepartmentDocuments' => $canViewDepartmentDocuments,
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapIndexDocument(object $item, string $flag): array
+    {
+        $detail = strlen((string) $item->detail) > 100 ? mb_substr((string) $item->detail, 0, 100).'...' : $item->detail;
+
+        return [
+            'flag' => $flag,
+            'id' => $item->id,
+            'document_tag' => $item->document_tag,
+            'document_number' => $item->document_number ?? null,
+            'document_type_name' => $item->document_type_name,
+            'title' => $item->title,
+            'detail' => $detail,
+            'status' => $item->status,
+            'created_at' => $item->created_at,
+            'requester_name' => $flag === 'dept' ? $item->creator?->name : null,
+            'requester_department' => $flag === 'dept' ? $item->creator?->department : null,
+        ];
     }
 
     public function createDocument(): View

@@ -45,9 +45,9 @@ class DocumentITController extends Controller
         return $this->documentITAdminService->adminApproveDocuments();
     }
 
-    public function adminNewDocuments(): View
+    public function adminNewDocuments(Request $request): View
     {
-        return $this->documentITAdminService->adminNewDocuments();
+        return $this->documentITAdminService->adminNewDocuments($request);
     }
 
     public function adminMyDocuments(): View

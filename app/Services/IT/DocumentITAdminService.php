@@ -107,24 +107,35 @@ class DocumentITAdminService
         return view('admin.it.list', compact('documents', 'action'));
     }
 
-    public function adminNewDocuments(): View
+    public function adminNewDocuments(Request $request): View
     {
-        $documentListAll = DocumentIT::where('status', 'pending')->whereNull('assigned_user_id')->get();
-        $documents = $documentListAll->filter(function ($item) {
-            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
-
-            return ! $task;
-        });
-        $documentITUserListAll = DocumentItUser::where('status', 'pending')->whereNull('assigned_user_id')->get();
-        $documentsITUser = $documentITUserListAll->filter(function ($item) {
-            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
-
-            return ! $task;
-        });
-        $documents = $this->mergeDocumentCollections($documents, $documentsITUser)->sortBy('created_at');
+        $filters = $this->resolveNewDocumentsFilters($request);
+        $documents = $this->buildFilteredNewDocuments($filters);
+        $typeCounts = [
+            'IT' => $documents->filter(fn ($document): bool => $document instanceof DocumentIT)->count(),
+            'USER' => $documents->filter(fn ($document): bool => $document instanceof DocumentItUser)->count(),
+        ];
+        $departments = User::query()
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
         $action = 'new';
 
-        return view('admin.it.list', compact('documents', 'action'));
+        return view('admin.it.list', [
+            'documents' => $documents,
+            'action' => $action,
+            'search' => $filters['search'],
+            'type' => $filters['type'],
+            'subtype' => $filters['subtype'],
+            'documentSubtypes' => $filters['documentSubtypes'],
+            'department' => $filters['department'],
+            'departments' => $departments,
+            'start_date' => $filters['start_date'],
+            'end_date' => $filters['end_date'],
+            'typeCounts' => $typeCounts,
+        ]);
     }
 
     public function adminMyDocuments(): View
@@ -407,6 +418,144 @@ class DocumentITAdminService
         $documents = $this->mergeDocumentCollections($documents, $documentsITUser, $documentsBorrow);
 
         return $this->sortAllDocuments($documents, $process_userid, $process_log);
+    }
+
+    /**
+     * @return array{
+     *     search: mixed,
+     *     type: string,
+     *     subtype: mixed,
+     *     department: mixed,
+     *     start_date: mixed,
+     *     end_date: mixed,
+     *     documentSubtypes: array<string, array<string, string>>
+     * }
+     */
+    private function resolveNewDocumentsFilters(Request $request): array
+    {
+        $type = $request->get('type') ?: 'ALL';
+        $subtype = $request->get('subtype');
+        $documentSubtypes = $this->documentSubtypes();
+
+        if (! in_array($type, ['ALL', 'IT', 'USER'], true)) {
+            $type = 'ALL';
+        }
+
+        if ($type === 'ALL' || ! isset($documentSubtypes[$type][$subtype])) {
+            $subtype = null;
+        }
+
+        return [
+            'search' => $request->get('search'),
+            'type' => $type,
+            'subtype' => $subtype,
+            'department' => $request->get('department'),
+            'start_date' => $request->get('start_date'),
+            'end_date' => $request->get('end_date'),
+            'documentSubtypes' => $documentSubtypes,
+        ];
+    }
+
+    /**
+     * @param  array{
+     *     search: mixed,
+     *     type: string,
+     *     subtype: mixed,
+     *     department: mixed,
+     *     start_date: mixed,
+     *     end_date: mixed,
+     *     documentSubtypes: array<string, array<string, string>>
+     * }  $filters
+     * @return Collection<int, DocumentIT|DocumentItUser>
+     */
+    private function buildFilteredNewDocuments(array $filters): Collection
+    {
+        [
+            'search' => $search,
+            'type' => $type,
+            'subtype' => $subtype,
+            'department' => $department,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+        ] = $filters;
+
+        $excludeHardwareSupportTask = function (Builder $query): void {
+            $query->where('step', 2)->where('task_user', 'IT Unit Support');
+        };
+
+        $itQuery = DocumentIT::query()
+            ->with(['creator', 'approvers.user'])
+            ->where('status', 'pending')
+            ->whereNull('assigned_user_id')
+            ->whereDoesntHave('tasks', $excludeHardwareSupportTask);
+
+        if ($search) {
+            $itQuery->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhere('title', 'LIKE', "%{$search}%")
+                    ->orWhere('detail', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($department) {
+            $itQuery->whereHas('creator', function ($q) use ($department) {
+                $q->where('department', $department);
+            });
+        }
+
+        if ($start_date) {
+            $itQuery->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $itQuery->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($subtype && $type === 'IT') {
+            $this->applyItSubtypeFilter($itQuery, $subtype);
+        }
+
+        $documents = ($type === 'ALL' || $type === 'IT') ? $itQuery->get() : collect();
+
+        $itUserQuery = DocumentItUser::query()
+            ->with(['documentUser.creator', 'approvers.user'])
+            ->where('status', 'pending')
+            ->whereNull('assigned_user_id')
+            ->whereDoesntHave('tasks', $excludeHardwareSupportTask);
+
+        if ($search) {
+            $itUserQuery->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhereHas('documentUser', function ($sq) use ($search) {
+                        $sq->where('title', 'LIKE', "%{$search}%")
+                            ->orWhere('detail', 'LIKE', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($department) {
+            $itUserQuery->whereHas('documentUser.creator', function ($q) use ($department) {
+                $q->where('department', $department);
+            });
+        }
+
+        if ($start_date) {
+            $itUserQuery->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $itUserQuery->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($subtype && $type === 'USER') {
+            $itUserQuery->whereHas('documentUser', function ($q) use ($subtype): void {
+                $q->where('title', $subtype);
+            });
+        }
+
+        $documentsITUser = ($type === 'ALL' || $type === 'USER') ? $itUserQuery->get() : collect();
+
+        return $this->mergeDocumentCollections($documents, $documentsITUser)->sortBy('created_at')->values();
     }
 
     /**

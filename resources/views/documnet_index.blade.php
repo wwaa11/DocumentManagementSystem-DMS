@@ -34,6 +34,9 @@
                         'my' => 'เอกสารของฉัน',
                         'approve' => 'รออนุมัติ',
                     ];
+                    if ($canViewDepartmentDocuments ?? false) {
+                        $flags['dept'] = 'เอกสารแผนก';
+                    }
                 @endphp
                 @foreach ($flags as $value => $label)
                     <label class="cursor-pointer">
@@ -151,7 +154,13 @@
                 <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                     <h2 class="text-primary text-lg font-bold">
                         <i class="fas fa-folder-open mr-1"></i>
-                        {{ request('flag') === 'my' ? 'เอกสารของฉัน' : 'เอกสารของฉัน / เอกสารทั้งหมด' }}
+                        @if (request('flag') === 'my')
+                            เอกสารของฉัน
+                        @elseif (request('flag') === 'dept')
+                            เอกสารแผนก
+                        @else
+                            เอกสารของฉัน / เอกสารทั้งหมด
+                        @endif
                     </h2>
                     <p class="text-base-content/50 text-sm">
                         แสดง {{ $documents->firstItem() ?? 0 }} ถึง {{ $documents->lastItem() ?? 0 }} จาก {{ number_format($documents->total()) }} รายการ
