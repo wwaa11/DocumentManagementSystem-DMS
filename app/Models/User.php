@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\UnicodeJsonArray;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -41,9 +42,9 @@ class User extends Authenticatable
     {
         return [
             'can_create_course' => 'boolean',
-            'course_departments' => 'array',
+            'course_departments' => UnicodeJsonArray::class,
             'can_view_department_documents' => 'boolean',
-            'view_departments' => 'array',
+            'view_departments' => UnicodeJsonArray::class,
         ];
     }
 
@@ -687,14 +688,17 @@ class User extends Authenticatable
     private function collectListedDocuments(callable $scope): array
     {
         $queries = [
-            DocumentUser::query()->select(
-                'id',
-                'requester',
-                'title',
-                'detail',
-                'created_at',
-            ),
+            DocumentUser::query()
+                ->with(['itUser' => fn ($query) => $query->withCount('messages')])
+                ->select(
+                    'id',
+                    'requester',
+                    'title',
+                    'detail',
+                    'created_at',
+                ),
             DocumentIT::query()
+                ->withCount('messages')
                 ->where('type', 'support')
                 ->select(
                     'id',

@@ -10,12 +10,21 @@ trait HasDocumentChat
             && in_array($this->status, ['process', 'pending'], true);
     }
 
-    public function shouldDisplayChat(): bool
+    public function hasChatMessages(): bool
     {
         if ($this->relationLoaded('messages')) {
-            return $this->messages->isNotEmpty() || $this->hasActiveChat();
+            return $this->messages->isNotEmpty();
         }
 
-        return $this->messages()->exists() || $this->hasActiveChat();
+        if (array_key_exists('messages_count', $this->getAttributes())) {
+            return (int) $this->messages_count > 0;
+        }
+
+        return $this->messages()->exists();
+    }
+
+    public function shouldDisplayChat(): bool
+    {
+        return $this->hasChatMessages() || $this->hasActiveChat();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Http\Controllers\WebController;
 use App\Http\Requests\Admin\UpdateDocumentViewPermissionRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -152,6 +153,58 @@ class DocumentViewPermissionTest extends TestCase
         $this->assertStringContainsString("\$document['flag'] == 'dept'", $source);
         $this->assertStringContainsString('เอกสารที่จากแผนก', $source);
         $this->assertStringContainsString("\$document['requester_name']", $source);
+        $this->assertStringContainsString("\$document['has_chat_messages']", $source);
+        $this->assertStringContainsString('fa-comments', $source);
+    }
+
+    public function test_my_document_maps_chat_message_flag(): void
+    {
+        $source = file_get_contents(app_path('Http/Controllers/WebController.php'));
+
+        $this->assertStringContainsString("'has_chat_messages' => method_exists(\$item, 'hasChatMessages') && \$item->hasChatMessages()", $source);
+    }
+
+    public function test_my_document_prioritizes_unfinished_documents_with_chat(): void
+    {
+        $source = file_get_contents(app_path('Http/Controllers/WebController.php'));
+
+        $this->assertStringContainsString('sortIndexDocumentsByPriority', $source);
+        $this->assertStringContainsString('isIndexDocumentChatPriority', $source);
+        $this->assertStringContainsString('isIndexDocumentFinished', $source);
+
+        $controller = $this->app->make(WebController::class);
+        $method = new \ReflectionMethod(WebController::class, 'sortIndexDocumentsByPriority');
+        $method->setAccessible(true);
+
+        $sorted = $method->invoke($controller, collect([
+            [
+                'has_chat_messages' => true,
+                'status' => 'complete',
+                'created_at' => now(),
+            ],
+            [
+                'has_chat_messages' => true,
+                'status' => 'process',
+                'created_at' => now()->subDays(2),
+            ],
+            [
+                'has_chat_messages' => false,
+                'status' => 'process',
+                'created_at' => now()->subDay(),
+            ],
+            [
+                'has_chat_messages' => true,
+                'status' => 'pending',
+                'created_at' => now()->subDays(1),
+            ],
+        ]));
+
+        $this->assertSame('pending', $sorted[0]['status']);
+        $this->assertSame('process', $sorted[1]['status']);
+        $this->assertTrue($sorted[0]['has_chat_messages']);
+        $this->assertTrue($sorted[1]['has_chat_messages']);
+        $this->assertSame('complete', $sorted[2]['status']);
+        $this->assertFalse($sorted[3]['has_chat_messages']);
     }
 
     public function test_admin_permission_page_has_department_picker(): void

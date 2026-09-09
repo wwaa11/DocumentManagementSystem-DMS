@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -150,14 +151,12 @@ class WebController extends Controller
         });
 
         $flag = $request->input('flag');
-        $pendingApprovals = $documents
-            ->where('flag', 'approve')
-            ->sortByDesc('created_at')
-            ->values();
-        $otherDocuments = $documents
-            ->where('flag', '!=', 'approve')
-            ->sortByDesc('created_at')
-            ->values();
+        $pendingApprovals = $this->sortIndexDocumentsByPriority(
+            $documents->where('flag', 'approve')
+        );
+        $otherDocuments = $this->sortIndexDocumentsByPriority(
+            $documents->where('flag', '!=', 'approve')
+        );
 
         if ($flag === 'approve') {
             $otherDocuments = collect();
@@ -199,7 +198,45 @@ class WebController extends Controller
             'created_at' => $item->created_at,
             'requester_name' => $flag === 'dept' ? $item->creator?->name : null,
             'requester_department' => $flag === 'dept' ? $item->creator?->department : null,
+            'has_chat_messages' => method_exists($item, 'hasChatMessages') && $item->hasChatMessages(),
         ];
+    }
+
+    /**
+     * @param  Collection<int, array<string, mixed>>  $documents
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function sortIndexDocumentsByPriority(Collection $documents): Collection
+    {
+        return $documents
+            ->sort(function (array $a, array $b): int {
+                $aPriority = $this->isIndexDocumentChatPriority($a);
+                $bPriority = $this->isIndexDocumentChatPriority($b);
+
+                if ($aPriority !== $bPriority) {
+                    return $aPriority ? -1 : 1;
+                }
+
+                $aCreatedAt = $a['created_at'] ?? null;
+                $bCreatedAt = $b['created_at'] ?? null;
+
+                return ($bCreatedAt?->getTimestamp() ?? 0) <=> ($aCreatedAt?->getTimestamp() ?? 0);
+            })
+            ->values();
+    }
+
+    /**
+     * @param  array<string, mixed>  $document
+     */
+    private function isIndexDocumentChatPriority(array $document): bool
+    {
+        return ($document['has_chat_messages'] ?? false)
+            && ! $this->isIndexDocumentFinished((string) ($document['status'] ?? ''));
+    }
+
+    private function isIndexDocumentFinished(string $status): bool
+    {
+        return in_array($status, ['complete', 'complete-partial', 'reject', 'not_approval', 'cancel'], true);
     }
 
     public function createDocument(): View

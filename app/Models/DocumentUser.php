@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
 class DocumentUser extends Model
@@ -99,6 +100,25 @@ class DocumentUser extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'requester', 'userid');
+    }
+
+    public function itUser(): HasOne
+    {
+        return $this->hasOne(DocumentItUser::class, 'document_user_id', 'id');
+    }
+
+    public function hasChatMessages(): bool
+    {
+        if ($this->relationLoaded('itUser')) {
+            return $this->itUser?->hasChatMessages() ?? false;
+        }
+
+        $itUser = DocumentItUser::query()
+            ->where('document_user_id', $this->id)
+            ->withCount('messages')
+            ->first();
+
+        return $itUser?->hasChatMessages() ?? false;
     }
 
     public function approvers()

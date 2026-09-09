@@ -50,9 +50,9 @@ class DocumentITController extends Controller
         return $this->documentITAdminService->adminNewDocuments($request);
     }
 
-    public function adminMyDocuments(): View
+    public function adminMyDocuments(Request $request): View
     {
-        return $this->documentITAdminService->adminMyDocuments();
+        return $this->documentITAdminService->adminMyDocuments($request);
     }
 
     public function adminAllDocuments(Request $request): View
@@ -134,9 +134,9 @@ class DocumentITController extends Controller
         return $this->documentITAdminService->completeAllDocument();
     }
 
-    public function adminBorrowDocuments(): View
+    public function adminBorrowDocuments(Request $request): View
     {
-        return $this->documentITAdminService->adminBorrowDocuments();
+        return $this->documentITAdminService->adminBorrowDocuments($request);
     }
 
     public function adminBorrowAdd(Request $request): JsonResponse

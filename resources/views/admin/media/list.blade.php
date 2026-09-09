@@ -10,13 +10,62 @@
                 <span>คิวเอกสารรอทำเครื่องหมายเสร็จสิ้น</span>
             </div>
         @elseif ($action == 'all')
+            @php
+                $hasAdvancedFilters = filled($status ?? null)
+                    || filled($start_date ?? null)
+                    || filled($end_date ?? null);
+                $advancedFilterCount = collect([
+                    filled($status ?? null),
+                    filled($start_date ?? null),
+                    filled($end_date ?? null),
+                ])->filter()->count();
+            @endphp
             <div class="border-base-content/5 bg-base-100 mb-4 overflow-hidden rounded-lg border">
                 <div class="border-base-content/5 bg-base-200/30 border-b px-4 py-3">
-                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-5" action="{{ route('admin.media.alllist') }}" method="GET">
-                        <div class="form-control col-span-1 md:col-span-2">
-                            <label class="label pt-0"><span class="label-text text-xs font-semibold">ค้นหา</span></label>
-                            <input class="input input-bordered input-sm w-full" type="text" name="search" value="{{ $search ?? '' }}" placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด...">
+                    <form action="{{ route('admin.media.alllist') }}" method="GET">
+                        <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+                            <div class="form-control min-w-0 flex-1">
+                                <label class="label pt-0" for="media-admin-search">
+                                    <span class="label-text text-xs font-semibold">ค้นหา</span>
+                                </label>
+                                <input
+                                    class="input input-bordered input-sm w-full"
+                                    id="media-admin-search"
+                                    type="search"
+                                    name="search"
+                                    value="{{ $search ?? '' }}"
+                                    placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด..."
+                                >
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button class="btn btn-primary btn-sm px-8" type="submit">
+                                    <i class="fas fa-search mr-1"></i> ค้นหา
+                                </button>
+                                <button
+                                    class="btn btn-ghost btn-sm border-base-content/20 gap-2 px-4"
+                                    type="button"
+                                    data-admin-filter-toggle
+                                    id="media-admin-filters-toggle"
+                                    aria-expanded="{{ $hasAdvancedFilters ? 'true' : 'false' }}"
+                                    aria-controls="media-admin-advanced-filters"
+                                >
+                                    <i class="fas fa-sliders-h"></i>
+                                    ตัวกรอง
+                                    @if ($advancedFilterCount > 0)
+                                        <span class="badge badge-primary badge-sm">{{ $advancedFilterCount }}</span>
+                                    @endif
+                                    <i class="fas fa-chevron-down text-xs transition-transform duration-200 {{ $hasAdvancedFilters ? 'rotate-180' : '' }}" data-filter-chevron></i>
+                                </button>
+                                <a class="btn btn-ghost btn-sm border-base-content/20 px-4" href="{{ route('admin.media.alllist') }}">
+                                    <i class="fas fa-redo mr-1"></i> ล้างค่า
+                                </a>
+                            </div>
                         </div>
+                        <div
+                            class="{{ $hasAdvancedFilters ? '' : 'hidden' }} mt-4 border-t border-base-200/70 pt-4"
+                            id="media-admin-advanced-filters"
+                        >
+                            <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-3">
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">สถานะ</span></label>
                             <select class="select select-bordered select-sm w-full" name="status">
@@ -37,13 +86,7 @@
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่สิ้นสุด</span></label>
                             <input class="input input-bordered input-sm w-full" type="date" name="end_date" value="{{ $end_date ?? '' }}">
                         </div>
-                        <div class="col-span-1 flex justify-end gap-2 md:col-span-5">
-                            <button class="btn btn-primary btn-sm px-8" type="submit">
-                                <i class="fas fa-search mr-1"></i> ค้นหา
-                            </button>
-                            <a class="btn btn-ghost btn-sm border-base-content/20 px-8" href="{{ route('admin.media.alllist') }}">
-                                <i class="fas fa-redo mr-1"></i> ล้างค่า
-                            </a>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -158,6 +201,7 @@
     </x-admin.list-header>
 @endsection
 @push('scripts')
+    <x-admin.collapsible-filter-script />
     @if ($action == 'new')
         <script>
             function acceptDocument(documentId) {

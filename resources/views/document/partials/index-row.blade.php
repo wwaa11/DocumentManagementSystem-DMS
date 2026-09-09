@@ -69,17 +69,18 @@
                 </div>
             @endif
         </div>
+        @if ($document['document_number'])
+            <div class="badge badge-soft badge-{{ $document['document_tag']['colour'] }} inline-flex items-center gap-1">
+                
+                <span>{{ $document['document_number'] }}</span>
+            </div>
+        @endif
         @if (($document['flag'] ?? '') === 'dept' && ($document['requester_name'] ?? null))
-            <div class="text-base-content/50 text-xs">
+            <div class="ps-1 text-base-content/50 text-xs">
                 {{ $document['requester_name'] }}
                 @if ($document['requester_department'] ?? null)
                     · {{ $document['requester_department'] }}
                 @endif
-            </div>
-        @endif
-        @if ($document['document_number'])
-            <div class="badge badge-soft badge-{{ $document['document_tag']['colour'] }}">
-                {{ $document['document_number'] }}
             </div>
         @endif
     </td>
@@ -100,7 +101,12 @@
         {!! $document['detail'] !!}
     </td>
     <td>
-        <div class="badge {{ $class }}">{{ $text }}</div>
+        <div class="badge {{ $class }}">
+            {{ $text }}
+            @if ($document['has_chat_messages'] ?? false)
+                <i class="fas fa-comments text-secondary ms-1" title="มีข้อความแชท"></i>
+            @endif
+        </div>
     </td>
     <td>
         <div class="text-base-content/50 text-sm">

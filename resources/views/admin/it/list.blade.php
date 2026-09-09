@@ -11,19 +11,94 @@
             </div>
         @endif
         <div class="border-base-content/5 bg-base-100 overflow-x-auto rounded-lg border">
-            @if (in_array($action, ['all', 'new']))
+            @if (in_array($action, ['all', 'new', 'my', 'borrow']))
+                @php
+                    $listRoute = match ($action) {
+                        'all' => route('admin.it.alllist'),
+                        'new' => route('admin.it.newlist'),
+                        'my' => route('admin.it.mylist'),
+                        'borrow' => route('admin.it.borrowlist'),
+                    };
+                    $hasAdvancedFilters = ($action === 'all' && filled($process_log ?? null))
+                        || ($action !== 'borrow' && isset($type) && $type !== 'ALL')
+                        || filled($subtype ?? null)
+                        || (in_array($action, ['all', 'my', 'borrow'], true) && filled($status ?? null))
+                        || filled($department ?? null)
+                        || ($action === 'all' && filled($process_userid ?? null))
+                        || filled($start_date ?? null)
+                        || filled($end_date ?? null);
+                    $advancedFilterCount = collect([
+                        $action === 'all' && filled($process_log ?? null),
+                        $action !== 'borrow' && isset($type) && $type !== 'ALL',
+                        filled($subtype ?? null),
+                        in_array($action, ['all', 'my', 'borrow'], true) && filled($status ?? null),
+                        filled($department ?? null),
+                        $action === 'all' && filled($process_userid ?? null),
+                        filled($start_date ?? null),
+                        filled($end_date ?? null),
+                    ])->filter()->count();
+                @endphp
                 <div class="border-base-content/5 bg-base-200/30 border-b px-4 py-3">
-                    <form class="grid grid-cols-1 items-end gap-4 md:grid-cols-4" action="{{ $action == 'all' ? route('admin.it.alllist') : route('admin.it.newlist') }}" method="GET">
-                        <div class="form-control col-span-1">
-                            <label class="label pt-0"><span class="label-text text-xs font-semibold">ค้นหา</span></label>
-                            <input class="input input-bordered input-sm w-full" type="text" name="search" value="{{ $search ?? '' }}" placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด...">
+                    <form action="{{ $listRoute }}" method="GET">
+                        <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+                            <div class="form-control min-w-0 flex-1">
+                                <label class="label pt-0" for="it-admin-search">
+                                    <span class="label-text text-xs font-semibold">ค้นหา</span>
+                                </label>
+                                <input
+                                    class="input input-bordered input-sm w-full"
+                                    id="it-admin-search"
+                                    type="search"
+                                    name="search"
+                                    value="{{ $search ?? '' }}"
+                                    placeholder="เลขที่, ชื่อเอกสาร, รายละเอียด..."
+                                >
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button class="btn btn-primary btn-sm px-8" type="submit">
+                                    <i class="fas fa-search mr-1"></i> ค้นหา
+                                </button>
+                                <button
+                                    class="btn btn-ghost btn-sm border-base-content/20 gap-2 px-4"
+                                    type="button"
+                                    data-admin-filter-toggle
+                                    id="it-admin-filters-toggle"
+                                    aria-expanded="{{ $hasAdvancedFilters ? 'true' : 'false' }}"
+                                    aria-controls="it-admin-advanced-filters"
+                                >
+                                    <i class="fas fa-sliders-h"></i>
+                                    ตัวกรอง
+                                    @if ($advancedFilterCount > 0)
+                                        <span class="badge badge-primary badge-sm">{{ $advancedFilterCount }}</span>
+                                    @endif
+                                    <i class="fas fa-chevron-down text-xs transition-transform duration-200 {{ $hasAdvancedFilters ? 'rotate-180' : '' }}" data-filter-chevron></i>
+                                </button>
+                                @if ($action == 'all')
+                                    <a
+                                        class="btn btn-success btn-sm gap-2 px-4 text-success-content"
+                                        href="{{ route('admin.it.alllist.export', request()->query()) }}"
+                                    >
+                                        <i class="fas fa-file-excel"></i> Export Excel
+                                    </a>
+                                @endif
+                                <a class="btn btn-ghost btn-sm border-base-content/20 px-4" href="{{ $listRoute }}">
+                                    <i class="fas fa-redo mr-1"></i> ล้างค่า
+                                </a>
+                            </div>
                         </div>
+
+                        <div
+                            class="{{ $hasAdvancedFilters ? '' : 'hidden' }} mt-4 border-t border-base-200/70 pt-4"
+                            id="it-admin-advanced-filters"
+                        >
+                            <div class="grid grid-cols-1 items-end gap-4 md:grid-cols-4">
                         @if ($action == 'all')
                             <div class="form-control col-span-1 ">
                                 <label class="label pt-0"><span class="label-text text-xs font-semibold">รายการดำเนินงาน</span></label>
                                 <input class="input input-bordered input-sm w-full" type="text" name="process_log" value="{{ $process_log ?? '' }}" placeholder="ค้นหาบันทึกการดำเนินการ...">
                             </div>
                         @endif
+                        @if ($action !== 'borrow')
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ประเภท</span></label>
                             <select class="select select-bordered select-sm w-full" id="type-filter" name="type">
@@ -35,8 +110,17 @@
                                 @endif
                             </select>
                         </div>
+                        @endif
                         <div class="form-control">
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">ประเภทย่อย</span></label>
+                            @if ($action === 'borrow')
+                                <select class="select select-bordered select-sm w-full" name="subtype">
+                                    <option value="">ทั้งหมด</option>
+                                    @foreach ($documentSubtypes['BORROW'] ?? [] as $subtypeValue => $subtypeLabel)
+                                        <option value="{{ $subtypeValue }}" {{ isset($subtype) && $subtype == $subtypeValue ? 'selected' : '' }}>{{ $subtypeLabel }}</option>
+                                    @endforeach
+                                </select>
+                            @else
                             <select class="select select-bordered select-sm w-full" id="subtype-filter" name="subtype" {{ ! isset($type) || $type == 'ALL' ? 'disabled' : '' }}>
                                 <option value="">ทั้งหมด</option>
                                 @if (isset($type) && $type !== 'ALL' && isset($documentSubtypes[$type]))
@@ -45,18 +129,33 @@
                                     @endforeach
                                 @endif
                             </select>
+                            @endif
                         </div>
-                        @if ($action == 'all')
+                        @if (in_array($action, ['all', 'my'], true))
                             <div class="form-control">
                                 <label class="label pt-0"><span class="label-text text-xs font-semibold">สถานะ</span></label>
                                 <select class="select select-bordered select-sm w-full" name="status">
                                     <option value="">ทั้งหมด</option>
-                                    <option value="wait_approval" {{ isset($status) && $status == 'wait_approval' ? 'selected' : '' }}>รออนุมัติจากหัวหน้าแผนก</option>
+                                    @if ($action === 'all')
+                                        <option value="wait_approval" {{ isset($status) && $status == 'wait_approval' ? 'selected' : '' }}>รออนุมัติจากหัวหน้าแผนก</option>
+                                    @endif
                                     <option value="pending" {{ isset($status) && $status == 'pending' ? 'selected' : '' }}>รอการดำเนินการ</option>
                                     <option value="process" {{ isset($status) && $status == 'process' ? 'selected' : '' }}>กำลังดำเนินการ</option>
-                                    <option value="done" {{ isset($status) && $status == 'done' ? 'selected' : '' }}>เอกสารรออนุมัติ</option>
-                                    <option value="complete" {{ isset($status) && $status == 'complete' ? 'selected' : '' }}>เสร็จสมบูรณ์</option>
-                                    <option value="reject" {{ isset($status) && $status == 'reject' ? 'selected' : '' }}>ยกเลิกเอกสาร</option>
+                                    @if ($action === 'all')
+                                        <option value="done" {{ isset($status) && $status == 'done' ? 'selected' : '' }}>เอกสารรออนุมัติ</option>
+                                        <option value="complete" {{ isset($status) && $status == 'complete' ? 'selected' : '' }}>เสร็จสมบูรณ์</option>
+                                        <option value="reject" {{ isset($status) && $status == 'reject' ? 'selected' : '' }}>ยกเลิกเอกสาร</option>
+                                    @endif
+                                </select>
+                            </div>
+                        @elseif ($action === 'borrow')
+                            <div class="form-control">
+                                <label class="label pt-0"><span class="label-text text-xs font-semibold">สถานะ</span></label>
+                                <select class="select select-bordered select-sm w-full" name="status">
+                                    <option value="">ทั้งหมด</option>
+                                    <option value="pending" {{ isset($status) && $status == 'pending' ? 'selected' : '' }}>รอการดำเนินการ</option>
+                                    <option value="borrow" {{ isset($status) && $status == 'borrow' ? 'selected' : '' }}>อุปกรณ์อยู่ระหว่างการยืม</option>
+                                    <option value="return_approve" {{ isset($status) && $status == 'return_approve' ? 'selected' : '' }}>รอรับอุปกรณ์คืน</option>
                                 </select>
                             </div>
                         @endif
@@ -90,21 +189,7 @@
                             <label class="label pt-0"><span class="label-text text-xs font-semibold">วันที่สิ้นสุด</span></label>
                             <input class="input input-bordered input-sm w-full" type="date" name="end_date" value="{{ $end_date ?? '' }}">
                         </div>
-                        <div class="col-span-1 flex justify-end gap-2 md:col-span-4">
-                            <button class="btn btn-primary btn-sm px-8" type="submit">
-                                <i class="fas fa-search mr-1"></i> ค้นหา
-                            </button>
-                            @if ($action == 'all')
-                                <a
-                                    class="btn btn-success btn-sm gap-2 px-8 text-success-content"
-                                    href="{{ route('admin.it.alllist.export', request()->query()) }}"
-                                >
-                                    <i class="fas fa-file-excel"></i> Export Excel
-                                </a>
-                            @endif
-                            <a class="btn btn-ghost btn-sm border-base-content/20 px-8" href="{{ $action == 'all' ? route('admin.it.alllist') : route('admin.it.newlist') }}">
-                                <i class="fas fa-redo mr-1"></i> ล้างค่า
-                            </a>
+                            </div>
                         </div>
                     </form>
                     @if (($typeCounts['IT'] ?? 0) + ($typeCounts['USER'] ?? 0) + ($typeCounts['BORROW'] ?? 0) > 0)
@@ -114,10 +199,14 @@
                             @else
                                 พบ {{ $documents->count() }} รายการ
                             @endif
+                            @if ($action === 'borrow')
+                                · ยืม/คืนอุปกรณ์ {{ $typeCounts['BORROW'] ?? 0 }}
+                            @else
                             · แจ้งงาน/สนับสนุน {{ $typeCounts['IT'] ?? 0 }}
                             · ขอสิทธิใช้งาน {{ $typeCounts['USER'] ?? 0 }}
                             @if ($action == 'all')
                                 · ยืม/คืนอุปกรณ์ {{ $typeCounts['BORROW'] ?? 0 }}
+                            @endif
                             @endif
                         </p>
                     @endif
@@ -144,12 +233,16 @@
                             $isNewJobOverdue = $action == 'new' && $document->created_at->diffInSeconds(now()) > 86400;
                         @endphp
                         <tr class="hover:bg-base-300 {{ $isNewJobOverdue ? 'bg-error/10' : '' }}">
-                            <td class="text-center">
+                            <td class="text-center min-w-40">
                                 @if ($action == 'new')
                                     <x-document.job-timing-badge :since="$document->created_at" />
                                 @endif
-                                <br>
-                                {{ $document->document_number }}
+                                @if (method_exists($document, 'hasChatMessages') && $document->hasChatMessages())
+                                    <i class="fas fa-comments text-secondary" title="มีข้อความแชท"></i>
+                                @endif
+                                <div class="mt-1 flex items-center justify-center gap-1 text-xs">
+                                    <span>{{ $document->document_number }}</span>
+                                </div>
                             </td>
                             <td class="text-xs">
                                 {{ $document->document_type_name }} <br>
@@ -189,12 +282,12 @@
                                     <x-document.done-by :document="$document" />
                                 </td>
                             @endif
-                            <td class="text-center">
+                            <td class="text-center max-w-40">
                                 @php
                                     switch ($document->status) {
                                         case "wait_approval":
                                             $text = "รออนุมัติจากหัวหน้าแผนก";
-                                            $class = "badge-soft badge-warning";
+                                            $class = "badge-soft badge-warning text-xs";
                                             break;
                                         case "not_approval":
                                             $text = "หน่วยงานไม่อนุมัติ";
@@ -247,8 +340,9 @@
                                 @endphp
                                 <div class="badge {{ $class }}">{{ $text }}</div>
                                 @if ($document->status == "process")
-                                    <div class="bg-primary mt-1 rounded">{{ $document->assigned_user_id }} :
-                                        {{ $document->assigned_user->name }}</div>
+                                    <div class="bg-primary mt-1 rounded text-xs px-2 py-1 text-primary-content">
+                                        {{ $document->assigned_user_id }} : {{ $document->assigned_user->name }}
+                                    </div>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -359,7 +453,7 @@
             }
         </script>
     @endif
-    @if (in_array($action, ['all', 'new']))
+    @if (in_array($action, ['all', 'new', 'my']))
         <script>
             const itDocumentSubtypes = @json($documentSubtypes ?? []);
             const selectedSubtype = @json($subtype ?? '');
@@ -398,6 +492,7 @@
             }
         </script>
     @endif
+    <x-admin.collapsible-filter-script />
     <script>
         let seconds = 30;
 

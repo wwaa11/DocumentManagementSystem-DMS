@@ -21,6 +21,16 @@ class DocumentITAdminService
 {
     public function __construct(private DocumentWorkflowService $workflow) {}
 
+    private function chatAwareItQuery(): Builder
+    {
+        return DocumentIT::query()->withCount('messages');
+    }
+
+    private function chatAwareItUserQuery(): Builder
+    {
+        return DocumentItUser::query()->withCount('messages');
+    }
+
     public function adminDocumentCount(): JsonResponse
     {
         $documentListAll = DocumentIT::whereIn('status', ['pending', 'process', 'done'])->get();
@@ -71,7 +81,7 @@ class DocumentITAdminService
 
     public function adminHardwareDocuments(): View
     {
-        $documentListAll = DocumentIT::where('status', 'pending')->get();
+        $documentListAll = $this->chatAwareItQuery()->where('status', 'pending')->get();
         $documents = $documentListAll->filter(function ($item) {
             $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
 
@@ -92,8 +102,8 @@ class DocumentITAdminService
     public function adminApproveDocuments(): View
     {
         $with = ['approvers.user', 'creator', 'tasks.user', 'logs.user'];
-        $documents = DocumentIT::query()->where('status', 'done')->with($with)->get();
-        $documentsITUser = DocumentItUser::query()
+        $documents = $this->chatAwareItQuery()->where('status', 'done')->with($with)->get();
+        $documentsITUser = $this->chatAwareItUserQuery()
             ->where('status', 'done')
             ->with([...$with, 'documentUser'])
             ->get();
@@ -138,23 +148,36 @@ class DocumentITAdminService
         ]);
     }
 
-    public function adminMyDocuments(): View
+    public function adminMyDocuments(Request $request): View
     {
-        $currentUserId = auth()->user()->userid;
-        $documents = DocumentIT::query()
-            ->where('assigned_user_id', $currentUserId)
-            ->whereIn('status', ['process', 'pending'])
-            ->get();
-        $documentsITUser = DocumentItUser::query()
-            ->where('assigned_user_id', $currentUserId)
-            ->whereIn('status', ['process', 'pending'])
-            ->get();
-
-        $documents = $this->mergeDocumentCollections($documents, $documentsITUser);
-        $documents = $documents->sortByDesc('created_at');
+        $filters = $this->resolveMyDocumentsFilters($request);
+        $documents = $this->buildFilteredMyDocuments($filters, auth()->user()->userid);
+        $typeCounts = [
+            'IT' => $documents->filter(fn ($document): bool => $document instanceof DocumentIT)->count(),
+            'USER' => $documents->filter(fn ($document): bool => $document instanceof DocumentItUser)->count(),
+        ];
+        $departments = User::query()
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
         $action = 'my';
 
-        return view('admin.it.list', compact('documents', 'action'));
+        return view('admin.it.list', [
+            'documents' => $documents,
+            'action' => $action,
+            'search' => $filters['search'],
+            'type' => $filters['type'],
+            'subtype' => $filters['subtype'],
+            'status' => $filters['status'],
+            'documentSubtypes' => $filters['documentSubtypes'],
+            'department' => $filters['department'],
+            'departments' => $departments,
+            'start_date' => $filters['start_date'],
+            'end_date' => $filters['end_date'],
+            'typeCounts' => $typeCounts,
+        ]);
     }
 
     /**
@@ -327,7 +350,7 @@ class DocumentITAdminService
         $itUserWith = ['documentUser.creator', 'approvers.user', 'logs' => fn ($query) => $query->where('action', 'process')->orderBy('created_at'), 'logs.user'];
         $borrowWith = ['creator', 'approvers.user', 'logs' => fn ($query) => $query->where('action', 'process')->orderBy('created_at'), 'logs.user'];
 
-        $itQuery = DocumentIT::query()->with($itWith);
+        $itQuery = $this->chatAwareItQuery()->with($itWith);
         if ($search) {
             $itQuery->where(function ($q) use ($search) {
                 $q->where('document_number', 'LIKE', "%{$search}%")
@@ -355,7 +378,7 @@ class DocumentITAdminService
         }
         $documents = ($type == 'ALL' || $type == 'IT') ? $itQuery->get() : collect();
 
-        $itUserQuery = DocumentItUser::query()->with($itUserWith);
+        $itUserQuery = $this->chatAwareItUserQuery()->with($itUserWith);
         if ($search) {
             $itUserQuery->where(function ($q) use ($search) {
                 $q->where('document_number', 'LIKE', "%{$search}%")
@@ -483,7 +506,7 @@ class DocumentITAdminService
             $query->where('step', 2)->where('task_user', 'IT Unit Support');
         };
 
-        $itQuery = DocumentIT::query()
+        $itQuery = $this->chatAwareItQuery()
             ->with(['creator', 'approvers.user'])
             ->where('status', 'pending')
             ->whereNull('assigned_user_id')
@@ -517,7 +540,7 @@ class DocumentITAdminService
 
         $documents = ($type === 'ALL' || $type === 'IT') ? $itQuery->get() : collect();
 
-        $itUserQuery = DocumentItUser::query()
+        $itUserQuery = $this->chatAwareItUserQuery()
             ->with(['documentUser.creator', 'approvers.user'])
             ->where('status', 'pending')
             ->whereNull('assigned_user_id')
@@ -556,6 +579,256 @@ class DocumentITAdminService
         $documentsITUser = ($type === 'ALL' || $type === 'USER') ? $itUserQuery->get() : collect();
 
         return $this->mergeDocumentCollections($documents, $documentsITUser)->sortBy('created_at')->values();
+    }
+
+    /**
+     * @return array{
+     *     search: mixed,
+     *     type: string,
+     *     subtype: mixed,
+     *     status: mixed,
+     *     department: mixed,
+     *     start_date: mixed,
+     *     end_date: mixed,
+     *     documentSubtypes: array<string, array<string, string>>
+     * }
+     */
+    private function resolveMyDocumentsFilters(Request $request): array
+    {
+        $type = $request->get('type') ?: 'ALL';
+        $subtype = $request->get('subtype');
+        $status = $request->get('status');
+        $documentSubtypes = $this->documentSubtypes();
+
+        if (! in_array($type, ['ALL', 'IT', 'USER'], true)) {
+            $type = 'ALL';
+        }
+
+        if ($type === 'ALL' || ! isset($documentSubtypes[$type][$subtype])) {
+            $subtype = null;
+        }
+
+        if ($status && ! in_array($status, ['pending', 'process'], true)) {
+            $status = null;
+        }
+
+        return [
+            'search' => $request->get('search'),
+            'type' => $type,
+            'subtype' => $subtype,
+            'status' => $status,
+            'department' => $request->get('department'),
+            'start_date' => $request->get('start_date'),
+            'end_date' => $request->get('end_date'),
+            'documentSubtypes' => $documentSubtypes,
+        ];
+    }
+
+    /**
+     * @param  array{
+     *     search: mixed,
+     *     type: string,
+     *     subtype: mixed,
+     *     status: mixed,
+     *     department: mixed,
+     *     start_date: mixed,
+     *     end_date: mixed,
+     *     documentSubtypes: array<string, array<string, string>>
+     * }  $filters
+     * @return Collection<int, DocumentIT|DocumentItUser>
+     */
+    private function buildFilteredMyDocuments(array $filters, string $currentUserId): Collection
+    {
+        [
+            'search' => $search,
+            'type' => $type,
+            'subtype' => $subtype,
+            'status' => $status,
+            'department' => $department,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+        ] = $filters;
+
+        $itQuery = $this->chatAwareItQuery()
+            ->with(['creator', 'approvers.user'])
+            ->where('assigned_user_id', $currentUserId)
+            ->whereIn('status', ['process', 'pending']);
+
+        if ($search) {
+            $itQuery->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhere('title', 'LIKE', "%{$search}%")
+                    ->orWhere('detail', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            $itQuery->where('status', $status);
+        }
+
+        if ($department) {
+            $itQuery->whereHas('creator', function ($q) use ($department) {
+                $q->where('department', $department);
+            });
+        }
+
+        if ($start_date) {
+            $itQuery->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $itQuery->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($subtype && $type === 'IT') {
+            $this->applyItSubtypeFilter($itQuery, $subtype);
+        }
+
+        $documents = ($type === 'ALL' || $type === 'IT') ? $itQuery->get() : collect();
+
+        $itUserQuery = $this->chatAwareItUserQuery()
+            ->with(['documentUser.creator', 'approvers.user'])
+            ->where('assigned_user_id', $currentUserId)
+            ->whereIn('status', ['process', 'pending']);
+
+        if ($search) {
+            $itUserQuery->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhereHas('documentUser', function ($sq) use ($search) {
+                        $sq->where('title', 'LIKE', "%{$search}%")
+                            ->orWhere('detail', 'LIKE', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($status) {
+            $itUserQuery->where('status', $status);
+        }
+
+        if ($department) {
+            $itUserQuery->whereHas('documentUser.creator', function ($q) use ($department) {
+                $q->where('department', $department);
+            });
+        }
+
+        if ($start_date) {
+            $itUserQuery->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $itUserQuery->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($subtype && $type === 'USER') {
+            $itUserQuery->whereHas('documentUser', function ($q) use ($subtype): void {
+                $q->where('title', $subtype);
+            });
+        }
+
+        $documentsITUser = ($type === 'ALL' || $type === 'USER') ? $itUserQuery->get() : collect();
+
+        return $this->mergeDocumentCollections($documents, $documentsITUser)->sortByDesc('created_at')->values();
+    }
+
+    /**
+     * @return array{
+     *     search: mixed,
+     *     subtype: mixed,
+     *     status: mixed,
+     *     department: mixed,
+     *     start_date: mixed,
+     *     end_date: mixed,
+     *     documentSubtypes: array<string, array<string, string>>
+     * }
+     */
+    private function resolveBorrowDocumentsFilters(Request $request): array
+    {
+        $subtype = $request->get('subtype');
+        $status = $request->get('status');
+        $documentSubtypes = $this->documentSubtypes();
+
+        if (! isset($documentSubtypes['BORROW'][$subtype])) {
+            $subtype = null;
+        }
+
+        if ($status && ! in_array($status, ['pending', 'borrow', 'return_approve'], true)) {
+            $status = null;
+        }
+
+        return [
+            'search' => $request->get('search'),
+            'subtype' => $subtype,
+            'status' => $status,
+            'department' => $request->get('department'),
+            'start_date' => $request->get('start_date'),
+            'end_date' => $request->get('end_date'),
+            'documentSubtypes' => $documentSubtypes,
+        ];
+    }
+
+    /**
+     * @param  array{
+     *     search: mixed,
+     *     subtype: mixed,
+     *     status: mixed,
+     *     department: mixed,
+     *     start_date: mixed,
+     *     end_date: mixed,
+     *     documentSubtypes: array<string, array<string, string>>
+     * }  $filters
+     * @return Collection<int, DocumentBorrow>
+     */
+    private function buildFilteredBorrowDocuments(array $filters): Collection
+    {
+        [
+            'search' => $search,
+            'subtype' => $subtype,
+            'status' => $status,
+            'department' => $department,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+        ] = $filters;
+
+        $excludeHardwareSupportTask = function (Builder $query): void {
+            $query->where('step', 2)->where('task_user', 'IT Unit Support');
+        };
+
+        $borrowQuery = DocumentBorrow::query()
+            ->with(['creator', 'approvers.user'])
+            ->whereIn('status', ['pending', 'borrow', 'return_approve'])
+            ->whereDoesntHave('tasks', $excludeHardwareSupportTask);
+
+        if ($search) {
+            $borrowQuery->where(function ($q) use ($search) {
+                $q->where('document_number', 'LIKE', "%{$search}%")
+                    ->orWhere('title', 'LIKE', "%{$search}%")
+                    ->orWhere('detail', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            $borrowQuery->where('status', $status);
+        }
+
+        if ($department) {
+            $borrowQuery->whereHas('creator', function ($q) use ($department) {
+                $q->where('department', $department);
+            });
+        }
+
+        if ($start_date) {
+            $borrowQuery->whereDate('created_at', '>=', $start_date);
+        }
+
+        if ($end_date) {
+            $borrowQuery->whereDate('created_at', '<=', $end_date);
+        }
+
+        if ($subtype) {
+            $this->applyBorrowSubtypeFilter($borrowQuery, $subtype);
+        }
+
+        return $borrowQuery->get()->values();
     }
 
     /**
@@ -1192,17 +1465,31 @@ class DocumentITAdminService
         ]);
     }
 
-    public function adminBorrowDocuments(): View
+    public function adminBorrowDocuments(Request $request): View
     {
-        $documents = DocumentBorrow::whereIn('status', ['pending', 'borrow', 'return_approve'])->get();
-        $documents = $documents->filter(function ($item) {
-            $task = $item->tasks()->where('step', 2)->where('task_user', 'IT Unit Support')->first();
-
-            return ! $task;
-        });
+        $filters = $this->resolveBorrowDocumentsFilters($request);
+        $documents = $this->buildFilteredBorrowDocuments($filters);
+        $departments = User::query()
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
         $action = 'borrow';
 
-        return view('admin.it.list', compact('documents', 'action'));
+        return view('admin.it.list', [
+            'documents' => $documents,
+            'action' => $action,
+            'search' => $filters['search'],
+            'subtype' => $filters['subtype'],
+            'status' => $filters['status'],
+            'documentSubtypes' => $filters['documentSubtypes'],
+            'department' => $filters['department'],
+            'departments' => $departments,
+            'start_date' => $filters['start_date'],
+            'end_date' => $filters['end_date'],
+            'typeCounts' => ['BORROW' => $documents->count()],
+        ]);
     }
 
     public function adminBorrowAdd(Request $request): JsonResponse

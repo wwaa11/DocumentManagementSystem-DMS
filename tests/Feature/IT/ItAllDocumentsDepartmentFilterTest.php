@@ -8,6 +8,18 @@ use Tests\TestCase;
 
 class ItAllDocumentsDepartmentFilterTest extends TestCase
 {
+    public function test_it_list_shows_chat_icon_when_document_has_chat(): void
+    {
+        $listSource = file_get_contents(resource_path('views/admin/it/list.blade.php'));
+        $chatSource = file_get_contents(app_path('Models/Concerns/HasDocumentChat.php'));
+        $serviceSource = file_get_contents(app_path('Services/IT/DocumentITAdminService.php'));
+
+        $this->assertStringContainsString('hasChatMessages', $listSource);
+        $this->assertStringContainsString('fa-comments', $listSource);
+        $this->assertStringContainsString('hasChatMessages', $chatSource);
+        $this->assertStringContainsString('withCount(\'messages\')', $serviceSource);
+    }
+
     public function test_all_documents_list_has_creator_department_filter(): void
     {
         $source = file_get_contents(resource_path('views/admin/it/list.blade.php'));
@@ -15,6 +27,8 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
         $this->assertStringContainsString('แผนกที่สร้าง', $source);
         $this->assertStringContainsString('name="department"', $source);
         $this->assertStringContainsString('@foreach ($departments ?? [] as $dept)', $source);
+        $this->assertStringContainsString('it-admin-advanced-filters', $source);
+        $this->assertStringContainsString('data-admin-filter-toggle', $source);
     }
 
     public function test_admin_all_documents_filters_by_creator_department(): void
@@ -226,12 +240,67 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
     {
         $source = file_get_contents(resource_path('views/admin/it/list.blade.php'));
 
-        $this->assertStringContainsString("in_array(\$action, ['all', 'new'])", $source);
+        $this->assertStringContainsString("in_array(\$action, ['all', 'new', 'my', 'borrow'])", $source);
         $this->assertStringContainsString("route('admin.it.newlist')", $source);
+        $this->assertStringContainsString("route('admin.it.mylist')", $source);
+        $this->assertStringContainsString("route('admin.it.borrowlist')", $source);
         $this->assertStringContainsString('name="search"', $source);
         $this->assertStringContainsString('id="type-filter"', $source);
         $this->assertStringContainsString('id="subtype-filter"', $source);
         $this->assertStringContainsString('name="department"', $source);
+    }
+
+    public function test_admin_borrow_documents_uses_filtered_query(): void
+    {
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'adminBorrowDocuments');
+        $body = file_get_contents($method->getFileName());
+        $body = implode("\n", array_slice(
+            explode("\n", $body),
+            $method->getStartLine() - 1,
+            $method->getEndLine() - $method->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('$this->resolveBorrowDocumentsFilters($request)', $body);
+        $this->assertStringContainsString('$this->buildFilteredBorrowDocuments($filters)', $body);
+
+        $buildMethod = new ReflectionMethod(DocumentITAdminService::class, 'buildFilteredBorrowDocuments');
+        $buildBody = file_get_contents($buildMethod->getFileName());
+        $buildBody = implode("\n", array_slice(
+            explode("\n", $buildBody),
+            $buildMethod->getStartLine() - 1,
+            $buildMethod->getEndLine() - $buildMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString("->whereIn('status', ['pending', 'borrow', 'return_approve'])", $buildBody);
+        $this->assertStringContainsString("->where('task_user', 'IT Unit Support')", $buildBody);
+        $this->assertStringContainsString('$this->applyBorrowSubtypeFilter($borrowQuery, $subtype)', $buildBody);
+        $this->assertStringContainsString("whereHas('creator'", $buildBody);
+    }
+
+    public function test_admin_my_documents_uses_filtered_query(): void
+    {
+        $method = new ReflectionMethod(DocumentITAdminService::class, 'adminMyDocuments');
+        $body = file_get_contents($method->getFileName());
+        $body = implode("\n", array_slice(
+            explode("\n", $body),
+            $method->getStartLine() - 1,
+            $method->getEndLine() - $method->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString('$this->resolveMyDocumentsFilters($request)', $body);
+        $this->assertStringContainsString('$this->buildFilteredMyDocuments($filters, auth()->user()->userid)', $body);
+
+        $buildMethod = new ReflectionMethod(DocumentITAdminService::class, 'buildFilteredMyDocuments');
+        $buildBody = file_get_contents($buildMethod->getFileName());
+        $buildBody = implode("\n", array_slice(
+            explode("\n", $buildBody),
+            $buildMethod->getStartLine() - 1,
+            $buildMethod->getEndLine() - $buildMethod->getStartLine() + 1
+        ));
+
+        $this->assertStringContainsString("->where('assigned_user_id', \$currentUserId)", $buildBody);
+        $this->assertStringContainsString("->whereIn('status', ['process', 'pending'])", $buildBody);
+        $this->assertStringContainsString('$this->applyItSubtypeFilter($itQuery, $subtype)', $buildBody);
     }
 
     public function test_admin_new_documents_uses_filtered_query(): void
