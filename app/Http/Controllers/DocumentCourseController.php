@@ -202,14 +202,6 @@ class DocumentCourseController extends Controller
         ]);
     }
 
-    public function permissions(Request $request): View
-    {
-        return view(
-            'admin.course-permissions',
-            $this->coursePlanService->listPermissionUsers($request->input('search'))
-        );
-    }
-
     public function updatePermission(UpdateCoursePermissionRequest $request): RedirectResponse
     {
         try {

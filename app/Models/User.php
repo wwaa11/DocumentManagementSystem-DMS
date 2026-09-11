@@ -173,14 +173,14 @@ class User extends Authenticatable
             ],
             'roles' => [
                 [
-                    'title' => 'Roles',
+                    'title' => 'Permissions',
                     'type' => 'role',
                     'id' => 'title',
                     'link' => null,
                     'count' => false,
                 ],
                 [
-                    'title' => 'User Roles',
+                    'title' => 'User Roles & Permissions',
                     'type' => 'role',
                     'id' => 'role',
                     'link' => 'roles.list',
@@ -532,7 +532,7 @@ class User extends Authenticatable
                 'count' => [],
                 'lists' => [],
                 'groups' => $this->menuGroups([
-                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['approvers', 'roles', 'course-permissions', 'document-view-permissions'], 'counts' => []],
+                    ['key' => 'admin', 'label' => 'Admin', 'menus' => ['approvers', 'roles'], 'counts' => []],
                     ['key' => 'it', 'label' => 'IT', 'menus' => ['it-approve', 'it-hardware', 'it'], 'counts' => ['it']],
                     ['key' => 'purchase', 'label' => 'Purchase', 'menus' => ['purchase-approve', 'purchase-head', 'purchase'], 'counts' => ['purchase']],
                     ['key' => 'media', 'label' => 'Media', 'menus' => ['media-head', 'media'], 'counts' => ['media']],

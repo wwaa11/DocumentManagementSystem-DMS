@@ -338,7 +338,9 @@ class CoursePlanTest extends TestCase
             ->values()
             ->all();
 
-        $this->assertContains('admin.course-permissions', $links);
+        $this->assertContains('roles.list', $links);
+        $this->assertNotContains('admin.course-permissions', $links);
+        $this->assertNotContains('admin.document-view-permissions', $links);
     }
 
     public function test_non_admin_menu_excludes_course_permissions_page(): void

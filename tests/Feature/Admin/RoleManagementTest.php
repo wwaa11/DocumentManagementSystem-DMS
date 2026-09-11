@@ -92,7 +92,7 @@ class RoleManagementTest extends TestCase
         $user->role = 'media-head';
 
         $titles = collect($user->menu['lists'])->pluck('title')->all();
-        $roleSectionIndex = array_search('Roles', $titles, true);
+        $roleSectionIndex = array_search('Permissions', $titles, true);
         $roleLinkIndex = collect($user->menu['lists'])->search(
             fn (array $item): bool => ($item['link'] ?? null) === 'roles.list'
         );
@@ -111,5 +111,14 @@ class RoleManagementTest extends TestCase
         $this->assertSame(['media' => 'Media', 'media-head' => 'Media Head'], $labels);
         $this->assertArrayNotHasKey('admin', $labels);
         $this->assertArrayNotHasKey('purchase', $labels);
+    }
+
+    public function test_roles_page_includes_role_filter_dropdown(): void
+    {
+        $source = file_get_contents(resource_path('views/admin/roles.blade.php'));
+
+        $this->assertIsString($source);
+        $this->assertStringContainsString('name="role"', $source);
+        $this->assertStringContainsString('ทุกบทบาท', $source);
     }
 }

@@ -43,14 +43,22 @@ class AdminController extends Controller
 
     public function ApproverUpdate(UpdateApproverRequest $request): RedirectResponse
     {
-        $this->approverAdminService->updateApprover($request->validated());
+        try {
+            $this->approverAdminService->updateApprover($request->validated());
+        } catch (InvalidArgumentException $exception) {
+            return redirect()->back()->withErrors(['department' => $exception->getMessage()]);
+        }
 
         return redirect()->back()->with('success', 'Approver updated successfully!');
     }
 
     public function RoleList(Request $request): View
     {
-        $data = $this->approverAdminService->listRoles($request->input('search'));
+        $data = $this->approverAdminService->listRoles(
+            $request->input('search'),
+            $request->input('filter'),
+            $request->input('role')
+        );
 
         return view('admin.roles')->with($data);
     }
@@ -64,14 +72,6 @@ class AdminController extends Controller
         }
 
         return redirect()->back()->with('success', 'Role updated successfully!');
-    }
-
-    public function documentViewPermissions(Request $request): View
-    {
-        return view(
-            'admin.document-view-permissions',
-            $this->documentViewPermissionService->listPermissionUsers($request->input('search'))
-        );
     }
 
     public function updateDocumentViewPermission(UpdateDocumentViewPermissionRequest $request): RedirectResponse

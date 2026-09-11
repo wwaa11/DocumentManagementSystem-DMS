@@ -30,12 +30,12 @@ Route::group(['middleware' => 'auth'], function () {
     Route::prefix('admin')->middleware(['auth', 'role-manager'])->group(function () {
         Route::get('/role/list', [AdminController::class, 'RoleList'])->name('roles.list');
         Route::post('/role/update', [AdminController::class, 'RoleUpdate'])->name('roles.update');
+        Route::redirect('/course-permissions', '/admin/role/list?filter=course');
+        Route::redirect('/document-view-permissions', '/admin/role/list?filter=document');
     });
 
     Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
-        Route::get('/course-permissions', [DocumentCourseController::class, 'permissions'])->name('admin.course-permissions');
         Route::post('/course-permissions', [DocumentCourseController::class, 'updatePermission'])->name('admin.course-permissions.update');
-        Route::get('/document-view-permissions', [AdminController::class, 'documentViewPermissions'])->name('admin.document-view-permissions');
         Route::post('/document-view-permissions', [AdminController::class, 'updateDocumentViewPermission'])->name('admin.document-view-permissions.update');
     });
 

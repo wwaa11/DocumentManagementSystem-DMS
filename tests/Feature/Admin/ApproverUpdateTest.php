@@ -13,6 +13,8 @@ class ApproverUpdateTest extends TestCase
 
     private string $userid;
 
+    private int $departmentId;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -24,7 +26,7 @@ class ApproverUpdateTest extends TestCase
             ->where('approvers.level', 1)
             ->whereNotNull('approvers.userid')
             ->where('approvers.userid', '!=', '-')
-            ->select('departments.department', 'approvers.userid')
+            ->select('departments.id as department_id', 'departments.department', 'approvers.userid')
             ->orderBy('approvers.id')
             ->first();
 
@@ -32,6 +34,7 @@ class ApproverUpdateTest extends TestCase
 
         $this->department = (string) $row->department;
         $this->userid = (string) $row->userid;
+        $this->departmentId = (int) $row->department_id;
 
         DB::connection('staff')->beginTransaction();
     }
@@ -118,5 +121,44 @@ class ApproverUpdateTest extends TestCase
         $this->assertNotNull($emailRow);
         $this->assertSame($this->userid, $emailRow->userid);
         $this->assertSame($newEmail, $emailRow->email);
+    }
+
+    public function test_update_approver_creates_level_one_row_when_missing(): void
+    {
+        $this->actingAs($this->makeAdmin());
+
+        DB::connection('staff')
+            ->table('approvers')
+            ->where('department_id', $this->departmentId)
+            ->where('level', 1)
+            ->delete();
+
+        $this->assertFalse(
+            DB::connection('staff')
+                ->table('approvers')
+                ->where('department_id', $this->departmentId)
+                ->where('level', 1)
+                ->exists()
+        );
+
+        $newEmail = 'created-approver-'.uniqid().'@example.com';
+
+        app(ApproverAdminService::class)->updateApprover([
+            'department' => $this->department,
+            'userid' => $this->userid,
+            'name' => 'Approver Name',
+            'position' => 'Manager',
+            'email' => $newEmail,
+        ]);
+
+        $created = DB::connection('staff')
+            ->table('approvers')
+            ->where('department_id', $this->departmentId)
+            ->where('level', 1)
+            ->first();
+
+        $this->assertNotNull($created);
+        $this->assertSame($this->userid, $created->userid);
+        $this->assertSame(1, (int) $created->level);
     }
 }

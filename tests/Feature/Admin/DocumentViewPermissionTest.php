@@ -88,7 +88,8 @@ class DocumentViewPermissionTest extends TestCase
             ->values()
             ->all();
 
-        $this->assertContains('admin.document-view-permissions', $links);
+        $this->assertContains('roles.list', $links);
+        $this->assertNotContains('admin.document-view-permissions', $links);
     }
 
     public function test_non_admin_menu_excludes_document_view_permissions_page(): void
@@ -113,8 +114,9 @@ class DocumentViewPermissionTest extends TestCase
 
     public function test_admin_routes_are_registered(): void
     {
-        $this->assertTrue(Route::has('admin.document-view-permissions'));
+        $this->assertTrue(Route::has('roles.list'));
         $this->assertTrue(Route::has('admin.document-view-permissions.update'));
+        $this->assertTrue(Route::has('admin.course-permissions.update'));
     }
 
     public function test_update_request_validates_expected_fields(): void
@@ -209,11 +211,15 @@ class DocumentViewPermissionTest extends TestCase
 
     public function test_admin_permission_page_has_department_picker(): void
     {
-        $source = file_get_contents(resource_path('views/admin/document-view-permissions.blade.php'));
+        $source = file_get_contents(resource_path('views/admin/roles.blade.php'));
 
-        $this->assertStringContainsString('Department Document Access', $source);
-        $this->assertStringContainsString('name="view_departments[]"', $source);
+        $this->assertStringContainsString('User Roles & Permissions', $source);
+        $this->assertStringContainsString('id="deptPermissionModal"', $source);
+        $this->assertStringContainsString('edit-dept-btn', $source);
         $this->assertStringContainsString('name="can_view_department_documents"', $source);
-        $this->assertStringContainsString('route(\'admin.document-view-permissions.update\')', $source);
+        $this->assertStringContainsString('checkboxName" => "modal_departments"', $source);
+        $this->assertStringContainsString('route("admin.document-view-permissions.update")', $source);
+        $this->assertStringContainsString('route("admin.course-permissions.update")', $source);
+        $this->assertStringContainsString('$users->links()', $source);
     }
 }

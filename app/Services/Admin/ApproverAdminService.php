@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\User;
 use App\Services\StaffApiClient;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -13,7 +14,7 @@ class ApproverAdminService
     public function __construct(private StaffApiClient $staffApi) {}
 
     /**
-     * @return array{depts: Collection, datas: Collection, noti: array{count: int, error: int, err_list: array<int, string>}}
+     * @return array{depts: Collection, datas: Collection, noti: array{count: int, error: int, assigned: int, err_list: array<int, string>}}
      */
     public function listApprovers(): array
     {
@@ -23,13 +24,21 @@ class ApproverAdminService
             ->orderBy('department', 'asc')
             ->pluck('department', 'id');
 
+        $levelOneApprovers = DB::connection('staff')
+            ->table('approvers')
+            ->select('department_id', DB::raw('MAX(id) as id'))
+            ->where('level', 1)
+            ->groupBy('department_id');
+
         $datas = DB::connection('staff')
             ->table('departments')
-            ->leftJoin('approvers', 'departments.id', '=', 'approvers.department_id')
+            ->leftJoinSub($levelOneApprovers, 'level_one_approvers', function ($join): void {
+                $join->on('departments.id', '=', 'level_one_approvers.department_id');
+            })
+            ->leftJoin('approvers', 'approvers.id', '=', 'level_one_approvers.id')
             ->leftJoin('users', 'approvers.userid', '=', 'users.userid')
             ->leftJoin('emails', 'users.userid', '=', 'emails.userid')
             ->where('departments.department', '!=', 'Doctor')
-            ->where('approvers.level', 1)
             ->select(
                 'departments.id',
                 'departments.department',
@@ -42,17 +51,21 @@ class ApproverAdminService
                 'emails.email',
                 'users.position'
             )
+            ->orderByRaw("CASE WHEN approvers.userid IS NULL OR approvers.userid = '-' THEN 0 ELSE 1 END")
             ->orderBy('departments.department', 'asc')
             ->get();
 
         $errList = [];
 
         foreach ($datas as $data) {
-            if (empty($data->userid) || $data->userid === '-') {
+            $data->has_approver = $this->departmentHasApprover($data->userid);
+
+            if (! $data->has_approver) {
                 $errList[] = $data->department;
-                $data->name = 'ไม่พบข้อมูล';
-                $data->email = 'ไม่พบข้อมูล';
-                $data->position = 'ไม่พบข้อมูล';
+                $data->userid = null;
+                $data->name = null;
+                $data->email = null;
+                $data->position = null;
                 $data->last_update = null;
                 $data->last_userid = null;
                 $data->last_username = null;
@@ -65,6 +78,7 @@ class ApproverAdminService
             'noti' => [
                 'count' => $datas->count(),
                 'error' => count($errList),
+                'assigned' => $datas->count() - count($errList),
                 'err_list' => $errList,
             ],
         ];
@@ -96,18 +110,43 @@ class ApproverAdminService
             ->orderBy('department', 'asc')
             ->first();
 
-        DB::connection('staff')
+        if (! $dept) {
+            throw new InvalidArgumentException('ไม่พบแผนกนี้ในระบบ');
+        }
+
+        $existing = DB::connection('staff')
             ->table('approvers')
             ->where('department_id', $dept->id)
             ->where('level', 1)
-            ->update([
-                'userid' => $validated['userid'],
-                'updated_at' => now(),
-                'updated_userid' => auth()->user()->userid,
-                'updated_username' => auth()->user()->name,
+            ->first();
+
+        $payload = [
+            'userid' => $validated['userid'],
+            'updated_at' => now(),
+            'updated_userid' => auth()->user()->userid,
+            'updated_username' => auth()->user()->name,
+        ];
+
+        if ($existing) {
+            DB::connection('staff')
+                ->table('approvers')
+                ->where('id', $existing->id)
+                ->update($payload);
+        } else {
+            DB::connection('staff')->table('approvers')->insert([
+                ...$payload,
+                'department_id' => $dept->id,
+                'level' => 1,
+                'created_at' => now(),
             ]);
+        }
 
         $this->upsertStaffEmail($validated['userid'], $validated['email']);
+    }
+
+    private function departmentHasApprover(mixed $userid): bool
+    {
+        return filled($userid) && $userid !== '-';
     }
 
     private function upsertStaffEmail(string $userid, string $email): void
@@ -355,9 +394,23 @@ class ApproverAdminService
     }
 
     /**
-     * @return array{groupedUsers: array<string, array{label: string, users: list<User>}>, roles: array<string, string>, allRoleLabels: array<string, string>, search: ?string, canSetUser: bool, scoped: bool, apiNotice: ?array{status: string, message: ?string}}
+     * @return array{
+     *     users: \Illuminate\Contracts\Pagination\LengthAwarePaginator,
+     *     groupedUsers: array<string, array{label: string, users: list<User>}>,
+     *     roles: array<string, string>,
+     *     allRoleLabels: array<string, string>,
+     *     departments: list<string>,
+     *     search: ?string,
+     *     filter: string,
+     *     roleFilter: ?string,
+     *     canSetUser: bool,
+     *     scoped: bool,
+     *     canManageExtendedPermissions: bool,
+     *     stats: array{total: int, roles: int, course: int, document: int},
+     *     apiNotice: ?array{status: string, message: ?string}
+     * }
      */
-    public function listRoles(?string $search): array
+    public function listRoles(?string $search, ?string $filter = null, ?string $roleFilter = null): array
     {
         /** @var User $actor */
         $actor = auth()->user();
@@ -366,20 +419,49 @@ class ApproverAdminService
         $assignable = $this->assignableRoleKeys($actor->role);
         $canSetUser = $assignable === null || in_array('user', $assignable, true);
         $scoped = $assignable !== null;
+        $canManageExtendedPermissions = in_array((string) $actor->role, ['admin', 'dev'], true);
         $apiNotice = null;
         $search = filled($search) ? trim($search) : null;
+        $filter = in_array($filter, ['all', 'roles', 'course', 'document'], true) ? $filter : 'all';
+        $allowedRoleFilters = array_keys($roles);
 
-        $users = $this->roleUsersQuery($search, $assignable)
-            ->orderBy('role')
-            ->orderBy('name')
-            ->get();
+        if ($canSetUser && ! in_array('user', $allowedRoleFilters, true)) {
+            $allowedRoleFilters = array_merge(['user'], $allowedRoleFilters);
+        }
+
+        $roleFilter = filled($roleFilter) && in_array($roleFilter, $allowedRoleFilters, true)
+            ? $roleFilter
+            : null;
+
+        $query = $this->permissionUsersQuery($search, $assignable, $canManageExtendedPermissions, $filter, $roleFilter);
+
+        $stats = [
+            'total' => (clone $query)->count(),
+            'roles' => (clone $query)->where('role', '!=', 'user')->count(),
+            'course' => (clone $query)->where('can_create_course', true)->count(),
+            'document' => (clone $query)->where('can_view_department_documents', true)->count(),
+        ];
+
+        $users = $query->orderBy('role')->orderBy('name')->paginate(20)->withQueryString();
 
         if ($users->isEmpty() && filled($search) && $this->looksLikeUserid($search)) {
             $existing = User::query()->where('userid', $search)->first();
 
             if ($existing) {
-                if ($this->canDisplayUserForRoleAssignment($actor->role, $existing)) {
-                    $users = collect([$existing]);
+                if ($this->canDisplayUserForRoleAssignment($actor->role, $existing) || $canManageExtendedPermissions) {
+                    $users = new LengthAwarePaginator(
+                        collect([$existing]),
+                        1,
+                        20,
+                        1,
+                        ['path' => request()->url(), 'query' => request()->query()]
+                    );
+                    $stats = [
+                        'total' => 1,
+                        'roles' => $this->userHasElevatedRole($existing) ? 1 : 0,
+                        'course' => $existing->can_create_course ? 1 : 0,
+                        'document' => $existing->can_view_department_documents ? 1 : 0,
+                    ];
                 } else {
                     $apiNotice = [
                         'status' => 'out_of_scope',
@@ -394,14 +476,117 @@ class ApproverAdminService
                 ];
 
                 if ($import['status'] === 'imported' && $import['user'] instanceof User) {
-                    $users = collect([$import['user']]);
+                    $importedUser = $import['user'];
+                    $users = new LengthAwarePaginator(
+                        collect([$importedUser]),
+                        1,
+                        20,
+                        1,
+                        ['path' => request()->url(), 'query' => request()->query()]
+                    );
+                    $stats = [
+                        'total' => 1,
+                        'roles' => $this->userHasElevatedRole($importedUser) ? 1 : 0,
+                        'course' => $importedUser->can_create_course ? 1 : 0,
+                        'document' => $importedUser->can_view_department_documents ? 1 : 0,
+                    ];
                 }
             }
         }
 
-        $groupedUsers = $this->groupUsersByRoleType($users);
+        $groupedUsers = in_array($filter, ['all', 'roles'], true)
+            ? $this->groupUsersByRole($users->items(), $allRoleLabels)
+            : $this->groupUsersFlat($users->items(), $allRoleLabels);
 
-        return compact('groupedUsers', 'roles', 'allRoleLabels', 'search', 'canSetUser', 'scoped', 'apiNotice');
+        return [
+            'users' => $users,
+            'groupedUsers' => $groupedUsers,
+            'roles' => $roles,
+            'allRoleLabels' => $allRoleLabels,
+            'departments' => $canManageExtendedPermissions ? $this->staffDepartments() : [],
+            'search' => $search,
+            'filter' => $filter,
+            'roleFilter' => $roleFilter,
+            'canSetUser' => $canSetUser,
+            'scoped' => $scoped,
+            'canManageExtendedPermissions' => $canManageExtendedPermissions,
+            'stats' => $stats,
+            'apiNotice' => $apiNotice,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function staffDepartments(): array
+    {
+        return DB::connection('staff')
+            ->table('departments')
+            ->where('department', '!=', 'Doctor')
+            ->orderBy('department')
+            ->pluck('department')
+            ->all();
+    }
+
+    private function userHasElevatedRole(User $user): bool
+    {
+        return ! in_array((string) $user->role, ['user', ''], true);
+    }
+
+    /**
+     * @param  list<User>  $users
+     * @return array<string, array{label: string, users: list<User>}>
+     */
+    private function groupUsersByRole(array $users, array $allRoleLabels): array
+    {
+        $grouped = [];
+
+        foreach ($users as $user) {
+            $role = (string) $user->role;
+
+            if (! isset($grouped[$role])) {
+                $grouped[$role] = [
+                    'label' => $this->roleLabelForDisplay($role, $allRoleLabels),
+                    'users' => [],
+                ];
+            }
+
+            $grouped[$role]['users'][] = $user;
+        }
+
+        uasort(
+            $grouped,
+            fn (array $a, array $b): int => strcasecmp($a['label'], $b['label'])
+        );
+
+        return $grouped;
+    }
+
+    /**
+     * @param  list<User>  $users
+     * @return array<string, array{label: string, users: list<User>}>
+     */
+    private function groupUsersFlat(array $users, array $allRoleLabels): array
+    {
+        if ($users === []) {
+            return [];
+        }
+
+        return [
+            'all' => [
+                'label' => 'ผู้ใช้ทั้งหมด',
+                'users' => $users,
+            ],
+        ];
+    }
+
+    private function roleLabelForDisplay(string $role, array $allRoleLabels): string
+    {
+        if ($role === 'dev') {
+            return 'Admin';
+        }
+
+        return $allRoleLabels[$role] ?? $role;
     }
 
     /**
@@ -440,24 +625,54 @@ class ApproverAdminService
     /**
      * @param  list<string>|null  $assignable
      */
-    private function roleUsersQuery(?string $search, ?array $assignable)
-    {
+    private function permissionUsersQuery(
+        ?string $search,
+        ?array $assignable,
+        bool $includePermissionUsers,
+        string $filter = 'all',
+        ?string $roleFilter = null
+    ) {
         return User::query()
-            ->when($assignable === null, function ($query): void {
+            ->when(filled($search), function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('userid', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%");
+                });
+            })
+            ->when(! filled($search) && $assignable === null && $includePermissionUsers && $filter === 'all' && ! filled($roleFilter), function ($query): void {
+                $query->where(function ($query): void {
+                    $query->where('role', '!=', 'user')
+                        ->orWhere('can_create_course', true)
+                        ->orWhere('can_view_department_documents', true);
+                });
+            })
+            ->when(! filled($search) && $assignable === null && ! $includePermissionUsers, function ($query): void {
                 $query->where('role', '!=', 'user');
             })
-            ->when($assignable !== null, function ($query) use ($assignable): void {
+            ->when(! filled($search) && $assignable !== null && ! filled($roleFilter), function ($query) use ($assignable): void {
                 $displayRoles = array_values(array_filter(
                     $assignable,
                     fn (string $role): bool => $role !== 'user'
                 ));
                 $query->whereIn('role', $displayRoles);
             })
-            ->when(filled($search), function ($query) use ($search): void {
-                $query->where(function ($query) use ($search): void {
-                    $query->where('userid', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%");
-                });
+            ->when(! filled($search) && $filter === 'roles' && ! filled($roleFilter), function ($query): void {
+                $query->where('role', '!=', 'user');
+            })
+            ->when(! filled($search) && $filter === 'course', function ($query): void {
+                $query->where('can_create_course', true);
+            })
+            ->when(! filled($search) && $filter === 'document', function ($query): void {
+                $query->where('can_view_department_documents', true);
+            })
+            ->when(filled($roleFilter), function ($query) use ($roleFilter): void {
+                if ($roleFilter === 'admin') {
+                    $query->whereIn('role', ['admin', 'dev']);
+
+                    return;
+                }
+
+                $query->where('role', $roleFilter);
             });
     }
 
