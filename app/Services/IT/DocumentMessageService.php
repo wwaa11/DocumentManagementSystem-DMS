@@ -32,30 +32,7 @@ class DocumentMessageService
             return false;
         }
 
-        $requesterId = $this->requesterId($document);
-        $assignedUserId = $document->assigned_user_id;
-
-        if ($this->hasChatHistory($document)) {
-            if ($requesterId === $user->userid) {
-                return true;
-            }
-
-            if ($document->messages()->where('userid', $user->userid)->exists()) {
-                return true;
-            }
-
-            return in_array($user->role, ['admin', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'], true);
-        }
-
-        if ($requesterId === $user->userid) {
-            return filled($assignedUserId);
-        }
-
-        if ($assignedUserId === $user->userid) {
-            return true;
-        }
-
-        return in_array($user->role, ['admin', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'], true);
+        return $user->canAccessDocument($document);
     }
 
     public function canSendMessage(Model $document, User $user): bool
@@ -64,8 +41,18 @@ class DocumentMessageService
             return false;
         }
 
-        return in_array($document->status, ['process', 'pending'], true)
-            && filled($document->assigned_user_id);
+        return ! $this->isDocumentChatClosed($document);
+    }
+
+    public function isDocumentChatClosed(Model $document): bool
+    {
+        return in_array((string) $document->status, [
+            'complete',
+            'complete-partial',
+            'reject',
+            'not_approval',
+            'cancel',
+        ], true);
     }
 
     public function supportsChat(Model $document): bool
@@ -221,6 +208,10 @@ class DocumentMessageService
     {
         if ($document->relationLoaded('messages')) {
             return $document->messages->isNotEmpty();
+        }
+
+        if ($document->getKey() === null) {
+            return false;
         }
 
         return $document->messages()->exists();

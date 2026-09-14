@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\UnicodeJsonArray;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Http;
@@ -87,6 +88,58 @@ class User extends Authenticatable
         }
 
         return in_array($department, $departments, true);
+    }
+
+    public function canAccessDocument(Model $document): bool
+    {
+        $requesterId = match (true) {
+            $document instanceof DocumentIT => $document->requester,
+            $document instanceof DocumentItUser => $document->documentUser?->requester,
+            isset($document->requester) => $document->requester,
+            default => null,
+        };
+
+        if ($requesterId === $this->userid) {
+            return true;
+        }
+
+        $assignedUserId = $document->assigned_user_id ?? null;
+        if (filled($assignedUserId) && $assignedUserId === $this->userid) {
+            return true;
+        }
+
+        if ($document->getKey() !== null
+            && method_exists($document, 'approvers')
+            && $document->approvers()->where('userid', $this->userid)->exists()) {
+            return true;
+        }
+
+        if ($this->canViewDepartmentDocuments()) {
+            $creatorDepartment = $this->resolveDocumentCreatorDepartment($document);
+
+            if (filled($creatorDepartment) && $this->canViewDepartmentDocuments($creatorDepartment)) {
+                return true;
+            }
+        }
+
+        return in_array($this->role, ['admin', 'it', 'it-hardware', 'it-approve', 'it-hardware-approve'], true);
+    }
+
+    private function resolveDocumentCreatorDepartment(Model $document): ?string
+    {
+        if (! method_exists($document, 'creator')) {
+            return null;
+        }
+
+        if ($document->relationLoaded('creator')) {
+            return $document->creator?->department;
+        }
+
+        if ($document->getKey() === null) {
+            return null;
+        }
+
+        return $document->creator()->value('department');
     }
 
     public function canCreateCourseForDepartment(?string $department = null): bool
