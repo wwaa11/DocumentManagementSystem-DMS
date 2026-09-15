@@ -108,7 +108,7 @@ class DocumentWorkflowService
 
             if (
                 ($task->step == 1 && $task->task_user == 'head_of_department' && $taskData['selfApprove']) ||
-                ($task->step == 1 && $taskData['approver']['userid'] == auth()->user()->userid)
+                ($task->step == 1 && $task->task_user == 'head_of_department' && ($taskData['approver']['userid'] ?? null) == auth()->user()->userid)
             ) {
                 $taskAttributes['status'] = 'approve';
                 $taskAttributes['task_name'] = 'อนุมัติ';
