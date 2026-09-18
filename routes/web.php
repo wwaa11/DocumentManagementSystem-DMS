@@ -104,6 +104,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/admin/approvelist', [DocumentITController::class, 'adminApproveDocuments'])->name('admin.it.approvelist');
         Route::get('/admin/newdocument', [DocumentITController::class, 'adminNewDocuments'])->name('admin.it.newlist');
         Route::get('/admin/mydocument', [DocumentITController::class, 'adminMyDocuments'])->name('admin.it.mylist');
+        Route::post('/admin/mydocument/pin', [DocumentITController::class, 'toggleMyJobPin'])->name('admin.it.mylist.pin');
         Route::get('/admin/alldocument', [DocumentITController::class, 'adminAllDocuments'])->name('admin.it.alllist');
         Route::get('/admin/alldocument/export', [DocumentITController::class, 'exportAllDocuments'])->name('admin.it.alllist.export');
         Route::get('/admin/view/{type}/{document_id}/{action}', [DocumentITController::class, 'adminviewDocument'])->name('admin.it.view');

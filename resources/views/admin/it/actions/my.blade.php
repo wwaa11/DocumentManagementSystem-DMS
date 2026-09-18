@@ -18,9 +18,9 @@
     </fieldset>
     <button class="btn btn-soft btn-success w-full" type="button" onclick="submitForm()">ดำเนินการเสร็จสิ้น</button>
 </form>
-<button class="btn btn-ghost" onclick="cancelJob()" type="button">ยกเลิกการรับงาน</button>
+<button class="btn btn-ghost w-full mt-3" onclick="cancelJob()" type="button">ยกเลิกการรับงาน</button>
 <div class="divider"></div>
-<button class="btn btn-dash btn-error" onclick="cancelDocument()" type="button">ยกเลิกการเอกสารนี้</button>
+<button class="btn btn-dash btn-error w-full" onclick="cancelDocument()" type="button">ยกเลิกการเอกสารนี้</button>
 @push("scripts")
     <script>
         function submitForm() {

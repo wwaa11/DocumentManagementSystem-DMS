@@ -366,4 +366,24 @@ class ItAllDocumentsDepartmentFilterTest extends TestCase
 
         $this->assertSame(['USER', 'IT'], $sorted->pluck('tag')->all());
     }
+
+    public function test_my_jobs_list_has_pin_controls(): void
+    {
+        $source = file_get_contents(resource_path('views/admin/it/list.blade.php'));
+
+        $this->assertStringContainsString('toggleMyJobPin(', $source);
+        $this->assertStringContainsString("route('admin.it.mylist.pin')", $source);
+        $this->assertStringContainsString('fa-thumbtack', $source);
+        $this->assertStringContainsString("\$action === 'my'", $source);
+    }
+
+    public function test_my_documents_are_sorted_with_pins_first(): void
+    {
+        $serviceSource = file_get_contents(app_path('Services/IT/DocumentITAdminService.php'));
+
+        $this->assertStringContainsString('sortMyDocumentsWithPins', $serviceSource);
+        $this->assertStringContainsString('ItMyJobPin', $serviceSource);
+        $this->assertStringContainsString('pinnedDocumentKeys', $serviceSource);
+        $this->assertStringContainsString('toggleMyJobPin', $serviceSource);
+    }
 }

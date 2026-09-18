@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\IT\SetDocumentPendingRequest;
 use App\Http\Requests\IT\StoreDocumentMessageRequest;
+use App\Http\Requests\IT\ToggleMyJobPinRequest;
 use App\Services\IT\DocumentITAdminService;
 use App\Services\IT\DocumentITService;
 use App\Services\IT\DocumentMessageService;
@@ -53,6 +54,11 @@ class DocumentITController extends Controller
     public function adminMyDocuments(Request $request): View
     {
         return $this->documentITAdminService->adminMyDocuments($request);
+    }
+
+    public function toggleMyJobPin(ToggleMyJobPinRequest $request): JsonResponse
+    {
+        return $this->documentITAdminService->toggleMyJobPin($request);
     }
 
     public function adminAllDocuments(Request $request): View

@@ -2,10 +2,12 @@
 
 namespace App\Services\IT;
 
+use App\Http\Requests\IT\ToggleMyJobPinRequest;
 use App\Models\DocumentBorrow;
 use App\Models\DocumentIT;
 use App\Models\DocumentItUser;
 use App\Models\Hardware;
+use App\Models\ItMyJobPin;
 use App\Models\Log;
 use App\Models\User;
 use App\Services\DocumentWorkflowService;
@@ -151,7 +153,9 @@ class DocumentITAdminService
     public function adminMyDocuments(Request $request): View
     {
         $filters = $this->resolveMyDocumentsFilters($request);
-        $documents = $this->buildFilteredMyDocuments($filters, auth()->user()->userid);
+        $currentUserId = auth()->user()->userid;
+        $documents = $this->buildFilteredMyDocuments($filters, $currentUserId);
+        $pinnedDocumentKeys = $this->pinnedMyJobDocumentKeys($currentUserId);
         $typeCounts = [
             'IT' => $documents->filter(fn ($document): bool => $document instanceof DocumentIT)->count(),
             'USER' => $documents->filter(fn ($document): bool => $document instanceof DocumentItUser)->count(),
@@ -177,6 +181,54 @@ class DocumentITAdminService
             'start_date' => $filters['start_date'],
             'end_date' => $filters['end_date'],
             'typeCounts' => $typeCounts,
+            'pinnedDocumentKeys' => $pinnedDocumentKeys,
+        ]);
+    }
+
+    public function toggleMyJobPin(ToggleMyJobPinRequest $request): JsonResponse
+    {
+        $document = $this->findMyJobDocument($request->string('type')->toString(), $request->integer('id'));
+
+        if (! $document) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ไม่พบเอกสาร!',
+            ]);
+        }
+
+        $currentUserId = auth()->user()->userid;
+
+        if (! $this->userCanPinMyJobDocument($document, $currentUserId)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ไม่สามารถปักหมุดเอกสารนี้ได้!',
+            ]);
+        }
+
+        $pinKey = [
+            'userid' => $currentUserId,
+            'document_type' => $request->string('type')->toString(),
+            'document_id' => $request->integer('id'),
+        ];
+
+        $existingPin = ItMyJobPin::query()->where($pinKey)->first();
+
+        if ($existingPin) {
+            $existingPin->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'เลิกปักหมุดแล้ว',
+                'pinned' => false,
+            ]);
+        }
+
+        ItMyJobPin::query()->create($pinKey);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'ปักหมุดไว้ด้านบนแล้ว',
+            'pinned' => true,
         ]);
     }
 
@@ -727,7 +779,88 @@ class DocumentITAdminService
 
         $documentsITUser = ($type === 'ALL' || $type === 'USER') ? $itUserQuery->get() : collect();
 
-        return $this->mergeDocumentCollections($documents, $documentsITUser)->sortByDesc('created_at')->values();
+        return $this->sortMyDocumentsWithPins(
+            $this->mergeDocumentCollections($documents, $documentsITUser),
+            $currentUserId
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function pinnedMyJobDocumentKeys(string $currentUserId): array
+    {
+        return ItMyJobPin::query()
+            ->where('userid', $currentUserId)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (ItMyJobPin $pin): string => $pin->document_type.':'.$pin->document_id)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  Collection<int, DocumentIT|DocumentItUser>  $documents
+     * @return Collection<int, DocumentIT|DocumentItUser>
+     */
+    private function sortMyDocumentsWithPins(Collection $documents, string $currentUserId): Collection
+    {
+        $pins = ItMyJobPin::query()
+            ->where('userid', $currentUserId)
+            ->orderByDesc('created_at')
+            ->get()
+            ->keyBy(fn (ItMyJobPin $pin): string => $pin->document_type.':'.$pin->document_id);
+
+        return $documents->sort(function (DocumentIT|DocumentItUser $first, DocumentIT|DocumentItUser $second) use ($pins): int {
+            $firstRank = $this->myJobDocumentPinRank($first, $pins);
+            $secondRank = $this->myJobDocumentPinRank($second, $pins);
+
+            if ($firstRank !== $secondRank) {
+                return $secondRank <=> $firstRank;
+            }
+
+            return $second->created_at <=> $first->created_at;
+        })->values();
+    }
+
+    /**
+     * @param  Collection<string, ItMyJobPin>  $pins
+     */
+    private function myJobDocumentPinRank(DocumentIT|DocumentItUser $document, Collection $pins): int
+    {
+        $pin = $pins->get($this->myJobDocumentPinKey($document));
+
+        if (! $pin) {
+            return 0;
+        }
+
+        return $pin->created_at?->getTimestamp() ?? 0;
+    }
+
+    private function myJobDocumentPinKey(DocumentIT|DocumentItUser $document): string
+    {
+        $documentTag = $document->document_tag;
+
+        $type = is_array($documentTag)
+            ? ($documentTag['document_tag'] ?? 'IT')
+            : 'IT';
+
+        return $type.':'.$document->id;
+    }
+
+    private function findMyJobDocument(string $type, int $id): DocumentIT|DocumentItUser|null
+    {
+        if ($type === 'IT') {
+            return DocumentIT::query()->find($id);
+        }
+
+        return DocumentItUser::query()->find($id);
+    }
+
+    private function userCanPinMyJobDocument(DocumentIT|DocumentItUser $document, string $currentUserId): bool
+    {
+        return $document->assigned_user_id === $currentUserId
+            && in_array($document->status, ['process', 'pending'], true);
     }
 
     /**

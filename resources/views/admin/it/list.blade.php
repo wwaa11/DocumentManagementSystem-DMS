@@ -231,8 +231,11 @@
                     @foreach ($documents as $document)
                         @php
                             $isNewJobOverdue = $action == 'new' && $document->created_at->diffInSeconds(now()) > 86400;
+                            $documentType = $document->document_tag['document_tag'];
+                            $myJobPinKey = $documentType.':'.$document->id;
+                            $isMyJobPinned = $action === 'my' && in_array($myJobPinKey, $pinnedDocumentKeys ?? [], true);
                         @endphp
-                        <tr class="hover:bg-base-300 {{ $isNewJobOverdue ? 'bg-error/10' : '' }}">
+                        <tr class="hover:bg-base-300 {{ $isNewJobOverdue ? 'bg-error/10' : '' }} {{ $isMyJobPinned ? 'bg-warning/10' : '' }}">
                             <td class="text-center min-w-40">
                                 @if ($action == 'new')
                                     <x-document.job-timing-badge :since="$document->created_at" />
@@ -241,6 +244,17 @@
                                     <i class="fas fa-comments text-secondary" title="มีข้อความแชท"></i>
                                 @endif
                                 <div class="mt-1 flex items-center justify-center gap-1 text-xs">
+                                    @if ($action === 'my')
+                                    <button
+                                        class="btn btn-ghost btn-sm {{ $isMyJobPinned ? 'text-warning' : 'text-base-content/50' }}"
+                                        type="button"
+                                        title="{{ $isMyJobPinned ? 'เลิกปักหมุด' : 'ปักหมุดไว้ด้านบน' }}"
+                                        aria-pressed="{{ $isMyJobPinned ? 'true' : 'false' }}"
+                                        onclick="toggleMyJobPin('{{ $document->id }}', '{{ $documentType }}')"
+                                    >
+                                        <i class="fas fa-thumbtack"></i>
+                                    </button>
+                                    @endif
                                     <span>{{ $document->document_number }}</span>
                                 </div>
                             </td>
@@ -347,6 +361,7 @@
                             </td>
                             <td class="text-center">
                                 <div class="flex flex-wrap items-center justify-center gap-2">
+                                    
                                     @if ($action == "new" && blank($document->assigned_user_id))
                                         <button class="btn btn-accent" type="button" onclick="acceptDocument('{{ $document->id }}','{{ $document->document_tag["document_tag"] }}')">รับงาน</button>
                                     @endif
@@ -405,6 +420,29 @@
                             }
                         });
                     }
+                });
+            }
+        </script>
+    @elseif ($action === 'my')
+        <script>
+            function toggleMyJobPin(documentId, type) {
+                axios.post("{{ route('admin.it.mylist.pin') }}", {
+                    id: documentId,
+                    type: type,
+                }).then((response) => {
+                    if (response.data.status === 'success') {
+                        location.reload();
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: 'ผิดพลาด',
+                        text: response.data.message,
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                        timer: 1500,
+                    });
                 });
             }
         </script>
